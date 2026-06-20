@@ -1,11 +1,35 @@
 {
-  "name": "Friday University Bot",
+  "name": "Friday Bot",
   "dockerComposeFile": "docker-compose.yml",
-  "service": "workspace",
+  "service": "so-workspace",
   "workspaceFolder": "/workspaces/friday",
+  "remoteUser": "vscode",
+  "containerUser": "vscode",
   "shutdownAction": "stopCompose",
-  "forwardPorts": [3000, 5432, 8080, 8090],
-  "postCreateCommand": "dotnet restore backend && pip install -r bot/requirements.txt -r slm/requirements.txt && npm install --prefix webapp",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "username": "vscode",
+      "installZsh": true,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "latest",
+      "installMaven": true,
+      "installGradle": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "latest"
+    }
+  },
+  "onCreateCommand": "bash .devcontainer/scripts/on-create.sh",
+  "postStartCommand": "bash .devcontainer/scripts/on-start.sh",
   "customizations": {
     "vscode": {
       "extensions": [

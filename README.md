@@ -17,10 +17,12 @@ Required secret values:
 
 Open the repository in VS Code and reopen it in the devcontainer. The devcontainer starts:
 
-- `workspace`: C#, Java, Python, Node/TypeScript, Next.js, and React tooling.
-- `db`: PostgreSQL 16 Alpine on port `5432`.
+- `so-workspace`: C#, Java, Python, Node/TypeScript, Next.js, React tooling, GitHub CLI, and VS Code extensions.
+- `so-db`: PostgreSQL 16 Alpine on port `5432`.
 
 The repository is mounted at `/workspaces/friday`.
+
+The devcontainer compose publishes service ports directly and connects both services through the `so-network` bridge network. Named volumes keep `backend/bin`, `webapp/node_modules`, and `webapp/.next` inside Docker volumes. Lifecycle scripts in `.devcontainer/scripts` install the PostgreSQL client on create and fix volume permissions on start.
 
 ## Runtime Compose
 

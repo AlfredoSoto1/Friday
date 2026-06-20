@@ -1,17 +1,31 @@
 services:
-  workspace:
-    image: mcr.microsoft.com/devcontainers/universal:2
+  so-workspace:
+    image: mcr.microsoft.com/devcontainers/universal:latest
     command: sleep infinity
     env_file:
       - ../.env
+    user: vscode
     volumes:
       - ..:/workspaces/friday:cached
+      - friday-dotnet-bin:/workspaces/friday/backend/bin
+      - friday-webapp-node-modules:/workspaces/friday/webapp/node_modules
+      - friday-webapp-next-cache:/workspaces/friday/webapp/.next
     working_dir: /workspaces/friday
+    ports:
+      - "${WEBAPP_PORT:-3000}:3000"
+      - "${BACKEND_PORT:-8080}:8080"
+      - "${SLM_PORT:-8090}:8090"
     depends_on:
-      db:
+      so-db:
         condition: service_healthy
+    networks:
+      so-network:
+        aliases:
+          - workspace
+          - app
+          - agent
 
-  db:
+  so-db:
     image: postgres:16-alpine
     restart: unless-stopped
     env_file:
@@ -26,6 +40,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      so-network:
+        aliases:
+          - db
+          - postgres
 
 volumes:
   friday-dev-postgres:
+  friday-dotnet-bin:
+  friday-webapp-node-modules:
+  friday-webapp-next-cache:
+
+networks:
+  so-network:
+    name: so-network
+    driver: bridge
