@@ -3,3 +3,5 @@ set -euo pipefail
 
 sudo apt-get update
 sudo apt-get install -y --no-install-recommends postgresql-client curl
+
+npm install -g @openai/codex

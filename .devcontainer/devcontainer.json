@@ -48,7 +48,12 @@
         "vscjava.vscode-gradle",
         "bradlc.vscode-tailwindcss",
         "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint"
+        "dbaeumer.vscode-eslint",
+        "cweijan.vscode-database-client-jdbc",
+        "cweijan.vscode-database-client2",
+        "cschlosser.doxdocgen",
+        "mhutchie.git-graph",
+        "eamodio.gitlens"
       ],
       "settings": {
         "editor.formatOnSave": true,
