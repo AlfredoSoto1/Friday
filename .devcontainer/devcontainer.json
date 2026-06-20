@@ -1,0 +1,39 @@
+{
+  "name": "Friday University Bot",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/friday",
+  "shutdownAction": "stopCompose",
+  "forwardPorts": [3000, 5432, 8080, 8090],
+  "postCreateCommand": "dotnet restore backend && pip install -r bot/requirements.txt -r slm/requirements.txt && npm install --prefix webapp",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp",
+        "vscjava.vscode-java-pack",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-azuretools.vscode-docker",
+        "GitHub.vscode-pull-request-github",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "openai.chatgpt",
+        "anthropic.claude-code",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg",
+        "redhat.java",
+        "vscjava.vscode-maven",
+        "vscjava.vscode-gradle",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}

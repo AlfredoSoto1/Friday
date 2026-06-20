@@ -1,0 +1,31 @@
+services:
+  workspace:
+    image: mcr.microsoft.com/devcontainers/universal:2
+    command: sleep infinity
+    env_file:
+      - ../.env
+    volumes:
+      - ..:/workspaces/friday:cached
+    working_dir: /workspaces/friday
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - friday-dev-postgres:/var/lib/postgresql/data
+      - ../database/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  friday-dev-postgres:
