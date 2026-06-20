@@ -7,25 +7,21 @@
   "containerUser": "vscode",
   "shutdownAction": "stopCompose",
   "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "username": "vscode",
-      "installZsh": true,
-      "upgradePackages": true
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "os-provided"
     },
     "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/dotnet:2": {
-      "version": "latest"
-    },
     "ghcr.io/devcontainers/features/java:1": {
-      "version": "latest",
+      "version": "21",
+      "jdkDistro": "ms",
       "installMaven": true,
       "installGradle": true
     },
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "latest"
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "lts"
     },
     "ghcr.io/devcontainers/features/python:1": {
-      "version": "latest"
+      "version": "os-provided"
     }
   },
   "onCreateCommand": "bash .devcontainer/scripts/on-create.sh",
