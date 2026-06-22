@@ -18,9 +18,7 @@ public sealed class DashboardController : ControllerBase
   }
 
   [HttpGet]
-  public async Task<IActionResult> GetDashboardContent(
-    [FromQuery] DashboardQuery query,
-    CancellationToken cancellationToken)
+  public async Task<IActionResult> GetDashboardContent([FromQuery] DashboardQuery query)
   {
     var reqResult = query.Validate();
     if (reqResult.IsFailure)
@@ -28,7 +26,7 @@ public sealed class DashboardController : ControllerBase
       return reqResult.Send();
     }
 
-    var result = await _service.GetDashboardContent(reqResult.Value, cancellationToken);
+    var result = await _service.GetDashboardContent(reqResult.Value);
     return result.Send();
   }
 }

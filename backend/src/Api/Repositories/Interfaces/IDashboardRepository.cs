@@ -6,8 +6,7 @@ namespace Friday.Backend.Api.Repositories;
 
 public interface IDashboardRepository
 {
-  Task<Result<IReadOnlyCollection<DiscordServer>, AppError>> GetDiscordServers(
-    IDbConnection connection,
-    DashboardQuery query,
-    CancellationToken cancellationToken);
+  // ==========================================================================
+  // ==========================================================================
+  Task<Result<IReadOnlyCollection<DiscordServer>, AppError>> GetDiscordServers(IDbConnection connection, DashboardQuery query);
 }

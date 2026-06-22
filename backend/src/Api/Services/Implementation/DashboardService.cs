@@ -6,23 +6,19 @@ namespace Friday.Backend.Api.Services;
 
 public sealed class DashboardService : IDashboardService
 {
-  private readonly IDbConnectionFactory _connectionFactory;
+  private readonly IDbConnectionFactory _dbFactory;
   private readonly IDashboardRepository _repository;
 
-  public DashboardService(
-    IDbConnectionFactory connectionFactory,
-    IDashboardRepository repository)
+  public DashboardService(IDbConnectionFactory dbFactory, IDashboardRepository repository)
   {
-    _connectionFactory = connectionFactory;
+    _dbFactory = dbFactory;
     _repository = repository;
   }
 
-  public async Task<Result<DashboardContent, AppError>> GetDashboardContent(
-    DashboardQuery query,
-    CancellationToken cancellationToken)
+  public async Task<Result<DashboardContent, AppError>> GetDashboardContent(DashboardQuery query)
   {
-    await using var connection = await _connectionFactory.OpenAsync(cancellationToken);
-    var serversResult = await _repository.GetDiscordServers(connection, query, cancellationToken);
+    using var connection = _dbFactory.Create();
+    var serversResult = await _repository.GetDiscordServers(connection, query);
 
     return serversResult.Transform(servers => new DashboardContent
     {

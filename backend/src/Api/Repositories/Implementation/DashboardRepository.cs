@@ -7,43 +7,35 @@ namespace Friday.Backend.Api.Repositories;
 
 public sealed class DashboardRepository : IDashboardRepository
 {
-  public async Task<Result<IReadOnlyCollection<DiscordServer>, AppError>> GetDiscordServers(
-    IDbConnection connection,
-    DashboardQuery query,
-    CancellationToken cancellationToken)
+  public async Task<Result<IReadOnlyCollection<DiscordServer>, AppError>> GetDiscordServers(IDbConnection connection, DashboardQuery query)
   {
     var parameters = new DynamicParameters();
-    var where = string.Empty;
-
-    if (!string.IsNullOrWhiteSpace(query.Search))
-    {
-      where = "WHERE name ILIKE @Search OR server_code ILIKE @Search";
-      parameters.Add("Search", $"%{query.Search.Trim()}%");
-    }
-
-    var command = new CommandDefinition(
-      $"""
-      SELECT
-        server_id,
-        name,
-        server_code,
-        created_at
-      FROM discord.servers
-      {where}
-      ORDER BY name;
-      """,
-      parameters,
-      cancellationToken: cancellationToken);
+    parameters.Add("Limit", query.Limit);
+    parameters.Add("Offset", query.PageIndex * query.Limit);
 
     try
     {
-      var servers = await connection.QueryAsync<DiscordServer>(command);
-      return Result<IReadOnlyCollection<DiscordServer>, AppError>.Ok(servers.ToArray());
+      const string sql = @"
+        SELECT server_id, name, server_code, created_at
+          FROM discord.servers
+        ORDER BY created_at DESC
+        LIMIT @Limit OFFSET @Offset;
+      ";
+
+      var servers = await connection.QueryAsync(sql, parameters);
+      return Result<IReadOnlyCollection<DiscordServer>, AppError>.Ok(servers.Select(MapToDiscordServer).ToArray());
     }
     catch (Exception ex)
     {
-      return Result<IReadOnlyCollection<DiscordServer>, AppError>.Fail(
-        AppError.ServerError($"Failed to get Discord servers: {ex.Message}"));
+      return Result<IReadOnlyCollection<DiscordServer>, AppError>.Fail(AppError.BadRequest(ex.Message));
     }
   }
+
+  private static DiscordServer MapToDiscordServer(dynamic record) => new()
+  {
+    ServerId = (int)record.server_id,
+    Name = (string)record.name,
+    ServerCode = (string)record.server_code,
+    CreatedAt = (DateTime)record.created_at
+  };
 }

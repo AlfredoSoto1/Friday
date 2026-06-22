@@ -5,7 +5,7 @@ namespace Friday.Backend.Api.Services;
 
 public interface IDashboardService
 {
-  Task<Result<DashboardContent, AppError>> GetDashboardContent(
-    DashboardQuery query,
-    CancellationToken cancellationToken);
+  // ==========================================================================
+  // ==========================================================================
+  Task<Result<DashboardContent, AppError>> GetDashboardContent(DashboardQuery query);
 }

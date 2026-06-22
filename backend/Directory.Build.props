@@ -1,6 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <BaseIntermediateOutputPath>../.cache/dotnet/backend/obj/</BaseIntermediateOutputPath>
-    <BaseOutputPath>../.cache/dotnet/backend/bin/</BaseOutputPath>
-  </PropertyGroup>
-</Project>
