@@ -8,6 +8,8 @@ import edu.uprm.friday.bot.backend.dto.BotCommandResponse;
 import edu.uprm.friday.bot.backend.dto.BotGuildProfile;
 import edu.uprm.friday.bot.backend.dto.BotGuildSummary;
 import edu.uprm.friday.bot.backend.dto.BotSetupProfile;
+import edu.uprm.friday.bot.backend.dto.BotSyncResult;
+import edu.uprm.friday.bot.backend.dto.BotSyncRequest;
 import edu.uprm.friday.bot.backend.dto.BotVerifyMemberRequest;
 import edu.uprm.friday.bot.backend.dto.BotVerifyMemberResult;
 import edu.uprm.friday.bot.backend.dto.BotXpRequest;
@@ -68,6 +70,12 @@ public final class BackendClient {
     return post("/api/v1/bot/servers/" + guildId + "/members/verify", request)
       .map(data -> objectMapper.convertValue(data, BotVerifyMemberResult.class))
       .orElseGet(() -> new BotVerifyMemberResult(false, "Backend verification is unavailable.", List.of()));
+  }
+
+  public BotSyncResult syncGuild(BotSyncRequest request) {
+    return post("/api/v1/bot/servers/" + request.guildId() + "/sync", request)
+      .map(data -> objectMapper.convertValue(data, BotSyncResult.class))
+      .orElseGet(() -> BotSyncResult.unavailable(request.guildId()));
   }
 
   public BotXpResult addXp(long guildId, BotXpRequest request) {

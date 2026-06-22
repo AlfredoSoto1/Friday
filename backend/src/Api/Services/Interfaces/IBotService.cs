@@ -11,4 +11,5 @@ public interface IBotService
   Task<Result<BotSetupProfile, AppError>> GetSetupProfile(long guildId);
   Task<Result<BotVerifyMemberResult, AppError>> VerifyMember(long guildId, BotVerifyMemberRequest request);
   Task<Result<BotXpResult, AppError>> AddXp(long guildId, BotXpRequest request);
+  Task<Result<BotSyncResult, AppError>> SyncGuild(BotSyncRequest request);
 }

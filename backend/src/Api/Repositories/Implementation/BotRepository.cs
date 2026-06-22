@@ -193,6 +193,146 @@ public sealed class BotRepository : IBotRepository
     }
   }
 
+
+  public async Task<Result<BotSyncResult, AppError>> SyncGuild(IDbConnection connection, BotSyncRequest request)
+  {
+    if (connection is not System.Data.Common.DbConnection dbConnection)
+    {
+      return Result<BotSyncResult, AppError>.Fail(AppError.BadRequest("Sync requires a database connection."));
+    }
+
+    try
+    {
+      if (dbConnection.State != ConnectionState.Open)
+      {
+        await dbConnection.OpenAsync();
+      }
+
+      using var transaction = await dbConnection.BeginTransactionAsync();
+      try
+      {
+        var serverId = await dbConnection.QuerySingleAsync<int>(@"
+          INSERT INTO discord.servers (name, server_code)
+          VALUES (@Name, @ServerCode)
+          ON CONFLICT (server_code)
+          DO UPDATE SET name = EXCLUDED.name
+          RETURNING server_id;
+        ", new
+        {
+          Name = request.GuildName,
+          ServerCode = request.GuildId.ToString()
+        }, transaction);
+
+        await dbConnection.ExecuteAsync(@"
+          INSERT INTO discord.bot_server_profiles (server_id, discord_guild_id, name)
+          VALUES (@ServerId, @GuildId, @Name)
+          ON CONFLICT (discord_guild_id)
+          DO UPDATE SET server_id = EXCLUDED.server_id,
+                        name = EXCLUDED.name,
+                        updated_at = CURRENT_TIMESTAMP;
+        ", new
+        {
+          ServerId = serverId,
+          request.GuildId,
+          Name = request.GuildName
+        }, transaction);
+
+        foreach (var role in request.Roles)
+        {
+          await dbConnection.ExecuteAsync(@"
+            INSERT INTO discord.roles
+              (server_id, discord_role_id, name, color, position, managed, mentionable, hoisted, updated_at)
+            VALUES
+              (@ServerId, @DiscordRoleId, @Name, @Color, @Position, @Managed, @Mentionable, @Hoisted, CURRENT_TIMESTAMP)
+            ON CONFLICT (server_id, discord_role_id)
+            DO UPDATE SET name = EXCLUDED.name,
+                          color = EXCLUDED.color,
+                          position = EXCLUDED.position,
+                          managed = EXCLUDED.managed,
+                          mentionable = EXCLUDED.mentionable,
+                          hoisted = EXCLUDED.hoisted,
+                          updated_at = CURRENT_TIMESTAMP;
+          ", new
+          {
+            ServerId = serverId,
+            role.DiscordRoleId,
+            role.Name,
+            role.Color,
+            role.Position,
+            role.Managed,
+            role.Mentionable,
+            role.Hoisted
+          }, transaction);
+        }
+
+        foreach (var channel in request.Channels)
+        {
+          await dbConnection.ExecuteAsync(@"
+            INSERT INTO discord.channels
+              (server_id, discord_channel_id, parent_channel_id, name, type, position, topic, nsfw, updated_at)
+            VALUES
+              (@ServerId, @DiscordChannelId, @ParentChannelId, @Name, @Type, @Position, @Topic, @Nsfw, CURRENT_TIMESTAMP)
+            ON CONFLICT (server_id, discord_channel_id)
+            DO UPDATE SET parent_channel_id = EXCLUDED.parent_channel_id,
+                          name = EXCLUDED.name,
+                          type = EXCLUDED.type,
+                          position = EXCLUDED.position,
+                          topic = EXCLUDED.topic,
+                          nsfw = EXCLUDED.nsfw,
+                          updated_at = CURRENT_TIMESTAMP;
+          ", new
+          {
+            ServerId = serverId,
+            channel.DiscordChannelId,
+            channel.ParentChannelId,
+            channel.Name,
+            channel.Type,
+            channel.Position,
+            channel.Topic,
+            channel.Nsfw
+          }, transaction);
+        }
+
+        var categoryCount = request.Channels.Count(channel => string.Equals(channel.Type, "category", StringComparison.OrdinalIgnoreCase));
+        var syncedAt = await dbConnection.QuerySingleAsync<DateTime>(@"
+          INSERT INTO discord.server_syncs
+            (server_id, role_count, channel_count, category_count, synced_by_discord_id)
+          VALUES
+            (@ServerId, @RoleCount, @ChannelCount, @CategoryCount, @SyncedByDiscordId)
+          RETURNING synced_at;
+        ", new
+        {
+          ServerId = serverId,
+          RoleCount = request.Roles.Count,
+          ChannelCount = request.Channels.Count,
+          CategoryCount = categoryCount,
+          request.SyncedByDiscordId
+        }, transaction);
+
+        await transaction.CommitAsync();
+
+        return Result<BotSyncResult, AppError>.Ok(new BotSyncResult
+        {
+          GuildId = request.GuildId,
+          RoleCount = request.Roles.Count,
+          ChannelCount = request.Channels.Count,
+          CategoryCount = categoryCount,
+          SyncedAt = syncedAt
+        });
+      }
+      catch
+      {
+        await transaction.RollbackAsync();
+        throw;
+      }
+    }
+    catch (Exception ex)
+    {
+      return Result<BotSyncResult, AppError>.Fail(AppError.BadRequest(ex.Message));
+    }
+  }
+
+
   private static BotGuildSummary MapGuildSummary(dynamic record) => new()
   {
     GuildId = (long)record.discord_guild_id,

@@ -52,9 +52,21 @@ CREATE TABLE discord.permissions (
 );
 
 CREATE TABLE discord.roles (
-  role_id    SERIAL       PRIMARY KEY,
-  name       VARCHAR(255) NOT NULL UNIQUE,
-  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+  role_id         SERIAL       PRIMARY KEY,
+  server_id       INT          NOT NULL,
+  discord_role_id VARCHAR(32),
+  name            VARCHAR(255) NOT NULL,
+  color           INT,
+  position        INT,
+  managed         BOOLEAN      NOT NULL DEFAULT FALSE,
+  mentionable     BOOLEAN      NOT NULL DEFAULT FALSE,
+  hoisted         BOOLEAN      NOT NULL DEFAULT FALSE,
+  created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE (server_id, name),
+  UNIQUE (server_id, discord_role_id),
+  FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE
 );
 
 CREATE TABLE discord.role_permissions (
@@ -78,9 +90,14 @@ CREATE TABLE discord.user_roles (
 );
 
 CREATE TABLE discord.teams (
-  team_id     SERIAL       PRIMARY KEY,
-  name        VARCHAR(255) NOT NULL UNIQUE,
-  created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+  team_id    SERIAL       PRIMARY KEY,
+  server_id  INT          NOT NULL,
+  name       VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE (server_id, name),
+  FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE
 );
 
 CREATE TABLE discord.user_teams (
@@ -91,6 +108,35 @@ CREATE TABLE discord.user_teams (
   PRIMARY KEY (su_id, team_id),
   FOREIGN KEY (su_id) REFERENCES discord.servers_users(su_id) ON DELETE CASCADE,
   FOREIGN KEY (team_id) REFERENCES discord.teams(team_id) ON DELETE CASCADE
+);
+
+CREATE TABLE discord.channels (
+  channel_id         SERIAL       PRIMARY KEY,
+  server_id          INT          NOT NULL,
+  discord_channel_id VARCHAR(32)  NOT NULL,
+  parent_channel_id  VARCHAR(32),
+  name               VARCHAR(255) NOT NULL,
+  type               VARCHAR(50)  NOT NULL,
+  position           INT,
+  topic              TEXT,
+  nsfw               BOOLEAN      NOT NULL DEFAULT FALSE,
+  created_at         TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  updated_at         TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE (server_id, discord_channel_id),
+  FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE
+);
+
+CREATE TABLE discord.server_syncs (
+  sync_id             SERIAL    PRIMARY KEY,
+  server_id           INT       NOT NULL,
+  role_count          INT       NOT NULL DEFAULT 0,
+  channel_count       INT       NOT NULL DEFAULT 0,
+  category_count      INT       NOT NULL DEFAULT 0,
+  synced_by_discord_id VARCHAR(32),
+  synced_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE
 );
 
 -- ============================================================================
@@ -159,85 +205,4 @@ CREATE TABLE inelicom.organizations (
   name            VARCHAR(255) NOT NULL UNIQUE,
   description     TEXT         NOT NULL UNIQUE,
   created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
-);
-
--- ============================================================================
--- Discord Bot Runtime Configuration
--- ============================================================================
-
-CREATE TABLE discord.bot_server_profiles (
-  profile_id                 SERIAL       PRIMARY KEY,
-  discord_guild_id           BIGINT       NOT NULL UNIQUE,
-  name                       VARCHAR(255) NOT NULL,
-  enabled                    BOOLEAN      NOT NULL DEFAULT TRUE,
-  primary_color              VARCHAR(6)   NOT NULL DEFAULT '2f80ed',
-  thumbnail_url              TEXT,
-  footer_text                TEXT,
-  verification_enabled       BOOLEAN      NOT NULL DEFAULT TRUE,
-  verification_title         TEXT         NOT NULL DEFAULT 'Bienvenido al servidor',
-  verification_description   TEXT         NOT NULL DEFAULT 'Presiona el boton de verificacion para confirmar tu correo institucional.',
-  verification_button_label  VARCHAR(80)  NOT NULL DEFAULT 'Verify',
-  verification_channel_id    VARCHAR(32),
-  verified_role_id           VARCHAR(32),
-  verification_banner_url    TEXT,
-  welcome_enabled            BOOLEAN      NOT NULL DEFAULT TRUE,
-  welcome_title              TEXT         NOT NULL DEFAULT 'Bienvenido',
-  welcome_description        TEXT         NOT NULL DEFAULT 'Gracias por unirte. Completa la verificacion para acceder al servidor.',
-  welcome_channel_id         VARCHAR(32),
-  welcome_banner_url         TEXT,
-  created_at                 TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-  updated_at                 TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE discord.bot_command_responses (
-  response_id   SERIAL       PRIMARY KEY,
-  profile_id    INT          NOT NULL,
-  command_name  VARCHAR(64)  NOT NULL,
-  title         TEXT         NOT NULL,
-  description   TEXT         NOT NULL,
-  image_url     TEXT,
-  url           TEXT,
-  color         VARCHAR(6),
-  ephemeral     BOOLEAN      NOT NULL DEFAULT TRUE,
-  created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-
-  UNIQUE (profile_id, command_name),
-  FOREIGN KEY (profile_id) REFERENCES discord.bot_server_profiles(profile_id) ON DELETE CASCADE
-);
-
-CREATE TABLE discord.bot_setup_channels (
-  setup_channel_id SERIAL       PRIMARY KEY,
-  profile_id       INT          NOT NULL,
-  name             VARCHAR(100) NOT NULL,
-  type             VARCHAR(20)  NOT NULL,
-  category         VARCHAR(100),
-  position         INT          NOT NULL DEFAULT 0,
-  created_at       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (profile_id) REFERENCES discord.bot_server_profiles(profile_id) ON DELETE CASCADE
-);
-
-CREATE TABLE discord.bot_member_verifications (
-  verification_id   SERIAL       PRIMARY KEY,
-  discord_guild_id  BIGINT       NOT NULL,
-  discord_user_id   VARCHAR(32)  NOT NULL,
-  discord_username  VARCHAR(255) NOT NULL,
-  email             VARCHAR(255) NOT NULL,
-  fun_fact          TEXT,
-  verified          BOOLEAN      NOT NULL DEFAULT FALSE,
-  verified_at       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-
-  UNIQUE (discord_guild_id, discord_user_id)
-);
-
-CREATE TABLE discord.bot_member_levels (
-  level_id          SERIAL       PRIMARY KEY,
-  discord_guild_id  BIGINT       NOT NULL,
-  discord_user_id   VARCHAR(32)  NOT NULL,
-  discord_username  VARCHAR(255) NOT NULL,
-  xp                INT          NOT NULL DEFAULT 0,
-  level             INT          NOT NULL DEFAULT 1,
-  updated_at        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-
-  UNIQUE (discord_guild_id, discord_user_id)
 );

@@ -33,30 +33,29 @@ public sealed class DbConnectionFactory : IDbConnectionFactory
 
   private static string ResolveConnectionString(IConfiguration configuration)
   {
-    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-    if (!string.IsNullOrWhiteSpace(databaseUrl))
-    {
-      return databaseUrl;
-    }
-
     var configuredConnection = configuration.GetConnectionString("Default");
     if (!string.IsNullOrWhiteSpace(configuredConnection))
     {
       return configuredConnection;
     }
 
-    var host = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "db";
-    var port = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
-    var database = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "friday";
-    var username = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "friday";
-    var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
-
-    if (string.IsNullOrWhiteSpace(password))
-    {
-      throw new InvalidOperationException(
-        "DATABASE_URL, ConnectionStrings:Default, or POSTGRES_PASSWORD must be set.");
-    }
+    var host = RequiredEnv("POSTGRES_HOST");
+    var port = RequiredEnv("POSTGRES_PORT");
+    var database = RequiredEnv("POSTGRES_DB");
+    var username = RequiredEnv("POSTGRES_USER");
+    var password = RequiredEnv("POSTGRES_PASSWORD");
 
     return $"Host={host};Port={port};Database={database};Username={username};Password={password}";
+  }
+
+  private static string RequiredEnv(string name)
+  {
+    var value = Environment.GetEnvironmentVariable(name);
+    if (string.IsNullOrWhiteSpace(value))
+    {
+      throw new InvalidOperationException($"{name} must be set.");
+    }
+
+    return value;
   }
 }

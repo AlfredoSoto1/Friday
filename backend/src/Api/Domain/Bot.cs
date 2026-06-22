@@ -113,3 +113,44 @@ public sealed class BotXpResult
   public int Level { get; init; }
   public bool LeveledUp { get; init; }
 }
+
+
+public sealed class BotSyncRequest
+{
+  public long GuildId { get; init; }
+  public string GuildName { get; init; } = string.Empty;
+  public string SyncedByDiscordId { get; init; } = string.Empty;
+  public IReadOnlyCollection<BotSyncRole> Roles { get; init; } = [];
+  public IReadOnlyCollection<BotSyncChannel> Channels { get; init; } = [];
+}
+
+public sealed class BotSyncRole
+{
+  public string DiscordRoleId { get; init; } = string.Empty;
+  public string Name { get; init; } = string.Empty;
+  public int Color { get; init; }
+  public int Position { get; init; }
+  public bool Managed { get; init; }
+  public bool Mentionable { get; init; }
+  public bool Hoisted { get; init; }
+}
+
+public sealed class BotSyncChannel
+{
+  public string DiscordChannelId { get; init; } = string.Empty;
+  public string? ParentChannelId { get; init; }
+  public string Name { get; init; } = string.Empty;
+  public string Type { get; init; } = string.Empty;
+  public int Position { get; init; }
+  public string? Topic { get; init; }
+  public bool Nsfw { get; init; }
+}
+
+public sealed class BotSyncResult
+{
+  public long GuildId { get; init; }
+  public int RoleCount { get; init; }
+  public int ChannelCount { get; init; }
+  public int CategoryCount { get; init; }
+  public DateTime SyncedAt { get; init; }
+}

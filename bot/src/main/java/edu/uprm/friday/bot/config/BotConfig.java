@@ -7,8 +7,6 @@ import java.util.Optional;
 
 public record BotConfig(
   String discordBotToken,
-  Optional<String> discordClientId,
-  Optional<Long> discordGuildId,
   String backendUrl
 ) {
   private static final String DEFAULT_BACKEND_URL = "http://localhost:8080";
@@ -33,20 +31,13 @@ public record BotConfig(
 
   static BotConfig from(ConfigSource source) {
     String token = clean(source.get("DISCORD_BOT_TOKEN")).orElse("");
-    Optional<String> clientId = clean(source.get("DISCORD_CLIENT_ID"));
-    Optional<Long> guildId = clean(source.get("DISCORD_GUILD_ID")).flatMap(BotConfig::parseLong);
-    String backendUrl = clean(firstPresent(source.get("BOT_BACKEND_URL"), source.get("BACKEND_URL")))
-      .orElse(DEFAULT_BACKEND_URL);
+    String backendUrl = clean(source.get("BACKEND_URL")).orElse(DEFAULT_BACKEND_URL);
 
-    return new BotConfig(token, clientId, guildId, stripTrailingSlash(backendUrl));
+    return new BotConfig(token, stripTrailingSlash(backendUrl));
   }
 
   public boolean hasUsableToken() {
     return !discordBotToken.isBlank() && !discordBotToken.startsWith("replace-with-");
-  }
-
-  private static String firstPresent(String preferred, String fallback) {
-    return clean(preferred).orElse(fallback);
   }
 
   private static Optional<String> clean(String value) {
@@ -54,14 +45,6 @@ public record BotConfig(
       return Optional.empty();
     }
     return Optional.of(value.trim());
-  }
-
-  private static Optional<Long> parseLong(String value) {
-    try {
-      return Optional.of(Long.parseLong(value));
-    } catch (NumberFormatException ignored) {
-      return Optional.empty();
-    }
   }
 
   private static String stripTrailingSlash(String value) {

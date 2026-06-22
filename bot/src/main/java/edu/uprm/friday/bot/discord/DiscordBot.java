@@ -54,14 +54,10 @@ public final class DiscordBot {
       return;
     }
 
-    config.discordGuildId().ifPresentOrElse(
-      guildId -> syncGuildCommands(jda, guildId),
-      () -> {
-        jda.getGuilds().stream()
-          .filter(guild -> backendClient.isGuildEnabled(guild.getIdLong()))
-          .forEach(guild -> syncGuildCommands(jda, guild.getIdLong()));
-        LOGGER.info("Queued command sync for visible backend-enabled guilds");
-      });
+    jda.getGuilds().stream()
+      .filter(guild -> backendClient.isGuildEnabled(guild.getIdLong()))
+      .forEach(guild -> syncGuildCommands(jda, guild.getIdLong()));
+    LOGGER.info("Queued command sync for visible backend-enabled guilds");
   }
 
   private void syncGuildCommands(JDA jda, long guildId) {

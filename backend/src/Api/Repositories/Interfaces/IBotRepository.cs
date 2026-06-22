@@ -12,4 +12,5 @@ public interface IBotRepository
   Task<Result<BotSetupProfile, AppError>> GetSetupProfile(IDbConnection connection, long guildId);
   Task<Result<BotVerifyMemberResult, AppError>> VerifyMember(IDbConnection connection, long guildId, BotVerifyMemberRequest request);
   Task<Result<BotXpResult, AppError>> AddXp(IDbConnection connection, long guildId, BotXpRequest request);
+  Task<Result<BotSyncResult, AppError>> SyncGuild(IDbConnection connection, BotSyncRequest request);
 }

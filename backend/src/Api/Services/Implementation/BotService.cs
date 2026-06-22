@@ -50,4 +50,10 @@ public sealed class BotService : IBotService
     using var connection = _dbFactory.Create();
     return await _repository.AddXp(connection, guildId, request);
   }
+
+  public async Task<Result<BotSyncResult, AppError>> SyncGuild(BotSyncRequest request)
+  {
+    using var connection = _dbFactory.Create();
+    return await _repository.SyncGuild(connection, request);
+  }
 }
