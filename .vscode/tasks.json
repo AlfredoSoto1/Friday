@@ -19,6 +19,18 @@
         "base": "$msCompile",
         "severity": "error"
       }
+    },
+    {
+      "label": "bot: build",
+      "type": "process",
+      "command": "mvn",
+      "args": [
+        "-f",
+        "${workspaceFolder}/bot/pom.xml",
+        "package"
+      ],
+      "group": "build",
+      "problemMatcher": []
     }
   ]
 }

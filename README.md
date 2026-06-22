@@ -70,3 +70,33 @@ Webapp:
 npm install --prefix webapp
 npm run dev --prefix webapp
 ```
+
+## Usage
+
+### Application Commands
+
+| Command                         | Description                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------------ |
+| `/calendario`                   | Links to the academic calendar of UPRM.                                        |
+| `/estudiante-orientador`        | Lists all EO's in the server by department.                                    |
+| `/rules`                        | Lists server rules.                                                            |
+| `/guia-prepistica`              | Provides a PDF guide on prepas.                                                |
+| `/faculty`                      | Displays detailed information about faculty members.                           |
+| `/ls_projects`                  | Provides information on ongoing projects and research.                         |
+| `/ls_student_orgs`              | Lists student organizations and their activities.                              |
+| `/salon`                        | Finds a building on campus based on its code.                                  |
+| `/lab`                          | Finds a lab on campus based on its code.                                       |
+| `/links`                        | Provides useful links related to studies and resources.                        |
+| `/made-web`                     | Links to the MADE (Media Arts and Digital Entertainment) website.              |
+| `/contact-dcsp`                 | Provides information about the Department of Computer Science and Engineering. |
+| `/contact-department`           | Displays information about specific departments at UPRM.                       |
+| `/contact-decanato-estudiantes` | Provides contact information for the Dean of Students.                         |
+| `/contact-guardia-univ`         | Provides contact information for campus security.                              |
+| `/contact-asesoria-academica`   | Provides guidance on academic matters and advisories.                          |
+| `/contact-asistencia-economica` | Provides information about financial aid and economic assistance.              |
+| `/curriculo`                    | Provides general information about academic curricula.                         |
+| `/guia-prepistica`              | Provides a guide for incoming freshmen.                                        |
+| `/faq`                          | Answers frequently asked questions about the Discord server.                   |
+| `/help`                         | Displays a comprehensive help menu for navigating the bot's commands.          |
+| `/map`                          | Provides a link to the UPRM campus map.                                        |
+| `/rules`                        | Displays the rules and guidelines for the Discord server.                      |

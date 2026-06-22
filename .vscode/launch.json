@@ -14,6 +14,16 @@
       "logging": {
         "moduleLoad": false
       }
+    },
+    {
+      "name": "Bot",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "edu.uprm.friday.bot.FridayBotApplication",
+      "projectName": "friday-bot",
+      "cwd": "${workspaceFolder}/bot",
+      "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "bot: build"
     }
   ]
 }
