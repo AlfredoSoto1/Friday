@@ -1,5 +1,6 @@
 using Friday.Backend.Api.Domain;
 using Friday.Backend.Api.Repositories;
+using Npgsql;
 using Utils;
 
 namespace Friday.Backend.Api.Services;
@@ -29,20 +30,29 @@ public sealed class InelicomService : IInelicomService
 
   public async Task<Result<Contact, AppError>> CreateContact(ContactRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.CreateContact(connection, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Contact, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.CreateContact(conn, tran, request))
+      .Complete();
   }
 
   public async Task<Result<Contact, AppError>> UpdateContact(int id, ContactRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.UpdateContact(connection, id, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Contact, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.UpdateContact(conn, tran, id, request))
+      .Complete();
   }
 
   public async Task<Result<bool, AppError>> DeleteContact(int id)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.DeleteContact(connection, id);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<bool, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.DeleteContact(conn, tran, id))
+      .Complete();
   }
 
   public async Task<Result<Paged<Faculty>, AppError>> GetFaculties(InelicomQuery query)
@@ -59,20 +69,29 @@ public sealed class InelicomService : IInelicomService
 
   public async Task<Result<Faculty, AppError>> CreateFaculty(FacultyRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.CreateFaculty(connection, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Faculty, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.CreateFaculty(conn, tran, request))
+      .Complete();
   }
 
   public async Task<Result<Faculty, AppError>> UpdateFaculty(int id, FacultyRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.UpdateFaculty(connection, id, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Faculty, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.UpdateFaculty(conn, tran, id, request))
+      .Complete();
   }
 
   public async Task<Result<bool, AppError>> DeleteFaculty(int id)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.DeleteFaculty(connection, id);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<bool, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.DeleteFaculty(conn, tran, id))
+      .Complete();
   }
 
   public async Task<Result<Paged<Building>, AppError>> GetBuildings(InelicomQuery query)
@@ -89,20 +108,29 @@ public sealed class InelicomService : IInelicomService
 
   public async Task<Result<Building, AppError>> CreateBuilding(BuildingRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.CreateBuilding(connection, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Building, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.CreateBuilding(conn, tran, request))
+      .Complete();
   }
 
   public async Task<Result<Building, AppError>> UpdateBuilding(int id, BuildingRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.UpdateBuilding(connection, id, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Building, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.UpdateBuilding(conn, tran, id, request))
+      .Complete();
   }
 
   public async Task<Result<bool, AppError>> DeleteBuilding(int id)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.DeleteBuilding(connection, id);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<bool, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.DeleteBuilding(conn, tran, id))
+      .Complete();
   }
 
   public async Task<Result<Paged<Department>, AppError>> GetDepartments(InelicomQuery query)
@@ -119,20 +147,29 @@ public sealed class InelicomService : IInelicomService
 
   public async Task<Result<Department, AppError>> CreateDepartment(DepartmentRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.CreateDepartment(connection, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Department, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.CreateDepartment(conn, tran, request))
+      .Complete();
   }
 
   public async Task<Result<Department, AppError>> UpdateDepartment(int id, DepartmentRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.UpdateDepartment(connection, id, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Department, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.UpdateDepartment(conn, tran, id, request))
+      .Complete();
   }
 
   public async Task<Result<bool, AppError>> DeleteDepartment(int id)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.DeleteDepartment(connection, id);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<bool, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.DeleteDepartment(conn, tran, id))
+      .Complete();
   }
 
   public async Task<Result<Paged<Room>, AppError>> GetRooms(InelicomQuery query)
@@ -149,20 +186,29 @@ public sealed class InelicomService : IInelicomService
 
   public async Task<Result<Room, AppError>> CreateRoom(RoomRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.CreateRoom(connection, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Room, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.CreateRoom(conn, tran, request))
+      .Complete();
   }
 
   public async Task<Result<Room, AppError>> UpdateRoom(int id, RoomRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.UpdateRoom(connection, id, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Room, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.UpdateRoom(conn, tran, id, request))
+      .Complete();
   }
 
   public async Task<Result<bool, AppError>> DeleteRoom(int id)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.DeleteRoom(connection, id);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<bool, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.DeleteRoom(conn, tran, id))
+      .Complete();
   }
 
   public async Task<Result<Paged<Project>, AppError>> GetProjects(InelicomQuery query)
@@ -179,20 +225,29 @@ public sealed class InelicomService : IInelicomService
 
   public async Task<Result<Project, AppError>> CreateProject(ProjectRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.CreateProject(connection, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Project, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.CreateProject(conn, tran, request))
+      .Complete();
   }
 
   public async Task<Result<Project, AppError>> UpdateProject(int id, ProjectRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.UpdateProject(connection, id, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Project, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.UpdateProject(conn, tran, id, request))
+      .Complete();
   }
 
   public async Task<Result<bool, AppError>> DeleteProject(int id)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.DeleteProject(connection, id);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<bool, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.DeleteProject(conn, tran, id))
+      .Complete();
   }
 
   public async Task<Result<Paged<Organization>, AppError>> GetOrganizations(InelicomQuery query)
@@ -209,19 +264,33 @@ public sealed class InelicomService : IInelicomService
 
   public async Task<Result<Organization, AppError>> CreateOrganization(OrganizationRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.CreateOrganization(connection, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Organization, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.CreateOrganization(conn, tran, request))
+      .Complete();
   }
 
   public async Task<Result<Organization, AppError>> UpdateOrganization(int id, OrganizationRequest request)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.UpdateOrganization(connection, id, request);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<Organization, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.UpdateOrganization(conn, tran, id, request))
+      .Complete();
   }
 
   public async Task<Result<bool, AppError>> DeleteOrganization(int id)
   {
-    using var connection = _dbFactory.Create();
-    return await _repository.DeleteOrganization(connection, id);
+    var connection = (NpgsqlConnection)_dbFactory.Create();
+    return await TransactionResult<bool, AppError>
+      .Begin(connection, ToAppError)
+      .AndThen((conn, tran) => _repository.DeleteOrganization(conn, tran, id))
+      .Complete();
+  }
+
+  private static AppError ToAppError(Exception ex)
+  {
+    return AppError.BadRequest(ex.Message);
   }
 }

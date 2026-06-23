@@ -1,15 +1,12 @@
 package edu.uprm.friday.bot.backend.dto;
 
-import java.util.List;
-
 public record BotGuildProfile(
   long guildId,
   String name,
   boolean enabled,
   BotTheme theme,
   BotVerificationProfile verification,
-  BotWelcomeProfile welcome,
-  List<BotSetupChannel> setupChannels
+  BotWelcomeProfile welcome
 ) {
   public static BotGuildProfile defaultFor(long guildId) {
     return new BotGuildProfile(
@@ -18,7 +15,6 @@ public record BotGuildProfile(
       true,
       BotTheme.defaults(),
       BotVerificationProfile.defaults(),
-      BotWelcomeProfile.defaults(),
-      BotSetupProfile.defaultChannels());
+      BotWelcomeProfile.defaults());
   }
 }

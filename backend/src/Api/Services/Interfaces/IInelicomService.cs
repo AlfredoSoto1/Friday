@@ -46,4 +46,5 @@ public interface IInelicomService
   Task<Result<Organization, AppError>> CreateOrganization(OrganizationRequest request);
   Task<Result<Organization, AppError>> UpdateOrganization(int id, OrganizationRequest request);
   Task<Result<bool, AppError>> DeleteOrganization(int id);
+
 }

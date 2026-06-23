@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import edu.uprm.friday.bot.backend.dto.BotCommandResponse;
 import edu.uprm.friday.bot.backend.dto.BotGuildProfile;
 import edu.uprm.friday.bot.backend.dto.BotGuildSummary;
-import edu.uprm.friday.bot.backend.dto.BotSetupProfile;
 import edu.uprm.friday.bot.backend.dto.BotSyncResult;
 import edu.uprm.friday.bot.backend.dto.BotSyncRequest;
 import edu.uprm.friday.bot.backend.dto.BotVerifyMemberRequest;
@@ -58,12 +57,6 @@ public final class BackendClient {
     return get("/api/v1/bot/servers/" + guildId + "/commands/" + commandName)
       .map(data -> objectMapper.convertValue(data, BotCommandResponse.class))
       .orElseGet(() -> BotCommandResponse.defaultFor(commandName));
-  }
-
-  public BotSetupProfile setupProfile(long guildId) {
-    return get("/api/v1/bot/servers/" + guildId + "/setup")
-      .map(data -> objectMapper.convertValue(data, BotSetupProfile.class))
-      .orElseGet(BotSetupProfile::defaultProfile);
   }
 
   public BotVerifyMemberResult verifyMember(long guildId, BotVerifyMemberRequest request) {

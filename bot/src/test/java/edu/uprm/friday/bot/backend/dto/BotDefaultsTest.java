@@ -14,7 +14,6 @@ final class BotDefaultsTest {
     assertEquals(123L, profile.guildId());
     assertTrue(profile.enabled());
     assertTrue(profile.verification().enabled());
-    assertFalse(profile.setupChannels().isEmpty());
   }
 
   @Test
