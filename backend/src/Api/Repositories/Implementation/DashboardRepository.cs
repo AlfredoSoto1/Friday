@@ -31,6 +31,78 @@ public sealed class DashboardRepository : IDashboardRepository
     }
   }
 
+
+  public async Task<Result<BackendStatus, AppError>> GetStatus(IDbConnection connection)
+  {
+    try
+    {
+      await connection.ExecuteScalarAsync<int>("SELECT 1;");
+      return Result<BackendStatus, AppError>.Ok(new BackendStatus
+      {
+        Status = "ok",
+        Database = "connected",
+        CheckedAt = DateTimeOffset.UtcNow
+      });
+    }
+    catch (Exception ex)
+    {
+      return Result<BackendStatus, AppError>.Ok(new BackendStatus
+      {
+        Status = "degraded",
+        Database = $"disconnected: {ex.Message}",
+        CheckedAt = DateTimeOffset.UtcNow
+      });
+    }
+  }
+
+  public async Task<Result<CatalogSummary, AppError>> GetCatalogSummary(IDbConnection connection)
+  {
+    try
+    {
+      const string tablesSql = @"
+        SELECT table_schema, table_name
+          FROM information_schema.tables
+        WHERE table_schema IN ('discord', 'inelicom')
+          AND table_type = 'BASE TABLE'
+        ORDER BY table_schema, table_name;
+      ";
+
+      var tables = (await connection.QueryAsync(tablesSql)).ToArray();
+      var summaries = new List<TableSummary>();
+
+      foreach (var table in tables)
+      {
+        var schema = (string)table.table_schema;
+        var name = (string)table.table_name;
+        var rows = await connection.ExecuteScalarAsync<long>(
+          $"SELECT COUNT(*) FROM {QuoteIdentifier(schema)}.{QuoteIdentifier(name)};");
+
+        summaries.Add(new TableSummary
+        {
+          Schema = schema,
+          Table = name,
+          Rows = rows
+        });
+      }
+
+      return Result<CatalogSummary, AppError>.Ok(new CatalogSummary
+      {
+        Schemas = summaries
+          .GroupBy(table => table.Schema)
+          .Select(group => new SchemaSummary
+          {
+            Name = group.Key,
+            Tables = group.ToArray()
+          })
+          .ToArray()
+      });
+    }
+    catch (Exception ex)
+    {
+      return Result<CatalogSummary, AppError>.Fail(AppError.BadRequest(ex.Message));
+    }
+  }
+
   private static DiscordServer MapToDiscordServer(dynamic record) => new()
   {
     ServerId = (int)record.server_id,
@@ -38,4 +110,6 @@ public sealed class DashboardRepository : IDashboardRepository
     ServerCode = (string)record.guild_id,
     CreatedAt = (DateTime)record.created_at
   };
+
+  private static string QuoteIdentifier(string value) => $"\"{value.Replace("\"", "\"\"")}\"";
 }

@@ -29,4 +29,21 @@ public sealed class DashboardController : ControllerBase
     var result = await _service.GetDashboardContent(reqResult.Value);
     return result.Send();
   }
+
+  [HttpGet("/api/status")]
+  [HttpGet("/api/v1/status")]
+  public async Task<IActionResult> GetStatus()
+  {
+    var result = await _service.GetStatus();
+    return result.Send();
+  }
+
+  [HttpGet("/api/catalog/summary")]
+  [HttpGet("/api/v1/catalog/summary")]
+  public async Task<IActionResult> GetCatalogSummary()
+  {
+    var result = await _service.GetCatalogSummary();
+    return result.Send();
+  }
+
 }

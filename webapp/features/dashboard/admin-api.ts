@@ -147,14 +147,3 @@ export async function getGuildChannels(guildId: number): Promise<BotChannel[]> {
   return (await apiGet<BotChannel[]>(`/api/bot/servers/${guildId}/channels`)).data;
 }
 
-export async function createGuildChannel(guildId: number, payload: Partial<BotChannel>): Promise<BotChannel> {
-  return (await apiSend<BotChannel>("post", `/api/bot/servers/${guildId}/channels`, payload)).data;
-}
-
-export async function updateGuildChannel(guildId: number, channelId: number, payload: Partial<BotChannel>): Promise<BotChannel> {
-  return (await apiSend<BotChannel>("put", `/api/bot/servers/${guildId}/channels/${channelId}`, payload)).data;
-}
-
-export async function deleteGuildChannel(guildId: number, channelId: number): Promise<boolean> {
-  return (await apiSend<boolean>("delete", `/api/bot/servers/${guildId}/channels/${channelId}`)).data;
-}

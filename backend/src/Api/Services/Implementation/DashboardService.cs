@@ -25,4 +25,17 @@ public sealed class DashboardService : IDashboardService
       Servers = servers
     });
   }
+
+  public async Task<Result<BackendStatus, AppError>> GetStatus()
+  {
+    using var connection = _dbFactory.Create();
+    return await _repository.GetStatus(connection);
+  }
+
+  public async Task<Result<CatalogSummary, AppError>> GetCatalogSummary()
+  {
+    using var connection = _dbFactory.Create();
+    return await _repository.GetCatalogSummary(connection);
+  }
+
 }

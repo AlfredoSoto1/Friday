@@ -145,30 +145,4 @@ public sealed partial class BotService
     return await _repository.GetGuildChannels(connection, guildId);
   }
 
-  public async Task<Result<BotChannel, AppError>> CreateGuildChannel(long guildId, BotChannelRequest request)
-  {
-    var connection = (NpgsqlConnection)_dbFactory.Create();
-    return await TransactionResult<BotChannel, AppError>
-      .Begin(connection, ex => AppError.BadRequest(ex.Message))
-      .AndThen((conn, tran) => _repository.CreateGuildChannel(conn, tran, guildId, request))
-      .Complete();
-  }
-
-  public async Task<Result<BotChannel, AppError>> UpdateGuildChannel(long guildId, int channelId, BotChannelRequest request)
-  {
-    var connection = (NpgsqlConnection)_dbFactory.Create();
-    return await TransactionResult<BotChannel, AppError>
-      .Begin(connection, ex => AppError.BadRequest(ex.Message))
-      .AndThen((conn, tran) => _repository.UpdateGuildChannel(conn, tran, guildId, channelId, request))
-      .Complete();
-  }
-
-  public async Task<Result<bool, AppError>> DeleteGuildChannel(long guildId, int channelId)
-  {
-    var connection = (NpgsqlConnection)_dbFactory.Create();
-    return await TransactionResult<bool, AppError>
-      .Begin(connection, ex => AppError.BadRequest(ex.Message))
-      .AndThen((conn, tran) => _repository.DeleteGuildChannel(conn, tran, guildId, channelId))
-      .Complete();
-  }
 }

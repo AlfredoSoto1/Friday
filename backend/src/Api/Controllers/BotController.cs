@@ -122,27 +122,6 @@ public sealed class BotController : ControllerBase
     return result.Send();
   }
 
-  [HttpPost("servers/{guildId:long}/channels")]
-  public async Task<IActionResult> CreateGuildChannel([FromRoute] long guildId, [FromBody] BotChannelRequest request)
-  {
-    var result = await _service.CreateGuildChannel(guildId, request);
-    return result.Send();
-  }
-
-  [HttpPut("servers/{guildId:long}/channels/{channelId:int}")]
-  public async Task<IActionResult> UpdateGuildChannel([FromRoute] long guildId, [FromRoute] int channelId, [FromBody] BotChannelRequest request)
-  {
-    var result = await _service.UpdateGuildChannel(guildId, channelId, request);
-    return result.Send();
-  }
-
-  [HttpDelete("servers/{guildId:long}/channels/{channelId:int}")]
-  public async Task<IActionResult> DeleteGuildChannel([FromRoute] long guildId, [FromRoute] int channelId)
-  {
-    var result = await _service.DeleteGuildChannel(guildId, channelId);
-    return result.Send();
-  }
-
   [HttpGet("servers/{guildId:long}/commands/{commandName}")]
   public async Task<IActionResult> GetCommandResponse([FromRoute] long guildId, [FromRoute] string commandName)
   {
