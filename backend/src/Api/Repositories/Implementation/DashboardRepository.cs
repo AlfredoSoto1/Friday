@@ -16,7 +16,7 @@ public sealed class DashboardRepository : IDashboardRepository
     try
     {
       const string sql = @"
-        SELECT server_id, name, server_code, created_at
+        SELECT server_id, name, guild_id, created_at
           FROM discord.servers
         ORDER BY created_at DESC
         LIMIT @Limit OFFSET @Offset;
@@ -35,7 +35,7 @@ public sealed class DashboardRepository : IDashboardRepository
   {
     ServerId = (int)record.server_id,
     Name = (string)record.name,
-    ServerCode = (string)record.server_code,
+    ServerCode = (string)record.guild_id,
     CreatedAt = (DateTime)record.created_at
   };
 }

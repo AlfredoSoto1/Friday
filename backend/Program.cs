@@ -41,6 +41,19 @@ builder.Services.AddScoped<IInelicomService, InelicomService>();
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+  RequestTiming.Start();
+  try
+  {
+    await next();
+  }
+  finally
+  {
+    RequestTiming.Clear();
+  }
+});
+
 app.UseCors();
 
 app.MapGet("/health", () => Results.Ok(new

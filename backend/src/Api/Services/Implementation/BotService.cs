@@ -6,7 +6,7 @@ using Utils;
 
 namespace Friday.Backend.Api.Services;
 
-public sealed class BotService : IBotService
+public sealed partial class BotService : IBotService
 {
   private readonly IDbConnectionFactory _dbFactory;
   private readonly IBotRepository _repository;

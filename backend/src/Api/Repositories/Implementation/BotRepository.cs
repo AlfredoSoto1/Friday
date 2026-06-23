@@ -5,7 +5,7 @@ using Utils;
 
 namespace Friday.Backend.Api.Repositories;
 
-public sealed class BotRepository : IBotRepository
+public sealed partial class BotRepository : IBotRepository
 {
   public async Task<Result<IReadOnlyCollection<GuildSummary>, AppError>> GetEnabledGuilds(IDbConnection connection)
   {
@@ -100,8 +100,7 @@ public sealed class BotRepository : IBotRepository
     IDbConnection conn,
     IDbTransaction tx,
     long guildId,
-    string email,
-    IReadOnlyCollection<string> discordRoleIds)
+    RegisterGuildMemberRequest request)
   {
     try
     {
@@ -110,19 +109,25 @@ public sealed class BotRepository : IBotRepository
           SELECT server_id
             FROM discord.servers
           WHERE guild_id = @GuildId
-        ), 
+        ),
         target_user AS (
           SELECT user_id
             FROM discord.users
           WHERE email = @Email
         ),
         target_server_user AS (
-          INSERT INTO discord.servers_users (server_id, user_id)
-          SELECT server_id, target_user.user_id
+          INSERT INTO discord.servers_users (server_id, user_id, discord_user_id, funfact, updated_at)
+          SELECT target_server.server_id, target_user.user_id, @DiscordUserId, @FunFact, CURRENT_TIMESTAMP
             FROM target_server CROSS JOIN target_user
           ON CONFLICT (server_id, user_id)
-          DO UPDATE SET updated_at = CURRENT_TIMESTAMP
+          DO UPDATE SET discord_user_id = EXCLUDED.discord_user_id,
+                        funfact = COALESCE(EXCLUDED.funfact, discord.servers_users.funfact),
+                        updated_at = CURRENT_TIMESTAMP
           RETURNING su_id
+        ), deleted_roles AS (
+          DELETE FROM discord.user_roles
+            USING target_server_user
+          WHERE discord.user_roles.su_id = target_server_user.su_id
         ), selected_roles AS (
           SELECT roles.role_id, roles.discord_role_id
             FROM discord.roles
@@ -138,7 +143,7 @@ public sealed class BotRepository : IBotRepository
         SELECT FALSE AS verified,
                'Member registered successfully.' AS message,
                COALESCE(
-                ARRAY_AGG(selected_roles.discord_role_id ORDER BY selected_roles.discord_role_id) 
+                ARRAY_AGG(selected_roles.discord_role_id ORDER BY selected_roles.discord_role_id)
                   FILTER (WHERE selected_roles.discord_role_id IS NOT NULL), ARRAY[]::VARCHAR[]) AS role_ids
           FROM target_server_user
             LEFT JOIN selected_roles ON TRUE;
@@ -147,12 +152,14 @@ public sealed class BotRepository : IBotRepository
       var record = await conn.QueryFirstOrDefaultAsync(sql, new
       {
         GuildId = guildId.ToString(),
-        Email = email,
-        DiscordRoleIds = discordRoleIds.ToArray()
+        request.Email,
+        DiscordUserId = string.IsNullOrWhiteSpace(request.DiscordUserId) ? "-" : request.DiscordUserId,
+        request.FunFact,
+        DiscordRoleIds = request.DiscordRoleIds.ToArray()
       }, tx);
 
       return record is null
-        ? Result<MemberVerification, AppError>.Fail(AppError.NotFound($"Guild with ID {guildId} not found."))
+        ? Result<MemberVerification, AppError>.Fail(AppError.NotFound($"Guild or user not found for guild ID {guildId}."))
         : Result<MemberVerification, AppError>.Ok(MapToVerifyMemberResult(record));
     }
     catch (Exception ex)

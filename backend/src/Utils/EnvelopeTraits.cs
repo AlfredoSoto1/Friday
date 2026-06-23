@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,7 +34,7 @@ public static class EnvelopeTraits
     {
       Status = "success",
       Data = data,
-      Meta = meta ?? new MetaEnvelope(),
+      Meta = BuildMeta(meta),
       Error = null
     };
   }
@@ -50,13 +51,13 @@ public static class EnvelopeTraits
     {
       Status = "success",
       Data = data,
-      Meta = new MetaEnvelope
+      Meta = BuildMeta(new MetaEnvelope
       {
         Limit = limit,
         PageIndex = pageIndex,
         Total = total,
         Remaining = remaining
-      },
+      }),
       Error = null
     };
   }
@@ -73,16 +74,31 @@ public static class EnvelopeTraits
     {
       Status = "success",
       Data = data,
-      Meta = new MetaEnvelope
+      Meta = BuildMeta(new MetaEnvelope
       {
         Limit = limit,
         PageIndex = pageIndex,
         Total = total,
         Remaining = remaining,
         Custom = JsonSerializer.SerializeToElement(meta)
-      },
+      }),
       Error = null
     };
+  }
+
+  private static MetaEnvelope BuildMeta(MetaEnvelope? meta = null)
+  {
+    meta ??= new MetaEnvelope();
+    meta.Timestamp ??= DateTimeOffset.UtcNow;
+    meta.RequestId ??= Activity.Current?.Id;
+
+    var elapsed = RequestTiming.ElapsedMilliseconds;
+    if (elapsed.HasValue)
+    {
+      meta.ProcessingTimeMs ??= elapsed.Value;
+    }
+
+    return meta;
   }
 
   private static IActionResult ToEnvelopeActionResult<T>(this AppError error)
@@ -97,7 +113,7 @@ public static class EnvelopeTraits
         Code = statusCode,
         Message = message
       },
-      Meta = new MetaEnvelope()
+      Meta = BuildMeta()
     };
 
     return new ObjectResult(payload) { StatusCode = statusCode };

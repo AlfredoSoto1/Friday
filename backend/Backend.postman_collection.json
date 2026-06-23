@@ -32,8 +32,44 @@
                 "health"
               ]
             }
-          },
-          "response": []
+          }
+        },
+        {
+          "name": "Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Catalog summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/catalog/summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "catalog",
+                "summary"
+              ]
+            }
+          }
         }
       ]
     },
@@ -81,8 +117,7 @@
                 "servers"
               ]
             }
-          },
-          "response": []
+          }
         },
         {
           "name": "Get server profile",
@@ -103,8 +138,37 @@
                 "profile"
               ]
             }
-          },
-          "response": []
+          }
+        },
+        {
+          "name": "Update server profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bot",
+                "servers",
+                "{{guild_id}}",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Friday Test Server 1\",\n  \"enabled\": true,\n  \"theme\": {\n    \"primary_color\": \"#5865F2\",\n    \"thumbnail_url\": null,\n    \"footer_text\": \"Friday\"\n  },\n  \"verification\": {\n    \"title\": \"Verify Yourself\",\n    \"description\": \"Click the button below to verify yourself and gain access to the server.\",\n    \"button_label\": \"Verify\",\n    \"channel_id\": \"333\",\n    \"verified_role_id\": \"111\",\n    \"banner_url\": null\n  },\n  \"welcome\": {\n    \"title\": \"Welcome to the Server!\",\n    \"description\": \"We are glad to have you here! Please read the rules and enjoy your stay.\",\n    \"channel_id\": \"444\",\n    \"banner_url\": null\n  }\n}"
+            }
+          }
         },
         {
           "name": "Get command response",
@@ -126,8 +190,185 @@
                 "faculty"
               ]
             }
-          },
-          "response": []
+          }
+        },
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bot/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bot",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bot/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bot",
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"new.student@upr.edu\",\n  \"fullname\": \"New Student\",\n  \"username\": \"newstudent\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update user",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bot/users/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bot",
+                "users",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@upr.edu\",\n  \"fullname\": \"Friday Student\",\n  \"username\": \"student\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete user",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bot/users/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bot",
+                "users",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List server members",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/members",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bot",
+                "servers",
+                "{{guild_id}}",
+                "members"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Register member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/members",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bot",
+                "servers",
+                "{{guild_id}}",
+                "members"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@upr.edu\",\n  \"fullname\": \"Friday Student\",\n  \"username\": \"student\",\n  \"discord_user_id\": \"1234\",\n  \"fun_fact\": \"I like software.\",\n  \"discord_role_ids\": [\n    \"111\"\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Register members bulk",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/members/bulk",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bot",
+                "servers",
+                "{{guild_id}}",
+                "members",
+                "bulk"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"members\": [\n    {\n      \"email\": \"bulk.student@upr.edu\",\n      \"fullname\": \"Bulk Student\",\n      \"username\": \"bulkstudent\",\n      \"discord_user_id\": \"5555\",\n      \"fun_fact\": \"CSV import\",\n      \"discord_role_ids\": [\n        \"111\"\n      ]\n    }\n  ]\n}"
+            }
+          }
         },
         {
           "name": "Verify member",
@@ -158,8 +399,7 @@
               "mode": "raw",
               "raw": "{\n  \"discord_user_id\": \"1234\",\n  \"email\": \"student@upr.edu\",\n  \"fun_fact\": \"I like software.\"\n}"
             }
-          },
-          "response": []
+          }
         },
         {
           "name": "Add XP",
@@ -190,8 +430,225 @@
               "mode": "raw",
               "raw": "{\n  \"discord_user_id\": \"1234\"\n}"
             }
-          },
-          "response": []
+          }
+        },
+        {
+          "name": "Roles",
+          "item": [
+            {
+              "name": "List roles",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/roles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "bot",
+                    "servers",
+                    "{{guild_id}}",
+                    "roles"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create role",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/roles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "bot",
+                    "servers",
+                    "{{guild_id}}",
+                    "roles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"discord_role_id\": \"999\",\n  \"name\": \"New Role\",\n  \"color\": 5793266,\n  \"position\": 10,\n  \"managed\": false,\n  \"mentionable\": true,\n  \"hoisted\": false\n}"
+                }
+              }
+            },
+            {
+              "name": "Update role",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/roles/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "bot",
+                    "servers",
+                    "{{guild_id}}",
+                    "roles",
+                    "1"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"discord_role_id\": \"111\",\n  \"name\": \"Verified\",\n  \"color\": 5793266,\n  \"position\": 1,\n  \"managed\": false,\n  \"mentionable\": true,\n  \"hoisted\": false\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete role",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/roles/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "bot",
+                    "servers",
+                    "{{guild_id}}",
+                    "roles",
+                    "1"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Channels",
+          "item": [
+            {
+              "name": "List channels",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/channels",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "bot",
+                    "servers",
+                    "{{guild_id}}",
+                    "channels"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create channel",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/channels",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "bot",
+                    "servers",
+                    "{{guild_id}}",
+                    "channels"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"discord_channel_id\": \"999\",\n  \"parent_channel_id\": null,\n  \"name\": \"new-channel\",\n  \"type\": \"text\",\n  \"position\": 10,\n  \"topic\": \"Friday operations\",\n  \"nsfw\": false\n}"
+                }
+              }
+            },
+            {
+              "name": "Update channel",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/channels/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "bot",
+                    "servers",
+                    "{{guild_id}}",
+                    "channels",
+                    "1"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"discord_channel_id\": \"333\",\n  \"parent_channel_id\": null,\n  \"name\": \"verify\",\n  \"type\": \"text\",\n  \"position\": 1,\n  \"topic\": \"Verification\",\n  \"nsfw\": false\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete channel",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/channels/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "bot",
+                    "servers",
+                    "{{guild_id}}",
+                    "channels",
+                    "1"
+                  ]
+                }
+              }
+            }
+          ]
         },
         {
           "name": "Sync server",
@@ -219,10 +676,9 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"guild_id\": 100000000000000001,\n  \"guild_name\": \"Friday Test Server 1\",\n  \"synced_by_discord_id\": \"5678\",\n  \"roles\": [\n    {\n      \"discord_role_id\": \"111\",\n      \"name\": \"verified\",\n      \"color\": 0,\n      \"position\": 1,\n      \"managed\": false,\n      \"mentionable\": false,\n      \"hoisted\": false\n    }\n  ],\n  \"channels\": [\n    {\n      \"discord_channel_id\": \"222\",\n      \"parent_channel_id\": null,\n      \"name\": \"general\",\n      \"type\": \"text\",\n      \"position\": 1,\n      \"topic\": \"General chat\",\n      \"nsfw\": false\n    }\n  ]\n}"
+              "raw": "{\n  \"guild_name\": \"Friday Test Server 1\",\n  \"synced_by_discord_id\": \"1234\",\n  \"roles\": [\n    {\n      \"discord_role_id\": \"111\",\n      \"name\": \"Verified\",\n      \"color\": 5793266,\n      \"position\": 1,\n      \"managed\": false,\n      \"mentionable\": true,\n      \"hoisted\": false\n    }\n  ],\n  \"channels\": [\n    {\n      \"discord_channel_id\": \"333\",\n      \"parent_channel_id\": null,\n      \"name\": \"verify\",\n      \"type\": \"text\",\n      \"position\": 1,\n      \"topic\": \"Verification\",\n      \"nsfw\": false\n    }\n  ]\n}"
             }
-          },
-          "response": []
+          }
         }
       ]
     },
