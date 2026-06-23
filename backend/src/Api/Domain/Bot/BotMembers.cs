@@ -1,28 +1,25 @@
 namespace Friday.Backend.Api.Domain;
 
-public sealed class BotVerifyMemberRequest
+public sealed class VerifyMemberRequest
 {
   public string DiscordUserId { get; init; } = string.Empty;
-  public string DiscordUsername { get; init; } = string.Empty;
   public string Email { get; init; } = string.Empty;
   public string? FunFact { get; init; }
 }
 
-public sealed class BotVerifyMemberResult
+public sealed class MemberVerification
 {
   public bool Verified { get; init; }
   public string Message { get; init; } = string.Empty;
   public IReadOnlyCollection<string> RoleIds { get; init; } = [];
 }
 
-public sealed class BotXpRequest
+public sealed class XpRequest
 {
   public string DiscordUserId { get; init; } = string.Empty;
-  public string DiscordUsername { get; init; } = string.Empty;
-  public int Amount { get; init; } = 1;
 }
 
-public sealed class BotXpResult
+public sealed class MemberXp
 {
   public string DiscordUserId { get; init; } = string.Empty;
   public int Xp { get; init; }

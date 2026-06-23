@@ -20,9 +20,7 @@ public final class LevelingInteraction extends InteractionDefinition {
   @Override
   public void onMessageReceived(MessageReceivedEvent event) {
     BotXpResult result = backendClient.addXp(event.getGuild().getIdLong(), new BotXpRequest(
-      event.getAuthor().getId(),
-      event.getAuthor().getName(),
-      1));
+      event.getAuthor().getId()));
 
     if (result.leveledUp()) {
       BotGuildProfile profile = backendClient.guildProfile(event.getGuild().getIdLong());

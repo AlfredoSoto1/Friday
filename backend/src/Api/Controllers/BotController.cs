@@ -39,14 +39,14 @@ public sealed class BotController : ControllerBase
   }
 
   [HttpPost("servers/{guildId:long}/members/verify")]
-  public async Task<IActionResult> VerifyMember([FromRoute] long guildId, [FromBody] BotVerifyMemberRequest request)
+  public async Task<IActionResult> VerifyMember([FromRoute] long guildId, [FromBody] VerifyMemberRequest request)
   {
     var result = await _service.VerifyMember(guildId, request);
     return result.Send();
   }
 
   [HttpPost("servers/{guildId:long}/members/xp")]
-  public async Task<IActionResult> AddXp([FromRoute] long guildId, [FromBody] BotXpRequest request)
+  public async Task<IActionResult> AddXp([FromRoute] long guildId, [FromBody] XpRequest request)
   {
     var result = await _service.AddXp(guildId, request);
     return result.Send();

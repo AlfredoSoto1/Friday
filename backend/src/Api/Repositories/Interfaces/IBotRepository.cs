@@ -6,10 +6,16 @@ namespace Friday.Backend.Api.Repositories;
 
 public interface IBotRepository
 {
-  Task<Result<IReadOnlyCollection<BotGuildSummary>, AppError>> GetEnabledGuilds(IDbConnection connection);
-  Task<Result<BotGuildProfile, AppError>> GetGuildProfile(IDbConnection connection, long guildId);
-  Task<Result<BotCommandResponse, AppError>> GetCommandResponse(IDbConnection connection, long guildId, string commandName);
-  Task<Result<BotVerifyMemberResult, AppError>> VerifyMember(IDbConnection connection, long guildId, BotVerifyMemberRequest request);
-  Task<Result<BotXpResult, AppError>> AddXp(IDbConnection connection, long guildId, BotXpRequest request);
-  Task<Result<BotSyncResult, AppError>> SyncGuild(IDbConnection connection, BotSyncRequest request);
+  Task<Result<IReadOnlyCollection<GuildSummary>, AppError>> GetEnabledGuilds(IDbConnection connection);
+  Task<Result<GuildProfile, AppError>> GetGuildProfile(IDbConnection connection, long guildId);
+  Task<Result<int, AppError>> InsertUser(IDbConnection connection, IDbTransaction transaction, string email, string fullname, string username);
+  Task<Result<MemberVerification, AppError>> RegisterUserToGuild(
+    IDbConnection connection,
+    IDbTransaction transaction,
+    long guildId,
+    string email,
+    IReadOnlyCollection<string> discordRoleIds);
+  Task<Result<MemberVerification, AppError>> VerifyMember(IDbConnection connection, long guildId, VerifyMemberRequest request);
+  Task<Result<MemberXp, AppError>> AddXp(IDbConnection connection, long guildId, XpRequest request);
+  Task<Result<BotSyncResult, AppError>> SyncGuild(IDbConnection connection, IDbTransaction transaction, BotSyncRequest request);
 }

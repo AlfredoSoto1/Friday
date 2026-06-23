@@ -122,7 +122,6 @@ public final class VerificationInteraction extends InteractionDefinition impleme
     String funFact = event.getValue(FUN_FACT_INPUT_ID) == null ? null : event.getValue(FUN_FACT_INPUT_ID).getAsString();
     BotVerifyMemberResult result = backendClient.verifyMember(event.getGuild().getIdLong(), new BotVerifyMemberRequest(
       event.getUser().getId(),
-      event.getUser().getName(),
       email,
       funFact));
 
