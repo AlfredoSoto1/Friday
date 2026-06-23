@@ -12,14 +12,20 @@ public sealed class BotRepository : IBotRepository
     try
     {
       const string sql = @"
-        SELECT discord_guild_id, name, enabled
-          FROM discord.bot_server_profiles
-        WHERE enabled = TRUE
+        SELECT server_code, name
+          FROM discord.servers
         ORDER BY name;
       ";
 
       var records = await connection.QueryAsync(sql);
-      return Result<IReadOnlyCollection<BotGuildSummary>, AppError>.Ok(records.Select(MapGuildSummary).ToArray());
+      var guilds = records.Select(record => new BotGuildSummary
+      {
+        GuildId = long.Parse((string)record.server_code),
+        Name = (string)record.name,
+        Enabled = true
+      }).ToArray();
+
+      return Result<IReadOnlyCollection<BotGuildSummary>, AppError>.Ok(guilds);
     }
     catch (Exception ex)
     {
@@ -31,29 +37,19 @@ public sealed class BotRepository : IBotRepository
   {
     try
     {
-      const string profileSql = @"
-        SELECT discord_guild_id, name, enabled, primary_color, thumbnail_url, footer_text,
-               verification_enabled, verification_title, verification_description,
-               verification_button_label, verification_channel_id, verified_role_id,
-               verification_banner_url, welcome_enabled, welcome_title,
-               welcome_description, welcome_channel_id, welcome_banner_url
-          FROM discord.bot_server_profiles
-        WHERE discord_guild_id = @GuildId;
+      const string sql = @"
+        SELECT name
+          FROM discord.servers
+        WHERE server_code = @GuildId;
       ";
 
-      var profile = await connection.QueryFirstOrDefaultAsync(profileSql, new { GuildId = guildId });
-      var setup = await GetSetupProfile(connection, guildId);
-      if (setup.IsFailure)
+      var name = await connection.QueryFirstOrDefaultAsync<string>(sql, new { GuildId = guildId.ToString() });
+      return Result<BotGuildProfile, AppError>.Ok(new BotGuildProfile
       {
-        return Result<BotGuildProfile, AppError>.Fail(setup.Error);
-      }
-
-      if (profile is null)
-      {
-        return Result<BotGuildProfile, AppError>.Ok(DefaultProfile(guildId, setup.Value.Channels));
-      }
-
-      return Result<BotGuildProfile, AppError>.Ok(MapGuildProfile(profile, setup.Value.Channels));
+        GuildId = guildId,
+        Name = name ?? $"Discord Server {guildId}",
+        Enabled = true
+      });
     }
     catch (Exception ex)
     {
@@ -65,46 +61,27 @@ public sealed class BotRepository : IBotRepository
   {
     try
     {
-      const string sql = @"
-        SELECT command_name, title, description, image_url, url, color, ephemeral
-          FROM discord.bot_command_responses bcr
-          INNER JOIN discord.bot_server_profiles bsp ON bsp.profile_id = bcr.profile_id
-        WHERE bsp.discord_guild_id = @GuildId AND bcr.command_name = @CommandName;
-      ";
+      var response = commandName switch
+      {
+        "faculty" => await QueryFacultyResponse(connection),
+        "ls_projects" => await QueryProjectsResponse(connection),
+        "ls_student_orgs" => await QueryOrganizationsResponse(connection),
+        "salon" => await QueryRoomsResponse(connection, "salon"),
+        "lab" => await QueryRoomsResponse(connection, "lab"),
+        "contact-department" => await QueryDepartmentContactsResponse(connection),
+        "contact-dcsp" => await QueryNamedContactResponse(connection, commandName, "DCSP"),
+        "contact-decanato-estudiantes" => await QueryNamedContactResponse(connection, commandName, "Decanato"),
+        "contact-guardia-univ" => await QueryNamedContactResponse(connection, commandName, "Guardia"),
+        "contact-asesoria-academica" => await QueryNamedContactResponse(connection, commandName, "Asesoria"),
+        "contact-asistencia-economica" => await QueryNamedContactResponse(connection, commandName, "Asistencia"),
+        _ => DefaultCommandResponse(commandName)
+      };
 
-      var response = await connection.QueryFirstOrDefaultAsync(sql, new { GuildId = guildId, CommandName = commandName });
-      return Result<BotCommandResponse, AppError>.Ok(response is null
-        ? DefaultCommandResponse(commandName)
-        : MapCommandResponse(response));
+      return Result<BotCommandResponse, AppError>.Ok(response);
     }
     catch (Exception ex)
     {
       return Result<BotCommandResponse, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
-  public async Task<Result<BotSetupProfile, AppError>> GetSetupProfile(IDbConnection connection, long guildId)
-  {
-    try
-    {
-      const string sql = @"
-        SELECT bsc.name, bsc.type, bsc.category, bsc.position
-          FROM discord.bot_setup_channels bsc
-          INNER JOIN discord.bot_server_profiles bsp ON bsp.profile_id = bsc.profile_id
-        WHERE bsp.discord_guild_id = @GuildId
-        ORDER BY bsc.position, bsc.name;
-      ";
-
-      var records = await connection.QueryAsync(sql, new { GuildId = guildId });
-      var channels = records.Select(MapSetupChannel).ToArray();
-      return Result<BotSetupProfile, AppError>.Ok(new BotSetupProfile
-      {
-        Channels = channels.Length == 0 ? DefaultSetupChannels() : channels
-      });
-    }
-    catch (Exception ex)
-    {
-      return Result<BotSetupProfile, AppError>.Fail(AppError.BadRequest(ex.Message));
     }
   }
 
@@ -116,37 +93,39 @@ public sealed class BotRepository : IBotRepository
     try
     {
       const string sql = @"
-        INSERT INTO discord.bot_member_verifications
-          (discord_guild_id, discord_user_id, discord_username, email, fun_fact, verified)
-        VALUES (@GuildId, @DiscordUserId, @DiscordUsername, @Email, @FunFact, TRUE)
-        ON CONFLICT (discord_guild_id, discord_user_id)
-        DO UPDATE SET email = EXCLUDED.email,
-                      discord_username = EXCLUDED.discord_username,
-                      fun_fact = EXCLUDED.fun_fact,
-                      verified = TRUE,
-                      verified_at = CURRENT_TIMESTAMP
-        RETURNING verified;
+        WITH target_server AS (
+          INSERT INTO discord.servers (name, server_code)
+          VALUES (@ServerName, @GuildId)
+          ON CONFLICT (server_code)
+          DO UPDATE SET name = discord.servers.name
+          RETURNING server_id
+        ), target_user AS (
+          INSERT INTO discord.users (email, fullname, username)
+          VALUES (@Email, @Username, @Username)
+          ON CONFLICT (email)
+          DO UPDATE SET username = EXCLUDED.username
+          RETURNING user_id
+        )
+        INSERT INTO discord.servers_users (server_id, user_id, verified)
+        SELECT target_server.server_id, target_user.user_id, TRUE
+          FROM target_server, target_user
+        ON CONFLICT DO NOTHING
+        RETURNING su_id;
       ";
 
-      var verified = await connection.QuerySingleAsync<bool>(sql, new
+      await connection.ExecuteAsync(sql, new
       {
-        GuildId = guildId,
-        request.DiscordUserId,
-        request.DiscordUsername,
+        ServerName = $"Discord Server {guildId}",
+        GuildId = guildId.ToString(),
         request.Email,
-        request.FunFact
+        Username = request.DiscordUsername
       });
-
-      var profile = await GetGuildProfile(connection, guildId);
-      var roleIds = profile.IsSuccess && profile.Value.Verification.VerifiedRoleId is not null
-        ? new[] { profile.Value.Verification.VerifiedRoleId }
-        : Array.Empty<string>();
 
       return Result<BotVerifyMemberResult, AppError>.Ok(new BotVerifyMemberResult
       {
-        Verified = verified,
-        Message = verified ? "Verification completed." : "Verification could not be completed.",
-        RoleIds = roleIds
+        Verified = true,
+        Message = "Verification completed.",
+        RoleIds = []
       });
     }
     catch (Exception ex)
@@ -160,28 +139,55 @@ public sealed class BotRepository : IBotRepository
     try
     {
       const string sql = @"
-        INSERT INTO discord.bot_member_levels
-          (discord_guild_id, discord_user_id, discord_username, xp, level)
-        VALUES (@GuildId, @DiscordUserId, @DiscordUsername, @Amount, 1)
-        ON CONFLICT (discord_guild_id, discord_user_id)
-        DO UPDATE SET xp = discord.bot_member_levels.xp + EXCLUDED.xp,
-                      discord_username = EXCLUDED.discord_username,
-                      level = GREATEST(1, FLOOR(SQRT((discord.bot_member_levels.xp + EXCLUDED.xp) / 25.0))::INT + 1),
+        WITH target_server AS (
+          INSERT INTO discord.servers (name, server_code)
+          VALUES (@ServerName, @GuildId)
+          ON CONFLICT (server_code)
+          DO UPDATE SET name = discord.servers.name
+          RETURNING server_id
+        ), target_user AS (
+          INSERT INTO discord.users (email, fullname, username)
+          VALUES (@SyntheticEmail, @Username, @Username)
+          ON CONFLICT (email)
+          DO UPDATE SET username = EXCLUDED.username
+          RETURNING user_id
+        ), target_server_user AS (
+          INSERT INTO discord.servers_users (server_id, user_id, verified)
+          SELECT target_server.server_id, target_user.user_id, FALSE
+            FROM target_server, target_user
+          ON CONFLICT DO NOTHING
+          RETURNING su_id
+        ), selected_server_user AS (
+          SELECT su_id FROM target_server_user
+          UNION ALL
+          SELECT servers_users.su_id
+            FROM discord.servers_users
+            INNER JOIN target_server ON target_server.server_id = servers_users.server_id
+            INNER JOIN target_user ON target_user.user_id = servers_users.user_id
+          LIMIT 1
+        )
+        INSERT INTO discord.user_levels (su_id, xp, level)
+        SELECT su_id, @Amount, 1
+          FROM selected_server_user
+        ON CONFLICT (su_id)
+        DO UPDATE SET xp = discord.user_levels.xp + EXCLUDED.xp,
+                      level = GREATEST(1, FLOOR(SQRT((discord.user_levels.xp + EXCLUDED.xp) / 25.0))::INT + 1),
                       updated_at = CURRENT_TIMESTAMP
-        RETURNING discord_user_id, xp, level;
+        RETURNING xp, level;
       ";
 
       var record = await connection.QuerySingleAsync(sql, new
       {
-        GuildId = guildId,
-        request.DiscordUserId,
-        request.DiscordUsername,
+        ServerName = $"Discord Server {guildId}",
+        GuildId = guildId.ToString(),
+        SyntheticEmail = $"discord-{request.DiscordUserId}@users.local",
+        Username = request.DiscordUsername,
         request.Amount
       });
 
       return Result<BotXpResult, AppError>.Ok(new BotXpResult
       {
-        DiscordUserId = (string)record.discord_user_id,
+        DiscordUserId = request.DiscordUserId,
         Xp = (int)record.xp,
         Level = (int)record.level,
         LeveledUp = request.Amount > 0 && (int)record.xp % 25 < request.Amount
@@ -192,7 +198,6 @@ public sealed class BotRepository : IBotRepository
       return Result<BotXpResult, AppError>.Fail(AppError.BadRequest(ex.Message));
     }
   }
-
 
   public async Task<Result<BotSyncResult, AppError>> SyncGuild(IDbConnection connection, BotSyncRequest request)
   {
@@ -209,122 +214,20 @@ public sealed class BotRepository : IBotRepository
       }
 
       using var transaction = await dbConnection.BeginTransactionAsync();
-      try
+      var serverId = await UpsertServer(dbConnection, transaction, request);
+      await UpsertRoles(dbConnection, transaction, serverId, request.Roles);
+      await UpsertChannels(dbConnection, transaction, serverId, request.Channels);
+      var syncedAt = await InsertSyncAudit(dbConnection, transaction, serverId, request);
+      await transaction.CommitAsync();
+
+      return Result<BotSyncResult, AppError>.Ok(new BotSyncResult
       {
-        var serverId = await dbConnection.QuerySingleAsync<int>(@"
-          INSERT INTO discord.servers (name, server_code)
-          VALUES (@Name, @ServerCode)
-          ON CONFLICT (server_code)
-          DO UPDATE SET name = EXCLUDED.name
-          RETURNING server_id;
-        ", new
-        {
-          Name = request.GuildName,
-          ServerCode = request.GuildId.ToString()
-        }, transaction);
-
-        await dbConnection.ExecuteAsync(@"
-          INSERT INTO discord.bot_server_profiles (server_id, discord_guild_id, name)
-          VALUES (@ServerId, @GuildId, @Name)
-          ON CONFLICT (discord_guild_id)
-          DO UPDATE SET server_id = EXCLUDED.server_id,
-                        name = EXCLUDED.name,
-                        updated_at = CURRENT_TIMESTAMP;
-        ", new
-        {
-          ServerId = serverId,
-          request.GuildId,
-          Name = request.GuildName
-        }, transaction);
-
-        foreach (var role in request.Roles)
-        {
-          await dbConnection.ExecuteAsync(@"
-            INSERT INTO discord.roles
-              (server_id, discord_role_id, name, color, position, managed, mentionable, hoisted, updated_at)
-            VALUES
-              (@ServerId, @DiscordRoleId, @Name, @Color, @Position, @Managed, @Mentionable, @Hoisted, CURRENT_TIMESTAMP)
-            ON CONFLICT (server_id, discord_role_id)
-            DO UPDATE SET name = EXCLUDED.name,
-                          color = EXCLUDED.color,
-                          position = EXCLUDED.position,
-                          managed = EXCLUDED.managed,
-                          mentionable = EXCLUDED.mentionable,
-                          hoisted = EXCLUDED.hoisted,
-                          updated_at = CURRENT_TIMESTAMP;
-          ", new
-          {
-            ServerId = serverId,
-            role.DiscordRoleId,
-            role.Name,
-            role.Color,
-            role.Position,
-            role.Managed,
-            role.Mentionable,
-            role.Hoisted
-          }, transaction);
-        }
-
-        foreach (var channel in request.Channels)
-        {
-          await dbConnection.ExecuteAsync(@"
-            INSERT INTO discord.channels
-              (server_id, discord_channel_id, parent_channel_id, name, type, position, topic, nsfw, updated_at)
-            VALUES
-              (@ServerId, @DiscordChannelId, @ParentChannelId, @Name, @Type, @Position, @Topic, @Nsfw, CURRENT_TIMESTAMP)
-            ON CONFLICT (server_id, discord_channel_id)
-            DO UPDATE SET parent_channel_id = EXCLUDED.parent_channel_id,
-                          name = EXCLUDED.name,
-                          type = EXCLUDED.type,
-                          position = EXCLUDED.position,
-                          topic = EXCLUDED.topic,
-                          nsfw = EXCLUDED.nsfw,
-                          updated_at = CURRENT_TIMESTAMP;
-          ", new
-          {
-            ServerId = serverId,
-            channel.DiscordChannelId,
-            channel.ParentChannelId,
-            channel.Name,
-            channel.Type,
-            channel.Position,
-            channel.Topic,
-            channel.Nsfw
-          }, transaction);
-        }
-
-        var categoryCount = request.Channels.Count(channel => string.Equals(channel.Type, "category", StringComparison.OrdinalIgnoreCase));
-        var syncedAt = await dbConnection.QuerySingleAsync<DateTime>(@"
-          INSERT INTO discord.server_syncs
-            (server_id, role_count, channel_count, category_count, synced_by_discord_id)
-          VALUES
-            (@ServerId, @RoleCount, @ChannelCount, @CategoryCount, @SyncedByDiscordId)
-          RETURNING synced_at;
-        ", new
-        {
-          ServerId = serverId,
-          RoleCount = request.Roles.Count,
-          ChannelCount = request.Channels.Count,
-          CategoryCount = categoryCount,
-          request.SyncedByDiscordId
-        }, transaction);
-
-        await transaction.CommitAsync();
-
-        return Result<BotSyncResult, AppError>.Ok(new BotSyncResult
-        {
-          GuildId = request.GuildId,
-          RoleCount = request.Roles.Count,
-          ChannelCount = request.Channels.Count,
-          CategoryCount = categoryCount,
-          SyncedAt = syncedAt
-        });
-      }
-      catch
-      {
-        await transaction.RollbackAsync();
-        throw;
-      }
+        GuildId = request.GuildId,
+        RoleCount = request.Roles.Count,
+        ChannelCount = request.Channels.Count,
+        CategoryCount = request.Channels.Count(channel => string.Equals(channel.Type, "category", StringComparison.OrdinalIgnoreCase)),
+        SyncedAt = syncedAt
+      });
     }
     catch (Exception ex)
     {
@@ -332,88 +235,200 @@ public sealed class BotRepository : IBotRepository
     }
   }
 
-
-  private static BotGuildSummary MapGuildSummary(dynamic record) => new()
+  private static async Task<int> UpsertServer(
+    System.Data.Common.DbConnection connection,
+    System.Data.Common.DbTransaction transaction,
+    BotSyncRequest request)
   {
-    GuildId = (long)record.discord_guild_id,
-    Name = (string)record.name,
-    Enabled = (bool)record.enabled
-  };
+    const string sql = @"
+      INSERT INTO discord.servers (name, server_code)
+      VALUES (@Name, @ServerCode)
+      ON CONFLICT (server_code)
+      DO UPDATE SET name = EXCLUDED.name
+      RETURNING server_id;
+    ";
 
-  private static BotGuildProfile MapGuildProfile(dynamic record, IReadOnlyCollection<BotSetupChannel> channels) => new()
-  {
-    GuildId = (long)record.discord_guild_id,
-    Name = (string)record.name,
-    Enabled = (bool)record.enabled,
-    Theme = new BotTheme
+    return await connection.QuerySingleAsync<int>(sql, new
     {
-      PrimaryColor = (string)record.primary_color,
-      ThumbnailUrl = record.thumbnail_url as string,
-      FooterText = record.footer_text as string
-    },
-    Verification = new BotVerificationProfile
+      Name = request.GuildName,
+      ServerCode = request.GuildId.ToString()
+    }, transaction);
+  }
+
+  private static async Task UpsertRoles(
+    System.Data.Common.DbConnection connection,
+    System.Data.Common.DbTransaction transaction,
+    int serverId,
+    IReadOnlyCollection<BotSyncRole> roles)
+  {
+    const string sql = @"
+      INSERT INTO discord.roles
+        (server_id, discord_role_id, name, color, position, managed, mentionable, hoisted, updated_at)
+      SELECT @ServerId, discord_role_id, name, color, position, managed, mentionable, hoisted, CURRENT_TIMESTAMP
+        FROM UNNEST(@DiscordRoleIds, @Names, @Colors, @Positions, @Managed, @Mentionable, @Hoisted)
+          AS synced(discord_role_id, name, color, position, managed, mentionable, hoisted)
+      ON CONFLICT (server_id, discord_role_id)
+      DO UPDATE SET name = EXCLUDED.name,
+                    color = EXCLUDED.color,
+                    position = EXCLUDED.position,
+                    managed = EXCLUDED.managed,
+                    mentionable = EXCLUDED.mentionable,
+                    hoisted = EXCLUDED.hoisted,
+                    updated_at = CURRENT_TIMESTAMP;
+    ";
+
+    await connection.ExecuteAsync(sql, new
     {
-      Enabled = (bool)record.verification_enabled,
-      Title = (string)record.verification_title,
-      Description = (string)record.verification_description,
-      ButtonLabel = (string)record.verification_button_label,
-      ChannelId = record.verification_channel_id as string,
-      VerifiedRoleId = record.verified_role_id as string,
-      BannerUrl = record.verification_banner_url as string
-    },
-    Welcome = new BotWelcomeProfile
+      ServerId = serverId,
+      DiscordRoleIds = roles.Select(role => role.DiscordRoleId).ToArray(),
+      Names = roles.Select(role => role.Name).ToArray(),
+      Colors = roles.Select(role => role.Color).ToArray(),
+      Positions = roles.Select(role => role.Position).ToArray(),
+      Managed = roles.Select(role => role.Managed).ToArray(),
+      Mentionable = roles.Select(role => role.Mentionable).ToArray(),
+      Hoisted = roles.Select(role => role.Hoisted).ToArray()
+    }, transaction);
+  }
+
+  private static async Task UpsertChannels(
+    System.Data.Common.DbConnection connection,
+    System.Data.Common.DbTransaction transaction,
+    int serverId,
+    IReadOnlyCollection<BotSyncChannel> channels)
+  {
+    const string sql = @"
+      INSERT INTO discord.channels
+        (server_id, discord_channel_id, parent_channel_id, name, type, position, topic, nsfw, updated_at)
+      SELECT @ServerId, discord_channel_id, parent_channel_id, name, type, position, topic, nsfw, CURRENT_TIMESTAMP
+        FROM UNNEST(@DiscordChannelIds, @ParentChannelIds, @Names, @Types, @Positions, @Topics, @Nsfw)
+          AS synced(discord_channel_id, parent_channel_id, name, type, position, topic, nsfw)
+      ON CONFLICT (server_id, discord_channel_id)
+      DO UPDATE SET parent_channel_id = EXCLUDED.parent_channel_id,
+                    name = EXCLUDED.name,
+                    type = EXCLUDED.type,
+                    position = EXCLUDED.position,
+                    topic = EXCLUDED.topic,
+                    nsfw = EXCLUDED.nsfw,
+                    updated_at = CURRENT_TIMESTAMP;
+    ";
+
+    await connection.ExecuteAsync(sql, new
     {
-      Enabled = (bool)record.welcome_enabled,
-      Title = (string)record.welcome_title,
-      Description = (string)record.welcome_description,
-      ChannelId = record.welcome_channel_id as string,
-      BannerUrl = record.welcome_banner_url as string
-    },
-    SetupChannels = channels
-  };
+      ServerId = serverId,
+      DiscordChannelIds = channels.Select(channel => channel.DiscordChannelId).ToArray(),
+      ParentChannelIds = channels.Select(channel => channel.ParentChannelId).ToArray(),
+      Names = channels.Select(channel => channel.Name).ToArray(),
+      Types = channels.Select(channel => channel.Type).ToArray(),
+      Positions = channels.Select(channel => channel.Position).ToArray(),
+      Topics = channels.Select(channel => channel.Topic).ToArray(),
+      Nsfw = channels.Select(channel => channel.Nsfw).ToArray()
+    }, transaction);
+  }
 
-  private static BotCommandResponse MapCommandResponse(dynamic record) => new()
+  private static async Task<DateTime> InsertSyncAudit(
+    System.Data.Common.DbConnection connection,
+    System.Data.Common.DbTransaction transaction,
+    int serverId,
+    BotSyncRequest request)
   {
-    CommandName = (string)record.command_name,
-    Title = (string)record.title,
-    Description = (string)record.description,
-    ImageUrl = record.image_url as string,
-    Url = record.url as string,
-    Color = record.color as string,
-    Ephemeral = (bool)record.ephemeral
-  };
+    const string sql = @"
+      INSERT INTO discord.server_syncs
+        (server_id, role_count, channel_count, category_count, synced_by_discord_id)
+      VALUES
+        (@ServerId, @RoleCount, @ChannelCount, @CategoryCount, @SyncedByDiscordId)
+      RETURNING synced_at;
+    ";
 
-  private static BotSetupChannel MapSetupChannel(dynamic record) => new()
-  {
-    Name = (string)record.name,
-    Type = (string)record.type,
-    Category = record.category as string,
-    Position = (int)record.position
-  };
+    return await connection.QuerySingleAsync<DateTime>(sql, new
+    {
+      ServerId = serverId,
+      RoleCount = request.Roles.Count,
+      ChannelCount = request.Channels.Count,
+      CategoryCount = request.Channels.Count(channel => string.Equals(channel.Type, "category", StringComparison.OrdinalIgnoreCase)),
+      request.SyncedByDiscordId
+    }, transaction);
+  }
 
-  private static BotGuildProfile DefaultProfile(long guildId, IReadOnlyCollection<BotSetupChannel>? channels = null) => new()
+  private static async Task<BotCommandResponse> QueryFacultyResponse(IDbConnection connection)
   {
-    GuildId = guildId,
-    Name = $"Discord Server {guildId}",
-    Enabled = true,
-    SetupChannels = channels ?? DefaultSetupChannels()
+    const string sql = @"
+      SELECT COALESCE(string_agg(format('• %s', name), E'\n' ORDER BY name), 'No faculty records found.') AS description
+        FROM inelicom.faculties;
+    ";
+
+    var description = await connection.QuerySingleAsync<string>(sql);
+    return EmbedResponse("faculty", "Faculty", description);
+  }
+
+  private static async Task<BotCommandResponse> QueryProjectsResponse(IDbConnection connection)
+  {
+    const string sql = @"
+      SELECT COALESCE(string_agg(format('• %s — %s', name, description), E'\n' ORDER BY name), 'No project records found.') AS description
+        FROM inelicom.projects;
+    ";
+
+    var description = await connection.QuerySingleAsync<string>(sql);
+    return EmbedResponse("ls_projects", "Projects and Research", description);
+  }
+
+  private static async Task<BotCommandResponse> QueryOrganizationsResponse(IDbConnection connection)
+  {
+    const string sql = @"
+      SELECT COALESCE(string_agg(format('• %s — %s', name, description), E'\n' ORDER BY name), 'No student organization records found.') AS description
+        FROM inelicom.organizations;
+    ";
+
+    var description = await connection.QuerySingleAsync<string>(sql);
+    return EmbedResponse("ls_student_orgs", "Student Organizations", description);
+  }
+
+  private static async Task<BotCommandResponse> QueryRoomsResponse(IDbConnection connection, string commandName)
+  {
+    const string sql = @"
+      SELECT COALESCE(string_agg(format('• %s — %s', code, name), E'\n' ORDER BY code), 'No room records found.') AS description
+        FROM inelicom.rooms;
+    ";
+
+    var description = await connection.QuerySingleAsync<string>(sql);
+    return EmbedResponse(commandName, commandName == "lab" ? "Labs" : "Rooms", description);
+  }
+
+  private static async Task<BotCommandResponse> QueryDepartmentContactsResponse(IDbConnection connection)
+  {
+    const string sql = @"
+      SELECT COALESCE(string_agg(format('• %s', name), E'\n' ORDER BY name), 'No department records found.') AS description
+        FROM inelicom.departments;
+    ";
+
+    var description = await connection.QuerySingleAsync<string>(sql);
+    return EmbedResponse("contact-department", "Departments", description);
+  }
+
+  private static async Task<BotCommandResponse> QueryNamedContactResponse(IDbConnection connection, string commandName, string search)
+  {
+    const string sql = @"
+      SELECT COALESCE(string_agg(format('• %s — %s — %s — %s', name, email, phone, website), E'\n' ORDER BY name), 'No matching contact records found.') AS description
+        FROM inelicom.contacts
+      WHERE name ILIKE @Search;
+    ";
+
+    var description = await connection.QuerySingleAsync<string>(sql, new { Search = $"%{search}%" });
+    return EmbedResponse(commandName, "Contact Information", description);
+  }
+
+  private static BotCommandResponse EmbedResponse(string commandName, string title, string description) => new()
+  {
+    CommandName = commandName,
+    Title = title,
+    Description = description,
+    Ephemeral = true
   };
 
   private static BotCommandResponse DefaultCommandResponse(string commandName) => new()
   {
     CommandName = commandName,
     Title = $"/{commandName}",
-    Description = $"/{commandName} is wired correctly. Configure this response in the backend for this server.",
+    Description = $"/{commandName} is wired. Add backend data for a richer response.",
     Ephemeral = true
   };
-
-  private static IReadOnlyCollection<BotSetupChannel> DefaultSetupChannels() =>
-  [
-    new BotSetupChannel { Name = "welcome", Type = "text", Category = "Information", Position = 1 },
-    new BotSetupChannel { Name = "verification", Type = "text", Category = "Information", Position = 2 },
-    new BotSetupChannel { Name = "rules", Type = "text", Category = "Information", Position = 3 },
-    new BotSetupChannel { Name = "general", Type = "text", Category = "Community", Position = 4 },
-    new BotSetupChannel { Name = "bot-commands", Type = "text", Category = "Community", Position = 5 },
-    new BotSetupChannel { Name = "General Voice", Type = "voice", Category = "Voice", Position = 6 }
-  ];
 }

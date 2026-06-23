@@ -9,7 +9,6 @@ public interface IBotRepository
   Task<Result<IReadOnlyCollection<BotGuildSummary>, AppError>> GetEnabledGuilds(IDbConnection connection);
   Task<Result<BotGuildProfile, AppError>> GetGuildProfile(IDbConnection connection, long guildId);
   Task<Result<BotCommandResponse, AppError>> GetCommandResponse(IDbConnection connection, long guildId, string commandName);
-  Task<Result<BotSetupProfile, AppError>> GetSetupProfile(IDbConnection connection, long guildId);
   Task<Result<BotVerifyMemberResult, AppError>> VerifyMember(IDbConnection connection, long guildId, BotVerifyMemberRequest request);
   Task<Result<BotXpResult, AppError>> AddXp(IDbConnection connection, long guildId, BotXpRequest request);
   Task<Result<BotSyncResult, AppError>> SyncGuild(IDbConnection connection, BotSyncRequest request);

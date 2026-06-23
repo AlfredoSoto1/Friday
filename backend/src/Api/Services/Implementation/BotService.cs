@@ -33,12 +33,6 @@ public sealed class BotService : IBotService
     return await _repository.GetCommandResponse(connection, guildId, commandName);
   }
 
-  public async Task<Result<BotSetupProfile, AppError>> GetSetupProfile(long guildId)
-  {
-    using var connection = _dbFactory.Create();
-    return await _repository.GetSetupProfile(connection, guildId);
-  }
-
   public async Task<Result<BotVerifyMemberResult, AppError>> VerifyMember(long guildId, BotVerifyMemberRequest request)
   {
     using var connection = _dbFactory.Create();

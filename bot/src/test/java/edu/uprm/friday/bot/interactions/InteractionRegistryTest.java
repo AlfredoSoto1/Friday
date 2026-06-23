@@ -43,10 +43,9 @@ final class InteractionRegistryTest {
 
     assertTrue(registry.commandNames().containsAll(README_COMMANDS));
     assertTrue(registry.commandNames().contains("verification-panel"));
-    assertTrue(registry.commandNames().contains("setup-server"));
     assertTrue(registry.commandNames().contains("sync"));
     assertTrue(registry.commandNames().contains("coinflip"));
-    assertEquals(README_COMMANDS.size() + 4, registry.commandCount());
+    assertEquals(README_COMMANDS.size() + 3, registry.commandCount());
   }
 
   @Test

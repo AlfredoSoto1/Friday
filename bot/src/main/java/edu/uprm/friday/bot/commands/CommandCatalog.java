@@ -38,7 +38,6 @@ public final class CommandCatalog {
     interactions.add(content("map", "Provides a link to the UPRM campus map.", backendClient, embedFactory));
 
     interactions.add(new VerificationInteraction(backendClient, embedFactory));
-    interactions.add(new SetupServerCommand(backendClient));
     interactions.add(new SyncCommand(backendClient));
     interactions.add(new CoinFlipCommand(backendClient, embedFactory));
     interactions.add(new LevelingInteraction(backendClient, embedFactory));

@@ -38,13 +38,6 @@ public sealed class BotController : ControllerBase
     return result.Send();
   }
 
-  [HttpGet("servers/{guildId:long}/setup")]
-  public async Task<IActionResult> GetSetupProfile([FromRoute] long guildId)
-  {
-    var result = await _service.GetSetupProfile(guildId);
-    return result.Send();
-  }
-
   [HttpPost("servers/{guildId:long}/members/verify")]
   public async Task<IActionResult> VerifyMember([FromRoute] long guildId, [FromBody] BotVerifyMemberRequest request)
   {
@@ -56,6 +49,22 @@ public sealed class BotController : ControllerBase
   public async Task<IActionResult> AddXp([FromRoute] long guildId, [FromBody] BotXpRequest request)
   {
     var result = await _service.AddXp(guildId, request);
+    return result.Send();
+  }
+
+  [HttpPost("servers/{guildId:long}/sync")]
+  public async Task<IActionResult> SyncGuild([FromRoute] long guildId, [FromBody] BotSyncRequest request)
+  {
+    var normalized = new BotSyncRequest
+    {
+      GuildId = guildId,
+      GuildName = request.GuildName,
+      SyncedByDiscordId = request.SyncedByDiscordId,
+      Roles = request.Roles,
+      Channels = request.Channels
+    };
+
+    var result = await _service.SyncGuild(normalized);
     return result.Send();
   }
 }

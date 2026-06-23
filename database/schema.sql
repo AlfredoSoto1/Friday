@@ -41,6 +41,7 @@ CREATE TABLE discord.servers_users (
   verified   BOOLEAN    NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
 
+  UNIQUE (server_id, user_id),
   FOREIGN KEY (user_id) REFERENCES discord.users(user_id) ON DELETE CASCADE,
   FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE
 );
@@ -108,6 +109,16 @@ CREATE TABLE discord.user_teams (
   PRIMARY KEY (su_id, team_id),
   FOREIGN KEY (su_id) REFERENCES discord.servers_users(su_id) ON DELETE CASCADE,
   FOREIGN KEY (team_id) REFERENCES discord.teams(team_id) ON DELETE CASCADE
+);
+
+CREATE TABLE discord.user_levels (
+  level_id   SERIAL    PRIMARY KEY,
+  su_id      INT       NOT NULL UNIQUE,
+  xp         INT       NOT NULL DEFAULT 0,
+  level      INT       NOT NULL DEFAULT 1,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (su_id) REFERENCES discord.servers_users(su_id) ON DELETE CASCADE
 );
 
 CREATE TABLE discord.channels (

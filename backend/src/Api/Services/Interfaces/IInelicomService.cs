@@ -1,0 +1,49 @@
+using Friday.Backend.Api.Domain;
+using Utils;
+
+namespace Friday.Backend.Api.Services;
+
+public interface IInelicomService
+{
+  Task<Result<Paged<Contact>, AppError>> GetContacts(InelicomQuery query);
+  Task<Result<Contact, AppError>> GetContact(int id);
+  Task<Result<Contact, AppError>> CreateContact(ContactRequest request);
+  Task<Result<Contact, AppError>> UpdateContact(int id, ContactRequest request);
+  Task<Result<bool, AppError>> DeleteContact(int id);
+
+  Task<Result<Paged<Faculty>, AppError>> GetFaculties(InelicomQuery query);
+  Task<Result<Faculty, AppError>> GetFaculty(int id);
+  Task<Result<Faculty, AppError>> CreateFaculty(FacultyRequest request);
+  Task<Result<Faculty, AppError>> UpdateFaculty(int id, FacultyRequest request);
+  Task<Result<bool, AppError>> DeleteFaculty(int id);
+
+  Task<Result<Paged<Building>, AppError>> GetBuildings(InelicomQuery query);
+  Task<Result<Building, AppError>> GetBuilding(int id);
+  Task<Result<Building, AppError>> CreateBuilding(BuildingRequest request);
+  Task<Result<Building, AppError>> UpdateBuilding(int id, BuildingRequest request);
+  Task<Result<bool, AppError>> DeleteBuilding(int id);
+
+  Task<Result<Paged<Department>, AppError>> GetDepartments(InelicomQuery query);
+  Task<Result<Department, AppError>> GetDepartment(int id);
+  Task<Result<Department, AppError>> CreateDepartment(DepartmentRequest request);
+  Task<Result<Department, AppError>> UpdateDepartment(int id, DepartmentRequest request);
+  Task<Result<bool, AppError>> DeleteDepartment(int id);
+
+  Task<Result<Paged<Room>, AppError>> GetRooms(InelicomQuery query);
+  Task<Result<Room, AppError>> GetRoom(int id);
+  Task<Result<Room, AppError>> CreateRoom(RoomRequest request);
+  Task<Result<Room, AppError>> UpdateRoom(int id, RoomRequest request);
+  Task<Result<bool, AppError>> DeleteRoom(int id);
+
+  Task<Result<Paged<Project>, AppError>> GetProjects(InelicomQuery query);
+  Task<Result<Project, AppError>> GetProject(int id);
+  Task<Result<Project, AppError>> CreateProject(ProjectRequest request);
+  Task<Result<Project, AppError>> UpdateProject(int id, ProjectRequest request);
+  Task<Result<bool, AppError>> DeleteProject(int id);
+
+  Task<Result<Paged<Organization>, AppError>> GetOrganizations(InelicomQuery query);
+  Task<Result<Organization, AppError>> GetOrganization(int id);
+  Task<Result<Organization, AppError>> CreateOrganization(OrganizationRequest request);
+  Task<Result<Organization, AppError>> UpdateOrganization(int id, OrganizationRequest request);
+  Task<Result<bool, AppError>> DeleteOrganization(int id);
+}
