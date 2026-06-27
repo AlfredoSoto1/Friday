@@ -1,0 +1,123 @@
+import { EnvelopeResult, keysToSnake, Paged } from "@/lib/webservices";
+import axios from "axios";
+
+const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL ??
+  process.env.BACKEND_URL ?? "http://localhost:8080";
+
+const BASE = `${backendUrl}/api/v1/bot`;
+
+export class BotApi {
+  static async getEnabledGuilds() : Promise<EnvelopeResult<Paged<any>>> {
+    return axios.get(`${BASE}/servers`)
+      .then((response) => EnvelopeResult.fromList<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async getGuildProfile(guildId: number) : Promise<EnvelopeResult<any>> {
+    return axios.get(`${BASE}/servers/${guildId}/profile`)
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async updateGuildProfile(guildId: number, data: any) {
+    return axios.put(`${BASE}/servers/${guildId}/profile`, keysToSnake(data))
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async getUsers() {
+    return axios.get(`${BASE}/users`)
+      .then((response) => EnvelopeResult.fromList<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async createUser(data: any) {
+    return axios.post(`${BASE}/users`, keysToSnake(data))
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async updateUser(userId: number, data: any) {
+    return axios.put(`${BASE}/users/${userId}`, keysToSnake(data))
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async deleteUser(userId: number) {
+    return axios.delete(`${BASE}/users/${userId}`)
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async getGuildMembers(guildId: number) {
+    return axios.get(`${BASE}/servers/${guildId}/members`)
+      .then((response) => EnvelopeResult.fromList<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async registerUserToGuild(guildId: number, data: any) {
+    return axios.post(`${BASE}/servers/${guildId}/members`, data)
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async registerUsersToGuild(guildId: number, data: any) {
+    return axios.post(`${BASE}/servers/${guildId}/members/bulk`, data)
+      .then((response) => EnvelopeResult.fromList<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async getGuildRoles(guildId: number) {
+    return axios.get(`${BASE}/servers/${guildId}/roles`)
+      .then((response) => EnvelopeResult.fromList<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async createGuildRole(guildId: number, data: any) {
+    return axios.post(`${BASE}/servers/${guildId}/roles`, keysToSnake(data))
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async updateGuildRole(guildId: number, roleId: number, data: any) {
+    return axios.put(`${BASE}/servers/${guildId}/roles/${roleId}`, keysToSnake(data))
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async deleteGuildRole(guildId: number, roleId: number) {
+    return axios.delete(`${BASE}/servers/${guildId}/roles/${roleId}`)
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async getGuildChannels(guildId: number) {
+    return axios.get(`${BASE}/servers/${guildId}/channels`)
+      .then((response) => EnvelopeResult.fromList<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async getCommandResponse(guildId: number, commandName: string) {
+    return axios.get(`${BASE}/servers/${guildId}/commands/${commandName}`)
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async verifyMember(guildId: number, data: any) {
+    return axios.post(`${BASE}/servers/${guildId}/members/verify`, keysToSnake(data))
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async addXp(guildId: number, data: any) {
+    return axios.post(`${BASE}/servers/${guildId}/members/xp`, keysToSnake(data))
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+
+  static async syncGuild(guildId: number, data: any) {
+    return axios.post(`${BASE}/servers/${guildId}/sync`, keysToSnake(data))
+      .then((response) => EnvelopeResult.fromObject<any>(response.data))
+      .catch((error) => EnvelopeResult.fromError<any>(error));
+  }
+}

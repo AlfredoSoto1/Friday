@@ -16,7 +16,7 @@ public sealed class DashboardRepository : IDashboardRepository
     try
     {
       const string sql = @"
-        SELECT server_id, name, guild_id, created_at
+        SELECT server_id, name, guild_id, enabled, created_at
           FROM discord.servers
         ORDER BY created_at DESC
         LIMIT @Limit OFFSET @Offset;
@@ -31,6 +31,79 @@ public sealed class DashboardRepository : IDashboardRepository
     }
   }
 
+
+  public async Task<Result<DiscordServer, AppError>> CreateDiscordServer(
+    IDbConnection connection,
+    CreateDiscordServerRequest request)
+  {
+    try
+    {
+      const string sql = @"
+        INSERT INTO discord.servers (name, guild_id, enabled)
+        VALUES (@Name, @ServerCode, TRUE)
+        RETURNING server_id, name, guild_id, enabled, created_at;
+      ";
+
+      var record = await connection.QuerySingleAsync(sql, new
+      {
+        Name = request.Name.Trim(),
+        ServerCode = request.ServerCode.Trim()
+      });
+
+      return Result<DiscordServer, AppError>.Ok(MapToDiscordServer(record));
+    }
+    catch (Exception ex)
+    {
+      return Result<DiscordServer, AppError>.Fail(AppError.BadRequest(ex.Message));
+    }
+  }
+
+  public async Task<Result<DiscordServer, AppError>> SetDiscordServerEnabled(
+    IDbConnection connection,
+    int serverId,
+    bool enabled)
+  {
+    try
+    {
+      const string sql = @"
+        UPDATE discord.servers
+           SET enabled = @Enabled
+         WHERE server_id = @ServerId
+        RETURNING server_id, name, guild_id, enabled, created_at;
+      ";
+
+      var record = await connection.QuerySingleOrDefaultAsync(
+        sql,
+        new { ServerId = serverId, Enabled = enabled });
+
+      return record is null
+        ? Result<DiscordServer, AppError>.Fail(AppError.NotFound($"Server {serverId} was not found."))
+        : Result<DiscordServer, AppError>.Ok(MapToDiscordServer(record));
+    }
+    catch (Exception ex)
+    {
+      return Result<DiscordServer, AppError>.Fail(AppError.BadRequest(ex.Message));
+    }
+  }
+
+  public async Task<Result<bool, AppError>> DeleteDiscordServer(
+    IDbConnection connection,
+    int serverId)
+  {
+    try
+    {
+      const string sql = "DELETE FROM discord.servers WHERE server_id = @ServerId;";
+      var affected = await connection.ExecuteAsync(sql, new { ServerId = serverId });
+
+      return affected == 0
+        ? Result<bool, AppError>.Fail(AppError.NotFound($"Server {serverId} was not found."))
+        : Result<bool, AppError>.Ok(true);
+    }
+    catch (Exception ex)
+    {
+      return Result<bool, AppError>.Fail(AppError.BadRequest(ex.Message));
+    }
+  }
 
   public async Task<Result<BackendStatus, AppError>> GetStatus(IDbConnection connection)
   {
@@ -108,6 +181,7 @@ public sealed class DashboardRepository : IDashboardRepository
     ServerId = (int)record.server_id,
     Name = (string)record.name,
     ServerCode = (string)record.guild_id,
+    Enabled = (bool)record.enabled,
     CreatedAt = (DateTime)record.created_at
   };
 

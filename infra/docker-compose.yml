@@ -20,6 +20,8 @@ services:
     restart: unless-stopped
     env_file:
       - ../.env
+    environment:
+      WATCHPACK_POLLING: "true"
     working_dir: /workspaces/friday
     volumes:
       - ..:/workspaces/friday:cached

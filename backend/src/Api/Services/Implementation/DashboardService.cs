@@ -26,6 +26,30 @@ public sealed class DashboardService : IDashboardService
     });
   }
 
+  public async Task<Result<DiscordServer, AppError>> CreateDiscordServer(CreateDiscordServerRequest request)
+  {
+    if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.ServerCode))
+    {
+      return Result<DiscordServer, AppError>.Fail(
+        AppError.BadRequest("Server name and Discord server ID are required."));
+    }
+
+    using var connection = _dbFactory.Create();
+    return await _repository.CreateDiscordServer(connection, request);
+  }
+
+  public async Task<Result<DiscordServer, AppError>> SetDiscordServerEnabled(int serverId, bool enabled)
+  {
+    using var connection = _dbFactory.Create();
+    return await _repository.SetDiscordServerEnabled(connection, serverId, enabled);
+  }
+
+  public async Task<Result<bool, AppError>> DeleteDiscordServer(int serverId)
+  {
+    using var connection = _dbFactory.Create();
+    return await _repository.DeleteDiscordServer(connection, serverId);
+  }
+
   public async Task<Result<BackendStatus, AppError>> GetStatus()
   {
     using var connection = _dbFactory.Create();

@@ -4,6 +4,8 @@ services:
     command: sleep infinity
     env_file:
       - ../.env
+    environment:
+      WATCHPACK_POLLING: "true"
     user: vscode
     volumes:
       - ..:/workspaces/friday:cached

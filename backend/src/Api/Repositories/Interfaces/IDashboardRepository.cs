@@ -10,6 +10,14 @@ public interface IDashboardRepository
   // Dashboard content
   // ==========================================================================
   Task<Result<IReadOnlyCollection<DiscordServer>, AppError>> GetDiscordServers(IDbConnection connection, DashboardQuery query);
+  Task<Result<DiscordServer, AppError>> CreateDiscordServer(
+    IDbConnection connection,
+    CreateDiscordServerRequest request);
+  Task<Result<DiscordServer, AppError>> SetDiscordServerEnabled(
+    IDbConnection connection,
+    int serverId,
+    bool enabled);
+  Task<Result<bool, AppError>> DeleteDiscordServer(IDbConnection connection, int serverId);
 
   // ==========================================================================
   // Runtime status and catalog

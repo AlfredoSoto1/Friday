@@ -30,6 +30,29 @@ public sealed class DashboardController : ControllerBase
     return result.Send();
   }
 
+  [HttpPost("servers")]
+  public async Task<IActionResult> CreateDiscordServer([FromBody] CreateDiscordServerRequest request)
+  {
+    var result = await _service.CreateDiscordServer(request);
+    return result.Send();
+  }
+
+  [HttpPatch("servers/{serverId:int}/enabled")]
+  public async Task<IActionResult> SetDiscordServerEnabled(
+    [FromRoute] int serverId,
+    [FromBody] SetDiscordServerEnabledRequest request)
+  {
+    var result = await _service.SetDiscordServerEnabled(serverId, request.Enabled);
+    return result.Send();
+  }
+
+  [HttpDelete("servers/{serverId:int}")]
+  public async Task<IActionResult> DeleteDiscordServer([FromRoute] int serverId)
+  {
+    var result = await _service.DeleteDiscordServer(serverId);
+    return result.Send();
+  }
+
   [HttpGet("/api/status")]
   [HttpGet("/api/v1/status")]
   public async Task<IActionResult> GetStatus()
