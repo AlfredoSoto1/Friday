@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Server, Trash2, TriangleAlert } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Plus, Server, Trash2, TriangleAlert } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -236,6 +237,20 @@ export function DiscordServerManager({
                 </ItemContent>
                 <ItemActions>
                   {pendingServerId === server.serverId ? <Spinner /> : null}
+                  <Button asChild variant="outline" size="sm">
+                    <Link
+                      href={{
+                        pathname: "/server",
+                        query: {
+                          guildId: server.serverCode,
+                          name: server.name,
+                        },
+                      }}
+                    >
+                      View server
+                      <ArrowRight />
+                    </Link>
+                  </Button>
                   <Switch
                     checked={server.enabled}
                     onCheckedChange={(enabled) => setEnabled(server, enabled)}
