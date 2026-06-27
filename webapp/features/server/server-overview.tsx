@@ -15,7 +15,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -37,7 +36,6 @@ export function ServerOverview({
   guildId: string;
 }): React.ReactElement {
   const [teams, setTeams] = useState<TeamOverview[]>([]);
-  const [loading, setLoading] = useState(Boolean(guildId));
   const [error, setError] = useState("");
 
   useEffect((): void => {
@@ -47,7 +45,6 @@ export function ServerOverview({
       return;
     }
 
-    setLoading(true);
     Promise.all([
       BotApi.getGuildRoles(numericGuildId),
       BotApi.getGuildChannels(numericGuildId),
@@ -98,9 +95,7 @@ export function ServerOverview({
             : "Could not load server teams."
         );
       })
-      .finally((): void => {
-        setLoading(false);
-      });
+;
   }, [guildId]);
 
   if (!guildId) {
@@ -136,13 +131,7 @@ export function ServerOverview({
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
-          {loading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-14 w-full" />
-              <Skeleton className="h-14 w-full" />
-            </div>
-          ) : (
+          {teams.length ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -186,7 +175,7 @@ export function ServerOverview({
                 ))}
               </TableBody>
             </Table>
-          )}
+          ) : null}
         </CardContent>
       </Card>
       <div className="grid min-w-0 gap-6 xl:grid-cols-2">
