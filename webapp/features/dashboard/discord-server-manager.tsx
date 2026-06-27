@@ -242,8 +242,10 @@ export function DiscordServerManager({
                       href={{
                         pathname: "/server",
                         query: {
+                          serverId: server.serverId.toString(),
                           guildId: server.serverCode,
                           name: server.name,
+                          enabled: server.enabled.toString(),
                         },
                       }}
                     >

@@ -1,6 +1,12 @@
 import { EnvelopeResult, keysToSnake, Paged } from "@/lib/webservices";
 import axios from "axios";
 
+import type {
+  BotChannelDto,
+  BotMemberDto,
+  BotRoleDto,
+} from "@/server/entities/bot";
+
 const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL ??
   process.env.BACKEND_URL ?? "http://localhost:8080";
 
@@ -49,10 +55,16 @@ export class BotApi {
       .catch((error) => EnvelopeResult.fromError<any>(error));
   }
 
-  static async getGuildMembers(guildId: number) {
+  static async getGuildMembers(
+    guildId: number
+  ): Promise<EnvelopeResult<Paged<BotMemberDto>>> {
     return axios.get(`${BASE}/servers/${guildId}/members`)
-      .then((response) => EnvelopeResult.fromList<any>(response.data))
-      .catch((error) => EnvelopeResult.fromError<any>(error));
+      .then((response) => (
+        EnvelopeResult.fromList<BotMemberDto>(response.data)
+      ))
+      .catch((error: unknown) => (
+        EnvelopeResult.fromError<Paged<BotMemberDto>>(error)
+      ));
   }
 
   static async registerUserToGuild(guildId: number, data: any) {
@@ -67,10 +79,16 @@ export class BotApi {
       .catch((error) => EnvelopeResult.fromError<any>(error));
   }
 
-  static async getGuildRoles(guildId: number) {
+  static async getGuildRoles(
+    guildId: number
+  ): Promise<EnvelopeResult<Paged<BotRoleDto>>> {
     return axios.get(`${BASE}/servers/${guildId}/roles`)
-      .then((response) => EnvelopeResult.fromList<any>(response.data))
-      .catch((error) => EnvelopeResult.fromError<any>(error));
+      .then((response) => (
+        EnvelopeResult.fromList<BotRoleDto>(response.data)
+      ))
+      .catch((error: unknown) => (
+        EnvelopeResult.fromError<Paged<BotRoleDto>>(error)
+      ));
   }
 
   static async createGuildRole(guildId: number, data: any) {
@@ -91,10 +109,16 @@ export class BotApi {
       .catch((error) => EnvelopeResult.fromError<any>(error));
   }
 
-  static async getGuildChannels(guildId: number) {
+  static async getGuildChannels(
+    guildId: number
+  ): Promise<EnvelopeResult<Paged<BotChannelDto>>> {
     return axios.get(`${BASE}/servers/${guildId}/channels`)
-      .then((response) => EnvelopeResult.fromList<any>(response.data))
-      .catch((error) => EnvelopeResult.fromError<any>(error));
+      .then((response) => (
+        EnvelopeResult.fromList<BotChannelDto>(response.data)
+      ))
+      .catch((error: unknown) => (
+        EnvelopeResult.fromError<Paged<BotChannelDto>>(error)
+      ));
   }
 
   static async getCommandResponse(guildId: number, commandName: string) {
