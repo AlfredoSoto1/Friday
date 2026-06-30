@@ -1,5 +1,7 @@
-import { Users } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Users } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,25 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
-import { BackToServerButton } from "@/features/roster/back-to-server-button";
 import { RosterManager } from "@/features/roster/roster-manager";
 
-interface RosterPageProps {
-  searchParams: Promise<{
-    guildId?: string;
-    name?: string;
-  }>;
-}
-
-export default async function RosterPage({
-  searchParams,
-}: RosterPageProps): Promise<React.ReactElement> {
-  const params = await searchParams;
-  const guildId = params.guildId ?? "";
-  const name = params.name ?? "Discord server";
-
+export default function RosterPage(): React.ReactElement {
   return (
     <Card className="min-h-screen w-full min-w-0 overflow-x-hidden rounded-none bg-transparent py-0 ring-0">
       <CardHeader className="border-b border-border bg-background/80 px-0 py-4">
@@ -39,12 +26,15 @@ export default async function RosterPage({
             </ItemMedia>
             <ItemContent className="min-w-0">
               <ItemTitle className="text-lg">Friday</ItemTitle>
-              <CardDescription className="truncate">
-                Team distribution for {name}
-              </CardDescription>
+              <CardDescription>Student roster</CardDescription>
             </ItemContent>
           </div>
-          <BackToServerButton />
+          <Button asChild variant="outline" size="sm">
+            <Link href="/dashboard">
+              <ArrowLeft />
+              Dashboard
+            </Link>
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="mx-auto grid w-full min-w-0 max-w-7xl gap-6 px-4 py-8 sm:px-6">
@@ -56,18 +46,7 @@ export default async function RosterPage({
             </CardDescription>
           </CardHeader>
         </Card>
-        {guildId ? (
-          <RosterManager guildId={guildId} />
-        ) : (
-          <Empty className="border">
-            <EmptyHeader>
-              <EmptyTitle>No server selected</EmptyTitle>
-              <EmptyDescription>
-                Return to the dashboard and choose a Discord server.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        )}
+        <RosterManager />
       </CardContent>
     </Card>
   );

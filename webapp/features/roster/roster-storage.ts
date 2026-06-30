@@ -17,12 +17,10 @@ export interface StoredRoster {
   distribution: Distribution | null;
 }
 
-function storageKey(guildId: string): string {
-  return `friday:${guildId}:roster`;
-}
+const STORAGE_KEY = "friday:roster";
 
-export function loadStoredRoster(guildId: string): StoredRoster | null {
-  const raw = window.localStorage.getItem(storageKey(guildId));
+export function loadStoredRoster(): StoredRoster | null {
+  const raw = window.localStorage.getItem(STORAGE_KEY);
 
   if (!raw) {
     return null;
@@ -31,6 +29,6 @@ export function loadStoredRoster(guildId: string): StoredRoster | null {
   return JSON.parse(raw) as StoredRoster;
 }
 
-export function saveStoredRoster(guildId: string, roster: StoredRoster): void {
-  window.localStorage.setItem(storageKey(guildId), JSON.stringify(roster));
+export function saveStoredRoster(roster: StoredRoster): void {
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(roster));
 }

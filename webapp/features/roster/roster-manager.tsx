@@ -22,11 +22,7 @@ import type {
   Student,
 } from "@/features/roster/roster-types";
 
-interface RosterManagerProps {
-  guildId: string;
-}
-
-export function RosterManager({ guildId }: RosterManagerProps): React.ReactElement {
+export function RosterManager(): React.ReactElement {
   const [ready, setReady] = useState(false);
   const [file, setFile] = useState<RosterFile | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
@@ -43,7 +39,7 @@ export function RosterManager({ guildId }: RosterManagerProps): React.ReactEleme
 
   useEffect((): void => {
     try {
-      const stored = loadStoredRoster(guildId);
+      const stored = loadStoredRoster();
 
       if (stored) {
         setFile(stored.file);
@@ -56,11 +52,11 @@ export function RosterManager({ guildId }: RosterManagerProps): React.ReactEleme
         setSaved(true);
       }
     } catch {
-      setStorageError("The saved roster for this server could not be read.");
+      setStorageError("The saved roster could not be read.");
     } finally {
       setReady(true);
     }
-  }, [guildId]);
+  }, []);
 
   const studentsById = useMemo(
     (): Map<number, Student> => new Map(students.map((student) => [student.id, student])),
@@ -162,7 +158,7 @@ export function RosterManager({ guildId }: RosterManagerProps): React.ReactEleme
     }
 
     try {
-      saveStoredRoster(guildId, {
+      saveStoredRoster({
         file,
         students,
         sortField,
