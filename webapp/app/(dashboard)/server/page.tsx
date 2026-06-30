@@ -64,7 +64,7 @@ export default async function ServerPage({
             name={name}
             enabled={enabled}
           />
-          <ServerOverview guildId={guildId} />
+          <ServerOverview guildId={guildId} name={name} />
         </CardContent>
       </Card>
     </div>

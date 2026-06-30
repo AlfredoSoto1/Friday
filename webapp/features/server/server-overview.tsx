@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Hash, Shield, TriangleAlert, Users } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -32,8 +33,10 @@ const bannerTypes = ["Rules banner", "Help banner", "Welcome banner"] as const;
 
 export function ServerOverview({
   guildId,
+  name,
 }: {
   guildId: string;
+  name: string;
 }): React.ReactElement {
   const [teams, setTeams] = useState<TeamOverview[]>([]);
   const [error, setError] = useState("");
@@ -120,7 +123,11 @@ export function ServerOverview({
             Discord roles, linked channels, and assigned members.
           </CardDescription>
           <CardAction>
-            <Button size="sm">{teams.length ? "Edit" : "Start"}</Button>
+            <Button asChild size="sm">
+              <Link href={{ pathname: "/server/roster", query: { guildId, name } }}>
+                {teams.length ? "Edit" : "Start"}
+              </Link>
+            </Button>
           </CardAction>
         </CardHeader>
         <CardContent className="min-w-0">
