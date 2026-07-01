@@ -10,18 +10,24 @@ public sealed partial class BotRepository
   public async Task<Result<IReadOnlyCollection<RosterUserReference>, AppError>> UpsertRosterUsers(
     IDbConnection connection,
     IDbTransaction transaction,
-    IReadOnlyCollection<RosterStudentRequest> students)
+    IReadOnlyCollection<RosterStudentAssignment> students)
   {
     try
     {
       const string sql = @"
-        INSERT INTO discord.users (email, fullname, username)
-        SELECT email, fullname, username
-          FROM UNNEST(@Emails, @Fullnames, @Usernames)
-            AS roster(email, fullname, username)
+        INSERT INTO discord.users (
+          email, first_name, first_last_name, second_last_name, initial, program)
+        SELECT email, first_name, first_last_name, second_last_name, initial, program
+          FROM UNNEST(
+            @Emails, @FirstNames, @FirstLastNames, @SecondLastNames, @Initials, @Programs)
+          AS roster(
+            email, first_name, first_last_name, second_last_name, initial, program)
         ON CONFLICT (email)
-        DO UPDATE SET fullname = EXCLUDED.fullname,
-                      username = EXCLUDED.username;
+        DO UPDATE SET first_name = EXCLUDED.first_name,
+                      first_last_name = EXCLUDED.first_last_name,
+                      second_last_name = EXCLUDED.second_last_name,
+                      initial = EXCLUDED.initial,
+                      program = EXCLUDED.program;
 
         SELECT user_id, email
           FROM discord.users
@@ -30,8 +36,11 @@ public sealed partial class BotRepository
       var records = await connection.QueryAsync(sql, new
       {
         Emails = students.Select(student => student.Email).ToArray(),
-        Fullnames = students.Select(student => student.Fullname).ToArray(),
-        Usernames = students.Select(student => student.Username).ToArray()
+        FirstNames = students.Select(student => student.FirstName).ToArray(),
+        FirstLastNames = students.Select(student => student.FirstLastName).ToArray(),
+        SecondLastNames = students.Select(student => student.SecondLastName).ToArray(),
+        Initials = students.Select(student => student.Initial).ToArray(),
+        Programs = students.Select(student => student.Program).ToArray()
       }, transaction);
       var users = records.Select(record => new RosterUserReference
       {
@@ -136,7 +145,7 @@ public sealed partial class BotRepository
   public async Task<Result<int, AppError>> ReplaceRosterAssignments(
     IDbConnection connection,
     IDbTransaction transaction,
-    IReadOnlyCollection<RosterStudentRequest> students,
+    IReadOnlyCollection<RosterStudentAssignment> students,
     IReadOnlyCollection<RosterUserReference> users,
     IReadOnlyCollection<RosterMemberReference> members,
     IReadOnlyCollection<RosterTeamReference> teams)

@@ -3,15 +3,33 @@ namespace Friday.Backend.Api.Domain;
 public sealed class RosterStudentRequest
 {
   public string Email { get; init; } = string.Empty;
-  public string Fullname { get; init; } = string.Empty;
-  public string Username { get; init; } = string.Empty;
-  public string TeamName { get; init; } = string.Empty;
+  public string FirstName { get; init; } = string.Empty;
+  public string FirstLastName { get; init; } = string.Empty;
+  public string SecondLastName { get; init; } = string.Empty;
+  public string Initial { get; init; } = string.Empty;
+  public string Program { get; init; } = string.Empty;
+}
+
+public sealed class RosterTeamRequest
+{
+  public string Name { get; init; } = string.Empty;
+  public IReadOnlyCollection<RosterStudentRequest> Students { get; init; } = [];
 }
 
 public sealed class SaveGuildRosterRequest
 {
-  public IReadOnlyCollection<string> TeamNames { get; init; } = [];
-  public IReadOnlyCollection<RosterStudentRequest> Students { get; init; } = [];
+  public IReadOnlyCollection<RosterTeamRequest> Teams { get; init; } = [];
+}
+
+public sealed class RosterStudentAssignment
+{
+  public string Email { get; init; } = string.Empty;
+  public string FirstName { get; init; } = string.Empty;
+  public string FirstLastName { get; init; } = string.Empty;
+  public string SecondLastName { get; init; } = string.Empty;
+  public string Initial { get; init; } = string.Empty;
+  public string Program { get; init; } = string.Empty;
+  public string TeamName { get; init; } = string.Empty;
 }
 
 public sealed class RosterUserReference

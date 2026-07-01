@@ -31,7 +31,7 @@ public interface IBotRepository
   Task<Result<IReadOnlyCollection<RosterUserReference>, AppError>> UpsertRosterUsers(
     IDbConnection connection,
     IDbTransaction transaction,
-    IReadOnlyCollection<RosterStudentRequest> students);
+    IReadOnlyCollection<RosterStudentAssignment> students);
   Task<Result<IReadOnlyCollection<RosterMemberReference>, AppError>> UpsertRosterMembers(
     IDbConnection connection,
     IDbTransaction transaction,
@@ -45,7 +45,7 @@ public interface IBotRepository
   Task<Result<int, AppError>> ReplaceRosterAssignments(
     IDbConnection connection,
     IDbTransaction transaction,
-    IReadOnlyCollection<RosterStudentRequest> students,
+    IReadOnlyCollection<RosterStudentAssignment> students,
     IReadOnlyCollection<RosterUserReference> users,
     IReadOnlyCollection<RosterMemberReference> members,
     IReadOnlyCollection<RosterTeamReference> teams);

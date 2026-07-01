@@ -11,30 +11,36 @@ public sealed partial class BotService
     long guildId,
     SaveGuildRosterRequest request)
   {
-    if (request.TeamNames.Count == 0 || request.Students.Count == 0)
+    var students = request.Teams.SelectMany(team =>
+      team.Students.Select(student => new RosterStudentAssignment
+      {
+        Email = student.Email,
+        FirstName = student.FirstName,
+        FirstLastName = student.FirstLastName,
+        SecondLastName = student.SecondLastName,
+        Initial = student.Initial,
+        Program = student.Program,
+        TeamName = team.Name
+      })).ToArray();
+
+    if (request.Teams.Count == 0 || students.Length == 0)
     {
       return Result<SaveGuildRosterResult, AppError>.Fail(
         AppError.BadRequest("At least one team and student are required."));
     }
 
-    var teamNames = request.TeamNames.Select(name => name.Trim()).ToArray();
-    var invalidStudents = request.Students.Any(student =>
+    var teamNames = request.Teams.Select(team => team.Name.Trim()).ToArray();
+    var invalidStudents = students.Any(student =>
       string.IsNullOrWhiteSpace(student.Email) ||
-      string.IsNullOrWhiteSpace(student.Fullname) ||
-      string.IsNullOrWhiteSpace(student.Username) ||
+      string.IsNullOrWhiteSpace(student.FirstName) ||
+      string.IsNullOrWhiteSpace(student.FirstLastName) ||
+      !new[] { "INEL", "ICOM", "INSO", "CIIC" }.Contains(student.Program) ||
       !teamNames.Contains(student.TeamName));
     var uniqueStudents =
-      request.Students.Select(student => student.Email).Distinct().Count();
-    var uniqueNames =
-      request.Students.Select(student => student.Fullname).Distinct().Count();
-    var uniqueUsernames =
-      request.Students.Select(student => student.Username).Distinct().Count();
-
+      students.Select(student => student.Email).Distinct().Count();
     if (invalidStudents ||
         teamNames.Distinct().Count() != teamNames.Length ||
-        uniqueStudents != request.Students.Count ||
-        uniqueNames != request.Students.Count ||
-        uniqueUsernames != request.Students.Count)
+        uniqueStudents != students.Length)
     {
       return Result<SaveGuildRosterResult, AppError>.Fail(
         AppError.BadRequest(
@@ -46,13 +52,13 @@ public sealed partial class BotService
         IReadOnlyCollection<RosterUserReference>, AppError>
       .Begin(connection, exception => AppError.BadRequest(exception.Message))
       .AndThen((conn, transaction) =>
-        UpsertRosterUsers(conn, transaction, request))
+        UpsertRosterUsers(conn, transaction, students))
       .AndThen((conn, transaction, users) =>
-        UpsertRosterMembers(conn, transaction, guildId, request, users))
+        UpsertRosterMembers(conn, transaction, guildId, users))
       .AndThen((conn, transaction, roster) =>
         ReplaceRosterTeams(conn, transaction, guildId, teamNames, roster))
       .AndThen((conn, transaction, roster) =>
-        ReplaceRosterAssignments(conn, transaction, request, roster))
+        ReplaceRosterAssignments(conn, transaction, students, roster))
       .Complete();
   }
 
@@ -60,12 +66,12 @@ public sealed partial class BotService
     UpsertRosterUsers(
       IDbConnection connection,
       IDbTransaction transaction,
-      SaveGuildRosterRequest request)
+      IReadOnlyCollection<RosterStudentAssignment> students)
   {
     var result = await _repository.UpsertRosterUsers(
-      connection, transaction, request.Students);
+      connection, transaction, students);
 
-    return result.IsSuccess && result.Value.Count != request.Students.Count
+    return result.IsSuccess && result.Value.Count != students.Count
       ? Result<IReadOnlyCollection<RosterUserReference>, AppError>.Fail(
         AppError.BadRequest("The complete student list could not be saved."))
       : result;
@@ -75,7 +81,6 @@ public sealed partial class BotService
     IDbConnection connection,
     IDbTransaction transaction,
     long guildId,
-    SaveGuildRosterRequest request,
     IReadOnlyCollection<RosterUserReference> users)
   {
     var result = await _repository.UpsertRosterMembers(
@@ -119,13 +124,13 @@ public sealed partial class BotService
     ReplaceRosterAssignments(
       IDbConnection connection,
       IDbTransaction transaction,
-      SaveGuildRosterRequest request,
+      IReadOnlyCollection<RosterStudentAssignment> students,
       RosterTeamsContext roster)
   {
     var result = await _repository.ReplaceRosterAssignments(
       connection,
       transaction,
-      request.Students,
+      students,
       roster.Users,
       roster.Members,
       roster.Teams);
@@ -135,7 +140,7 @@ public sealed partial class BotService
       return Result<SaveGuildRosterResult, AppError>.Fail(result.Error);
     }
 
-    return result.Value == request.Students.Count
+    return result.Value == students.Count
       ? Result<SaveGuildRosterResult, AppError>.Ok(new SaveGuildRosterResult
       {
         StudentCount = result.Value,

@@ -73,11 +73,10 @@ public sealed partial class BotRepository : IBotRepository
     try
     {
       const string sql = @"
-        INSERT INTO discord.users (email, fullname, username)
-        VALUES (@Email, @Fullname, @Username)
+        INSERT INTO discord.users (email, first_name)
+        VALUES (@Email, @Fullname)
         ON CONFLICT (email)
-        DO UPDATE SET fullname = EXCLUDED.fullname,
-                      username = EXCLUDED.username
+        DO UPDATE SET first_name = EXCLUDED.first_name
         RETURNING user_id;
       ";
 
