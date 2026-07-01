@@ -42,9 +42,12 @@ CREATE TABLE discord.servers (
 -- ============================================================================
 CREATE TABLE discord.users (
   user_id    SERIAL       PRIMARY KEY,
-  email      VARCHAR(255) NOT NULL UNIQUE,
-  fullname   VARCHAR(255) NOT NULL UNIQUE,
-  username   VARCHAR(255) NOT NULL UNIQUE,
+  email            VARCHAR(255) NOT NULL UNIQUE,
+  first_name       VARCHAR(255),
+  first_last_name  VARCHAR(255),
+  second_last_name VARCHAR(255),
+  initial          VARCHAR(10),
+  program          VARCHAR(4),
   created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -237,10 +240,10 @@ VALUES
   ('Friday Test Server 1', '100000000000000001', TRUE, '333', '111', '444'),
   ('Friday Test Server 2', '100000000000000002', FALSE, '1333', '1111', '1444');
 
-INSERT INTO discord.users (email, fullname, username) VALUES
-  ('student@upr.edu', 'Friday Student', 'student'),
-  ('mentor@upr.edu', 'Friday Mentor', 'mentor'),
-  ('staff@upr.edu', 'Friday Staff', 'staff');
+INSERT INTO discord.users (email, first_name, first_last_name) VALUES
+  ('student@upr.edu', 'Friday', 'Student'),
+  ('mentor@upr.edu', 'Friday', 'Mentor'),
+  ('staff@upr.edu', 'Friday', 'Staff');
 
 INSERT INTO discord.servers_users (server_id, user_id, discord_user_id, verified, funfact, xp, level) VALUES
   (

@@ -49,3 +49,26 @@ export interface RoomRequest {
   buildingId: number;
   departmentId: number;
 }
+
+export interface GuildRosterStudentRequest {
+  email: string;
+  firstName: string;
+  firstLastName: string;
+  secondLastName: string;
+  initial: string;
+  program: "INEL" | "ICOM" | "INSO" | "CIIC";
+}
+
+export interface GuildRosterTeamRequest {
+  name: string;
+  students: GuildRosterStudentRequest[];
+}
+
+export interface SaveGuildRosterRequest {
+  teams: GuildRosterTeamRequest[];
+}
+
+export interface SaveGuildRosterResult {
+  studentCount: number;
+  teamCount: number;
+}

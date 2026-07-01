@@ -1,8 +1,6 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { ArrowRightLeft, Check, Pencil, Users, X } from "lucide-react";
-
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +21,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
 import {
   Popover,
   PopoverContent,
@@ -33,31 +38,10 @@ import {
 } from "@/components/ui/popover";
 import {
   TEAM_COLOR_SWATCHES,
-  type Student,
-  type TeamGroup,
+  type TeamCardProps,
 } from "@/features/roster/roster-types";
+import { studentInitials } from "@/features/roster/student-initials";
 import { cn } from "@/lib/utils";
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
-
-interface TeamCardProps {
-  team: TeamGroup;
-  members: Student[];
-  otherTeams: TeamGroup[];
-  editMode: boolean;
-  onRename: (teamId: number, name: string) => void;
-  onRecolor: (teamId: number, color: string) => void;
-  onMoveStudent: (studentId: number, toTeamId: number | null) => void;
-}
-
 export function TeamCard({
   team,
   members,
@@ -69,20 +53,17 @@ export function TeamCard({
 }: TeamCardProps): React.ReactElement {
   const [open, setOpen] = useState(false);
   const [draftName, setDraftName] = useState(team.name);
-
   useEffect((): void => {
     if (open) {
       setDraftName(team.name);
     }
   }, [open, team.name]);
-
   function commitName(): void {
     const trimmed = draftName.trim();
     if (trimmed) {
       onRename(team.id, trimmed);
     }
   }
-
   return (
     <Card
       className={cn(
@@ -169,11 +150,14 @@ export function TeamCard({
               <Item key={student.id} size="sm" variant="muted" className="min-w-0 gap-2 px-2 py-1.5">
                 <ItemMedia variant="default">
                   <Avatar size="sm">
-                    <AvatarFallback>{initials(student.name)}</AvatarFallback>
+                    <AvatarFallback>{studentInitials(student.name)}</AvatarFallback>
                   </Avatar>
                 </ItemMedia>
                 <ItemContent className="min-w-0">
                   <ItemTitle className="truncate text-xs">{student.name}</ItemTitle>
+                  <ItemDescription className="truncate text-xs">
+                    {student.institutionalEmail || student.personalEmail}
+                  </ItemDescription>
                 </ItemContent>
                 {editMode ? (
                   <ItemActions>

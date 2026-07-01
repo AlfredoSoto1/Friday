@@ -7,31 +7,27 @@ import {
   type TeamGroup,
 } from "@/features/roster/roster-types";
 
+
 export function sortStudents(
   students: Student[],
   field: SortField,
   direction: SortDirection
 ): Student[] {
-  const sorted = [...students].sort((a, b) => {
-    if (field === "gpa") {
-      return a.gpa - b.gpa;
-    }
-
-    return a[field].localeCompare(b[field]);
-  });
+  const sorted = [...students].sort((first, second) => (
+    first[field].localeCompare(second[field], undefined, {
+      numeric: true,
+      sensitivity: "base",
+    })
+  ));
 
   return direction === "asc" ? sorted : sorted.reverse();
 }
 
 function shuffle(students: Student[]): Student[] {
-  const shuffled = [...students];
-
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-
-  return shuffled;
+  return students
+    .map((student) => ({ student, order: Math.random() }))
+    .sort((first, second) => first.order - second.order)
+    .map((item) => item.student);
 }
 
 function createEmptyTeams(teamCount: number): TeamGroup[] {
@@ -51,9 +47,7 @@ export interface Distribution {
 export function distributeStudents(
   students: Student[],
   teamCount: number,
-  mode: DistributionMode,
-  sortField: SortField,
-  sortDirection: SortDirection
+  mode: DistributionMode
 ): Distribution {
   const teams = createEmptyTeams(teamCount);
 
@@ -63,11 +57,16 @@ export function distributeStudents(
 
   const ordered = mode === "randomized"
     ? shuffle(students)
-    : sortStudents(students, sortField, sortDirection);
+    : students;
 
-  ordered.forEach((student, index) => {
-    teams[index % teamCount].studentIds.push(student.id);
-  });
+  const distributedTeams = ordered.reduce<TeamGroup[]>((current, student, index) => {
+    const teamIndex = index % teamCount;
+    current[teamIndex] = {
+      ...current[teamIndex],
+      studentIds: [...current[teamIndex].studentIds, student.id],
+    };
+    return current;
+  }, teams);
 
-  return { teams, unassignedIds: [] };
+  return { teams: distributedTeams, unassignedIds: [] };
 }

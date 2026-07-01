@@ -4,95 +4,97 @@ import type { Student } from "@/features/roster/roster-types";
 
 export class RosterParseError extends Error {}
 
-const MAJORS = ["ICOM", "INEL", "INSO", "CIIC", "Civil", "Mechanical", "Industrial"] as const;
-const YEARS: Student["year"][] = ["Freshman", "Sophomore", "Junior", "Senior"];
+type RosterColumn =
+  | "firstName"
+  | "firstLastName"
+  | "secondLastName"
+  | "initial"
+  | "personalEmail"
+  | "institutionalEmail"
+  | "program";
 
-const HEADER_ALIASES: Record<string, keyof Student> = {
-  name: "name",
-  "full name": "name",
-  "student name": "name",
-  "student id": "studentId",
-  "studentid": "studentId",
-  id: "studentId",
-  major: "major",
-  program: "major",
-  department: "major",
-  year: "year",
-  "class year": "year",
-  "academic year": "year",
-  gpa: "gpa",
+type ColumnMap = Partial<Record<RosterColumn, number>>;
+
+const HEADER_ALIASES: Record<string, RosterColumn> = {
+  firstname: "firstName",
+  "first name": "firstName",
+  firstlastname: "firstLastName",
+  "first lastname": "firstLastName",
+  "first last name": "firstLastName",
+  secondlastname: "secondLastName",
+  "second lastname": "secondLastName",
+  "second last name": "secondLastName",
+  initial: "initial",
+  "personal email": "personalEmail",
+  personalemail: "personalEmail",
+  "institutional email": "institutionalEmail",
+  institutionalemail: "institutionalEmail",
+  program: "program",
 };
 
-type ColumnMap = Partial<Record<keyof Student, number>>;
-
-function randomItem<T>(items: readonly T[]): T {
-  return items[Math.floor(Math.random() * items.length)];
-}
-
-function randomStudentId(index: number): string {
-  return `802-${String(20 + (index % 6)).padStart(2, "0")}-${String(1000 + index).padStart(4, "0")}`;
-}
-
-function randomGpa(): number {
-  return Math.round((2.4 + Math.random() * 1.6) * 100) / 100;
-}
-
-function normalizeYear(value: string): Student["year"] | null {
-  const lower = value.trim().toLowerCase();
-
-  if (lower.startsWith("fr")) return "Freshman";
-  if (lower.startsWith("so")) return "Sophomore";
-  if (lower.startsWith("ju")) return "Junior";
-  if (lower.startsWith("se")) return "Senior";
-
-  return null;
-}
+const REQUIRED_COLUMNS: RosterColumn[] = [
+  "firstName",
+  "firstLastName",
+  "secondLastName",
+  "initial",
+  "program",
+];
 
 function cellToText(cell: unknown): string {
   if (cell === null || cell === undefined) {
     return "";
   }
 
-  if (cell instanceof Date) {
-    return cell.toLocaleDateString();
-  }
-
   return String(cell).trim();
 }
 
-function detectHeader(row: string[]): ColumnMap | null {
-  const columns: ColumnMap = {};
-
-  row.forEach((cell, index) => {
-    const key = HEADER_ALIASES[cell.toLowerCase()];
-    if (key && columns[key] === undefined) {
-      columns[key] = index;
-    }
-  });
-
-  return columns.name !== undefined ? columns : null;
+function detectColumns(row: string[]): ColumnMap {
+  return row.reduce<ColumnMap>((columns, cell, index) => {
+    const key = HEADER_ALIASES[cell.toLowerCase().trim()];
+    return key ? { ...columns, [key]: index } : columns;
+  }, {});
 }
 
-function buildStudent(id: number, row: string[], columns: ColumnMap): Student | null {
-  const name = columns.name !== undefined ? row[columns.name] : row[0];
+function parseProgram(value: string): Student["program"] | null {
+  const program = value.trim().toUpperCase();
 
-  if (!name) {
+  if (program.startsWith("0502") || program === "INEL") return "INEL";
+  if (program.startsWith("0507") || program === "ICOM") return "ICOM";
+  if (program.includes("SOFTWARE") || program === "INSO") return "INSO";
+  if (program.includes("COMPUTER SCIENCE") || program === "CIIC") return "CIIC";
+  return null;
+}
+
+function buildStudent(
+  id: number,
+  row: string[],
+  columns: Required<ColumnMap>
+): Student | null {
+  const firstName = row[columns.firstName]?.trim();
+  const firstLastName = row[columns.firstLastName]?.trim();
+  const secondLastName = row[columns.secondLastName]?.trim();
+  const initial = row[columns.initial]?.trim();
+  const personalEmail = row[columns.personalEmail]?.trim();
+  const institutionalEmail = row[columns.institutionalEmail]?.trim();
+  const program = parseProgram(row[columns.program] ?? "");
+
+  if (!firstName || !firstLastName ||
+      (!personalEmail && !institutionalEmail) || !program) {
     return null;
   }
 
-  const studentIdCell = columns.studentId !== undefined ? row[columns.studentId] : "";
-  const majorCell = columns.major !== undefined ? row[columns.major] : "";
-  const yearCell = columns.year !== undefined ? row[columns.year] : "";
-  const gpaCell = columns.gpa !== undefined ? row[columns.gpa] : "";
-  const parsedGpa = Number.parseFloat(gpaCell);
-
   return {
     id,
-    name,
-    studentId: studentIdCell || randomStudentId(id),
-    major: majorCell || randomItem(MAJORS),
-    year: normalizeYear(yearCell) ?? randomItem(YEARS),
-    gpa: Number.isFinite(parsedGpa) ? Math.round(parsedGpa * 100) / 100 : randomGpa(),
+    name: [firstName, initial, firstLastName, secondLastName]
+      .filter(Boolean)
+      .join(" "),
+    firstName,
+    firstLastName,
+    secondLastName,
+    initial,
+    personalEmail,
+    institutionalEmail,
+    program,
   };
 }
 
@@ -116,20 +118,42 @@ async function readRows(file: File): Promise<string[][]> {
 export async function parseRosterFile(file: File): Promise<Student[]> {
   const rows = await readRows(file);
 
-  if (rows.length === 0) {
-    throw new RosterParseError("This file doesn't contain any rows.");
+  if (rows.length < 2) {
+    throw new RosterParseError("The roster must include headers and students.");
   }
 
-  const headerColumns = detectHeader(rows[0]);
-  const dataRows = headerColumns ? rows.slice(1) : rows;
-  const columns = headerColumns ?? { name: 0 };
+  const detectedColumns = detectColumns(rows[0]);
+  const columns: ColumnMap = rows[0][0]?.toUpperCase() === "NOMBRE"
+    ? {
+        firstLastName: 0,
+        secondLastName: 1,
+        firstName: 2,
+        initial: 3,
+        personalEmail: 4,
+        institutionalEmail: 5,
+        program: 6,
+      }
+    : detectedColumns;
+  const missing = REQUIRED_COLUMNS.filter((column) => columns[column] === undefined);
 
-  const students = dataRows
-    .map((row, index) => buildStudent(index + 1, row, columns))
+  if (missing.length ||
+      (columns.personalEmail === undefined &&
+       columns.institutionalEmail === undefined)) {
+    throw new RosterParseError(
+      `Missing required columns: ${missing.join(", ") || "email"}.`
+    );
+  }
+
+  const students = rows.slice(1)
+    .map((row, index) => buildStudent(
+      index + 1,
+      row,
+      columns as Required<ColumnMap>
+    ))
     .filter((student): student is Student => student !== null);
 
-  if (students.length === 0) {
-    throw new RosterParseError("No students were found in this file.");
+  if (!students.length) {
+    throw new RosterParseError("No valid students were found in this file.");
   }
 
   return students;

@@ -148,9 +148,6 @@ export function DiscordServerManager({
           <Button asChild variant="outline" size="sm">
             <Link href="/inelicom">Update INEL/ICOM Content</Link>
           </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/roster">Upload Student List</Link>
-          </Button>
           <Button variant="outline" size="sm">Edit Organizations</Button>
           <Button variant="outline" size="sm">Edit Projects</Button>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

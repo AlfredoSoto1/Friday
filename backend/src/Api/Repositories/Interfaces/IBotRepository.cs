@@ -28,6 +28,27 @@ public interface IBotRepository
     long guildId,
     RegisterGuildMemberRequest request);
   Task<Result<MemberVerification, AppError>> VerifyMember(IDbConnection connection, long guildId, VerifyMemberRequest request);
+  Task<Result<IReadOnlyCollection<RosterUserReference>, AppError>> UpsertRosterUsers(
+    IDbConnection connection,
+    IDbTransaction transaction,
+    IReadOnlyCollection<RosterStudentRequest> students);
+  Task<Result<IReadOnlyCollection<RosterMemberReference>, AppError>> UpsertRosterMembers(
+    IDbConnection connection,
+    IDbTransaction transaction,
+    long guildId,
+    IReadOnlyCollection<RosterUserReference> users);
+  Task<Result<IReadOnlyCollection<RosterTeamReference>, AppError>> ReplaceRosterTeams(
+    IDbConnection connection,
+    IDbTransaction transaction,
+    long guildId,
+    IReadOnlyCollection<string> teamNames);
+  Task<Result<int, AppError>> ReplaceRosterAssignments(
+    IDbConnection connection,
+    IDbTransaction transaction,
+    IReadOnlyCollection<RosterStudentRequest> students,
+    IReadOnlyCollection<RosterUserReference> users,
+    IReadOnlyCollection<RosterMemberReference> members,
+    IReadOnlyCollection<RosterTeamReference> teams);
   Task<Result<MemberXp, AppError>> AddXp(IDbConnection connection, long guildId, XpRequest request);
 
   // ==========================================================================

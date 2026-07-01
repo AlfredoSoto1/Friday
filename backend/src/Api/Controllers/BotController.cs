@@ -129,6 +129,15 @@ public sealed class BotController : ControllerBase
     return result.Send();
   }
 
+  [HttpPut("servers/{guildId:long}/roster")]
+  public async Task<IActionResult> SaveGuildRoster(
+    [FromRoute] long guildId,
+    [FromBody] SaveGuildRosterRequest request)
+  {
+    var result = await _service.SaveGuildRoster(guildId, request);
+    return result.Send();
+  }
+
   [HttpPost("servers/{guildId:long}/members/verify")]
   public async Task<IActionResult> VerifyMember([FromRoute] long guildId, [FromBody] VerifyMemberRequest request)
   {

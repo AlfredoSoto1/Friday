@@ -1,10 +1,13 @@
 export interface Student {
   id: number;
   name: string;
-  studentId: string;
-  major: string;
-  year: "Freshman" | "Sophomore" | "Junior" | "Senior";
-  gpa: number;
+  firstName: string;
+  firstLastName: string;
+  secondLastName: string;
+  initial: string;
+  personalEmail: string;
+  institutionalEmail: string;
+  program: "INEL" | "ICOM" | "INSO" | "CIIC";
 }
 
 export interface RosterFile {
@@ -13,7 +16,7 @@ export interface RosterFile {
   type: string;
 }
 
-export type SortField = "name" | "studentId" | "major" | "year" | "gpa";
+export type SortField = "firstName" | "firstLastName" | "secondLastName";
 export type SortDirection = "asc" | "desc";
 export type DistributionMode = "balanced" | "randomized" | "manual";
 
@@ -34,3 +37,13 @@ export const TEAM_COLOR_SWATCHES = [
   "#f778ba",
   "#39c5cf",
 ] as const;
+
+export interface TeamCardProps {
+  team: TeamGroup;
+  members: Student[];
+  otherTeams: TeamGroup[];
+  editMode: boolean;
+  onRename: (teamId: number, name: string) => void;
+  onRecolor: (teamId: number, color: string) => void;
+  onMoveStudent: (studentId: number, toTeamId: number | null) => void;
+}

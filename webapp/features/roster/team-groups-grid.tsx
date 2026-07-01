@@ -19,14 +19,22 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { sortStudents } from "@/features/roster/roster-distribution";
 import { TeamCard } from "@/features/roster/team-card";
-import type { Student, TeamGroup } from "@/features/roster/roster-types";
+import type {
+  SortDirection,
+  SortField,
+  Student,
+  TeamGroup,
+} from "@/features/roster/roster-types";
 
 interface TeamGroupsGridProps {
   teams: TeamGroup[];
   unassigned: Student[];
   studentsById: Map<number, Student>;
   editMode: boolean;
+  sortField: SortField;
+  sortDirection: SortDirection;
   onToggleEditMode: () => void;
   onRegenerate: () => void;
   onRename: (teamId: number, name: string) => void;
@@ -39,6 +47,8 @@ export function TeamGroupsGrid({
   unassigned,
   studentsById,
   editMode,
+  sortField,
+  sortDirection,
   onToggleEditMode,
   onRegenerate,
   onRename,
@@ -108,9 +118,13 @@ export function TeamGroupsGrid({
             <TeamCard
               key={team.id}
               team={team}
-              members={team.studentIds
-                .map((id) => studentsById.get(id))
-                .filter((student): student is Student => Boolean(student))}
+              members={sortStudents(
+                team.studentIds
+                  .map((id) => studentsById.get(id))
+                  .filter((student): student is Student => Boolean(student)),
+                sortField,
+                sortDirection
+              )}
               otherTeams={teams.filter((other) => other.id !== team.id)}
               editMode={editMode}
               onRename={onRename}

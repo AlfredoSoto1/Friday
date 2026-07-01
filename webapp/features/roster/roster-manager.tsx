@@ -1,17 +1,11 @@
 "use client";
-
-import { useEffect, useMemo, useState } from "react";
-import { Check, Save, TriangleAlert } from "lucide-react";
-
+import { useMemo, useState } from "react";
+import { TriangleAlert } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Spinner } from "@/components/ui/spinner";
 import { distributeStudents, type Distribution } from "@/features/roster/roster-distribution";
 import { parseRosterFile, RosterParseError } from "@/features/roster/roster-parser";
-import { loadStoredRoster, saveStoredRoster } from "@/features/roster/roster-storage";
+import { RosterSaveCard } from "@/features/roster/roster-save-card";
 import { RosterUploadCard } from "@/features/roster/roster-upload-card";
-import { SortControlCard } from "@/features/roster/sort-control-card";
 import { TeamGroupsGrid } from "@/features/roster/team-groups-grid";
 import { TeamSetupCard } from "@/features/roster/team-setup-card";
 import type {
@@ -21,62 +15,38 @@ import type {
   SortField,
   Student,
 } from "@/features/roster/roster-types";
-
-export function RosterManager(): React.ReactElement {
-  const [ready, setReady] = useState(false);
+import { saveGuildDistribution } from "@/features/roster/roster-persistence";
+export function RosterManager({
+  guildId,
+}: {
+  guildId: string;
+}): React.ReactElement {
   const [file, setFile] = useState<RosterFile | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [loadingFile, setLoadingFile] = useState(false);
-  const [parseError, setParseError] = useState("");
-  const [sortField, setSortField] = useState<SortField>("name");
+  const [error, setError] = useState("");
+  const [sortField, setSortField] = useState<SortField>("firstName");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [teamCount, setTeamCount] = useState(4);
   const [distributionMode, setDistributionMode] = useState<DistributionMode>("balanced");
   const [distribution, setDistribution] = useState<Distribution | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [storageError, setStorageError] = useState("");
-
-  useEffect((): void => {
-    try {
-      const stored = loadStoredRoster();
-
-      if (stored) {
-        setFile(stored.file);
-        setStudents(stored.students);
-        setSortField(stored.sortField);
-        setSortDirection(stored.sortDirection);
-        setTeamCount(stored.teamCount);
-        setDistributionMode(stored.distributionMode);
-        setDistribution(stored.distribution);
-        setSaved(true);
-      }
-    } catch {
-      setStorageError("The saved roster could not be read.");
-    } finally {
-      setReady(true);
-    }
-  }, []);
-
   const studentsById = useMemo(
-    (): Map<number, Student> => new Map(students.map((student) => [student.id, student])),
+    (): Map<number, Student> => new Map(
+      students.map((student) => [student.id, student])
+    ),
     [students]
   );
-
   const unassignedStudents = useMemo((): Student[] => {
-    if (!distribution) {
-      return [];
-    }
-
-    return distribution.unassignedIds
+    return (distribution?.unassignedIds ?? [])
       .map((id) => studentsById.get(id))
       .filter((student): student is Student => Boolean(student));
   }, [distribution, studentsById]);
-
-  async function handleFileSelected(selected: File): Promise<void> {
+  async function selectFile(selected: File): Promise<void> {
     setLoadingFile(true);
-    setParseError("");
-
+    setError("");
     try {
       const parsed = await parseRosterFile(selected);
       setStudents(parsed);
@@ -84,167 +54,141 @@ export function RosterManager(): React.ReactElement {
       setDistribution(null);
       setEditMode(false);
       setSaved(false);
-    } catch (error) {
-      setParseError(
-        error instanceof RosterParseError
-          ? error.message
-          : "This file could not be read. Try a different CSV, Excel, or TXT file."
-      );
+    } catch (reason) {
+      setError(reason instanceof RosterParseError
+        ? reason.message
+        : "This file could not be read.");
     } finally {
       setLoadingFile(false);
     }
   }
 
-  function handleRemoveFile(): void {
+  function removeFile(): void {
     setFile(null);
     setStudents([]);
-    setParseError("");
     setDistribution(null);
     setEditMode(false);
     setSaved(false);
+    setError("");
   }
 
-  function handleGenerate(): void {
-    setDistribution(
-      distributeStudents(students, teamCount, distributionMode, sortField, sortDirection)
-    );
+  function generate(): void {
+    setDistribution(distributeStudents(
+      students, teamCount, distributionMode
+    ));
     setEditMode(false);
     setSaved(false);
   }
 
-  function handleRename(teamId: number, name: string): void {
-    setDistribution((current) => current && {
+  function rename(teamId: number, name: string): void {
+    setDistribution((current) => current && ({
       ...current,
-      teams: current.teams.map((team) => (team.id === teamId ? { ...team, name } : team)),
-    });
+      teams: current.teams.map((team) => (
+        team.id === teamId ? { ...team, name } : team
+      )),
+    }));
     setSaved(false);
   }
 
-  function handleRecolor(teamId: number, color: string): void {
-    setDistribution((current) => current && {
+  function recolor(teamId: number, color: string): void {
+    setDistribution((current) => current && ({
       ...current,
-      teams: current.teams.map((team) => (team.id === teamId ? { ...team, color } : team)),
-    });
+      teams: current.teams.map((team) => (
+        team.id === teamId ? { ...team, color } : team
+      )),
+    }));
     setSaved(false);
   }
 
-  function handleMoveStudent(studentId: number, toTeamId: number | null): void {
+  function moveStudent(studentId: number, teamId: number | null): void {
     setDistribution((current) => {
-      if (!current) {
-        return current;
-      }
-
+      if (!current) return current;
       const teams = current.teams.map((team) => ({
         ...team,
         studentIds: team.studentIds.filter((id) => id !== studentId),
       }));
       const unassignedIds = current.unassignedIds.filter((id) => id !== studentId);
+      const target = teams.find((team) => team.id === teamId);
 
-      if (toTeamId === null) {
-        unassignedIds.push(studentId);
-      } else {
-        const target = teams.find((team) => team.id === toTeamId);
-        target?.studentIds.push(studentId);
-      }
-
+      if (target) target.studentIds.push(studentId);
+      else unassignedIds.push(studentId);
       return { teams, unassignedIds };
     });
     setSaved(false);
   }
 
-  function handleSave(): void {
-    if (!file || !distribution) {
-      return;
-    }
-
-    try {
-      saveStoredRoster({
-        file,
-        students,
-        sortField,
-        sortDirection,
-        teamCount,
-        distributionMode,
-        distribution,
-      });
-      setSaved(true);
-      setStorageError("");
-    } catch {
-      setStorageError("This roster is too large to save in browser storage.");
-    }
+  async function save(): Promise<void> {
+    if (!distribution || distribution.unassignedIds.length || !guildId) return;
+    setSaving(true);
+    const result = await saveGuildDistribution(
+      guildId, distribution, studentsById
+    );
+    setSaving(false);
+    setSaved(result.isSuccess);
+    setError(result.isFailure ? result.error.message : "");
   }
 
-  const assignedCount = distribution
-    ? distribution.teams.reduce((total, team) => total + team.studentIds.length, 0)
-    : 0;
+  const assignedCount = distribution?.teams.reduce(
+    (total, team) => total + team.studentIds.length, 0
+  ) ?? 0;
 
   return (
     <div className="grid min-w-0 gap-6">
-      {storageError ? (
+      {error ? (
         <Alert variant="destructive">
           <TriangleAlert />
-          <AlertTitle>Could not save roster</AlertTitle>
-          <AlertDescription>{storageError}</AlertDescription>
+          <AlertTitle>Roster action failed</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
-
       <RosterUploadCard
         file={file}
         studentCount={students.length}
         loading={loadingFile}
-        parseError={parseError}
-        onFileSelected={(selected): void => {
-          void handleFileSelected(selected);
-        }}
-        onRemoveFile={handleRemoveFile}
+        parseError=""
+        onFileSelected={(selected): void => { void selectFile(selected); }}
+        onRemoveFile={removeFile}
       />
-
-      <SortControlCard
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSortFieldChange={setSortField}
-        onSortDirectionChange={setSortDirection}
-        disabled={students.length === 0}
-      />
-
       <TeamSetupCard
         studentCount={students.length}
         teamCount={teamCount}
         onTeamCountChange={setTeamCount}
         distributionMode={distributionMode}
         onDistributionModeChange={setDistributionMode}
-        onGenerate={handleGenerate}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSortFieldChange={setSortField}
+        onSortDirectionChange={setSortDirection}
+        onGenerate={generate}
         hasTeams={Boolean(distribution)}
-        disabled={students.length === 0 || loadingFile}
+        disabled={!students.length || loadingFile}
       />
-
       {distribution ? (
         <TeamGroupsGrid
           teams={distribution.teams}
           unassigned={unassignedStudents}
           studentsById={studentsById}
           editMode={editMode}
+          sortField={sortField}
+          sortDirection={sortDirection}
           onToggleEditMode={(): void => setEditMode((current) => !current)}
-          onRegenerate={handleGenerate}
-          onRename={handleRename}
-          onRecolor={handleRecolor}
-          onMoveStudent={handleMoveStudent}
+          onRegenerate={generate}
+          onRename={rename}
+          onRecolor={recolor}
+          onMoveStudent={moveStudent}
         />
       ) : null}
-
-      <Card className="min-w-0 rounded-md border-border bg-card shadow-panel">
-        <CardContent className="flex flex-wrap items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            {distribution
-              ? `${assignedCount}/${students.length} students assigned across ${distribution.teams.length} teams.`
-              : "Upload a list and generate teams before saving."}
-          </p>
-          <Button onClick={handleSave} disabled={!ready || !distribution || loadingFile}>
-            {loadingFile ? <Spinner /> : saved ? <Check /> : <Save />}
-            {saved ? "Saved" : "Save team distribution"}
-          </Button>
-        </CardContent>
-      </Card>
+      <RosterSaveCard
+        assignedCount={assignedCount}
+        studentCount={students.length}
+        teamCount={distribution?.teams.length ?? 0}
+        saving={saving}
+        saved={saved}
+        disabled={
+          !guildId || !distribution || Boolean(distribution.unassignedIds.length)
+        }
+        onSave={(): void => { void save(); }}
+      />
     </div>
   );
 }
