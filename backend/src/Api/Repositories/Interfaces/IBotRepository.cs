@@ -42,6 +42,18 @@ public interface IBotRepository
     IDbTransaction transaction,
     long guildId,
     IReadOnlyCollection<string> teamNames);
+  Task<Result<RosterMembersContextResult, AppError>> AssignProgramRoles(
+    IDbConnection connection, IDbTransaction transaction, long guildId,
+    IReadOnlyCollection<RosterStudentAssignment> students,
+    IReadOnlyCollection<RosterUserReference> users,
+    IReadOnlyCollection<RosterMemberReference> members);
+  Task<Result<IReadOnlyCollection<GuildTeam>, AppError>> GetGuildTeams(
+    IDbConnection connection, long guildId);
+  Task<Result<GuildTeam, AppError>> UpdateGuildTeam(
+    IDbConnection connection, IDbTransaction transaction, long guildId,
+    int teamId, UpdateGuildTeamRequest request);
+  Task<Result<bool, AppError>> ResetGuildTeams(
+    IDbConnection connection, IDbTransaction transaction, long guildId);
   Task<Result<int, AppError>> ReplaceRosterAssignments(
     IDbConnection connection,
     IDbTransaction transaction,

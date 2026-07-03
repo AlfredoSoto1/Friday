@@ -115,12 +115,15 @@ CREATE TABLE discord.user_roles (
 CREATE TABLE discord.teams (
   team_id    SERIAL       PRIMARY KEY,
   server_id  INT          NOT NULL,
+  role_id    INT,
+  position   INT          NOT NULL,
   name       VARCHAR(255) NOT NULL,
   created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
 
-  UNIQUE (server_id, name),
-  FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE
+  UNIQUE (server_id, position),
+  FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE,
+  FOREIGN KEY (role_id) REFERENCES discord.roles(role_id) ON DELETE SET NULL
 );
 
 CREATE TABLE discord.user_teams (

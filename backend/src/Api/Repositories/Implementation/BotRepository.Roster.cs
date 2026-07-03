@@ -105,24 +105,30 @@ public sealed partial class BotRepository
     {
       const string deleteSql = @"
         DELETE FROM discord.teams
-          USING discord.servers
-        WHERE teams.server_id = servers.server_id
-          AND servers.guild_id = @GuildId;
+         USING discord.servers
+         WHERE teams.server_id = servers.server_id
+           AND servers.guild_id = @GuildId
+           AND teams.position > @TeamCount;
       ";
-      await connection.ExecuteAsync(
-        deleteSql,
-        new { GuildId = guildId.ToString() },
-        transaction);
+      await connection.ExecuteAsync(deleteSql, new
+      {
+        GuildId = guildId.ToString(),
+        TeamCount = teamNames.Count
+      }, transaction);
 
-      const string insertSql = @"
-        INSERT INTO discord.teams (server_id, name)
-        SELECT servers.server_id, roster.name
+      const string upsertSql = @"
+        INSERT INTO discord.teams (server_id, position, name)
+        SELECT servers.server_id, roster.position, roster.name
           FROM discord.servers
-          CROSS JOIN UNNEST(@TeamNames) AS roster(name)
-        WHERE servers.guild_id = @GuildId
+          CROSS JOIN UNNEST(@TeamNames) WITH ORDINALITY
+            AS roster(name, position)
+         WHERE servers.guild_id = @GuildId
+        ON CONFLICT (server_id, position)
+        DO UPDATE SET name = EXCLUDED.name,
+                      updated_at = CURRENT_TIMESTAMP
         RETURNING team_id, name;
       ";
-      var records = await connection.QueryAsync(insertSql, new
+      var records = await connection.QueryAsync(upsertSql, new
       {
         GuildId = guildId.ToString(),
         TeamNames = teamNames.ToArray()
@@ -160,6 +166,15 @@ public sealed partial class BotRepository
         .Join(teams, item => item.TeamName, team => team.Name,
           (item, team) => new { item.ServerUserId, team.TeamId })
         .ToArray();
+      const string deleteSql = @"
+        DELETE FROM discord.user_teams
+         WHERE team_id = ANY(@TeamIds);
+      ";
+      await connection.ExecuteAsync(deleteSql, new
+      {
+        TeamIds = teams.Select(team => team.TeamId).ToArray()
+      }, transaction);
+
       const string sql = @"
         INSERT INTO discord.user_teams (su_id, team_id)
         SELECT su_id, team_id

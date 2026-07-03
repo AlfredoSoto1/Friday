@@ -38,6 +38,12 @@ public sealed class RosterUserReference
   public string Email { get; init; } = string.Empty;
 }
 
+public sealed class RosterMembersContextResult
+{
+  public IReadOnlyCollection<RosterUserReference> Users { get; init; } = [];
+  public IReadOnlyCollection<RosterMemberReference> Members { get; init; } = [];
+}
+
 public sealed class RosterMemberReference
 {
   public int ServerUserId { get; init; }
@@ -48,6 +54,22 @@ public sealed class RosterTeamReference
 {
   public int TeamId { get; init; }
   public string Name { get; init; } = string.Empty;
+}
+
+public sealed class GuildTeam
+{
+  public int TeamId { get; init; }
+  public int Position { get; init; }
+  public string Name { get; init; } = string.Empty;
+  public int? RoleId { get; init; }
+  public string? RoleName { get; init; }
+  public int MemberCount { get; init; }
+}
+
+public sealed class UpdateGuildTeamRequest
+{
+  public string Name { get; init; } = string.Empty;
+  public int? RoleId { get; init; }
 }
 
 public sealed class SaveGuildRosterResult
