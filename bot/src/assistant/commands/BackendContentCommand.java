@@ -1,0 +1,51 @@
+package assistant.commands;
+
+import assistant.backend.BackendClient;
+import assistant.backend.dto.BotCommandResponse;
+import assistant.backend.dto.BotGuildProfile;
+import assistant.app.embeds.EmbedFactory;
+import assistant.app.interactions.InteractionDefinition;
+import assistant.app.interactions.SlashCommandDefinition;
+import assistant.app.interactions.SlashInteractionHandler;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+
+public class BackendContentCommand extends InteractionDefinition implements SlashCommandDefinition {
+  private final String name;
+  private final CommandData commandData;
+  private final EmbedFactory embedFactory;
+  private SlashInteractionHandler customHandler;
+
+  public BackendContentCommand(String name, String description, EmbedFactory embedFactory) {
+    this.name = name;
+    this.commandData = Commands.slash(name, description);
+    this.embedFactory = embedFactory;
+  }
+
+  public BackendContentCommand withCustomHandler(SlashInteractionHandler handler) {
+    this.customHandler = handler;
+    return this;
+  }
+
+  @Override
+  public CommandData commandData() {
+    return commandData;
+  }
+
+  @Override
+  public void handle(SlashCommandInteractionEvent event) {
+    if (customHandler != null) {
+      customHandler.handle(event);
+      return;
+    }
+
+    long guildId = event.getGuild() == null ? 0 : event.getGuild().getIdLong();
+    BotGuildProfile profile = BackendClient.guildProfile(guildId);
+    BotCommandResponse response = BackendClient.commandResponse(guildId, name);
+
+    event.replyEmbeds(embedFactory.commandEmbed(profile, response))
+      .setEphemeral(response.ephemeral())
+      .queue();
+  }
+}
