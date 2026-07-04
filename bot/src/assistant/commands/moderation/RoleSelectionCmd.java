@@ -262,76 +262,80 @@ public class RoleSelectionCmd extends InteractionModel implements CommandI, Mess
 		
 		switch (emoji.getName().toLowerCase()) {
 		case "javascript":
-			role = server.getRolesByName("js", true).get(0);
+			role = firstRole(server, "js");
 			break;
 		case "ts":
-			role = server.getRolesByName("ts", true).get(0);
+			role = firstRole(server, "ts");
 			break;
 		case "python":
-			role = server.getRolesByName("python", true).get(0);
+			role = firstRole(server, "python");
 			break;
 		case "java":
-			role = server.getRolesByName("java", true).get(0);
+			role = firstRole(server, "java");
 			break;
 		case "c_hashtag":
-			role = server.getRolesByName("c#", true).get(0);
+			role = firstRole(server, "c#");
 			break;
 		case "c_":
-			role = server.getRolesByName("c", true).get(0);
+			role = firstRole(server, "c");
 			break;
 		case "cpp":
-			role = server.getRolesByName("c++", true).get(0);
+			role = firstRole(server, "c++");
 			break;
 		case "asm":
-			role = server.getRolesByName("asm", true).get(0);
+			role = firstRole(server, "asm");
 			break;
 		
         case "fortnite":
-            role = server.getRolesByName("Fortnite", true).get(0);
+            role = firstRole(server, "Fortnite");
             break;
         case "valorant":
-            role = server.getRolesByName("Valorant", true).get(0);
+            role = firstRole(server, "Valorant");
             break;
         case "pokemon":
-            role = server.getRolesByName("Pokemon", true).get(0);
+            role = firstRole(server, "Pokemon");
             break;
         case "amongus":
-            role = server.getRolesByName("AmongUs", true).get(0);
+            role = firstRole(server, "AmongUs");
             break;
         case "minecraft":
-            role = server.getRolesByName("Minecraft", true).get(0);
+            role = firstRole(server, "Minecraft");
             break;
         case "ow":
-            role = server.getRolesByName("Overwatch", true).get(0);
+            role = firstRole(server, "Overwatch");
             break;
         case "thecompany":
-            role = server.getRolesByName("TheCompany", true).get(0);
+            role = firstRole(server, "TheCompany");
             break;
         case "lol":
-            role = server.getRolesByName("LOL", true).get(0);
+            role = firstRole(server, "LOL");
             break;
         case "smash":
-            role = server.getRolesByName("Super Smash Bros", true).get(0);
+            role = firstRole(server, "Super Smash Bros");
             break;
 	    case "\uD83D\uDCFA": // :tv:
-	        role = server.getRolesByName("Series", true).get(0);
+	        role = firstRole(server, "Series");
 	        break;
 	    case "\uD83C\uDFAC": // :clapper:
-	        role = server.getRolesByName("Movies Enthusiast", true).get(0);
+	        role = firstRole(server, "Movies Enthusiast");
 	        break;
 	    case "\uD83C\uDFB5": // :musical_note:
-	        role = server.getRolesByName("Music Lover", true).get(0);
+	        role = firstRole(server, "Music Lover");
 	        break;
 	    case "\uD83E\uDD21": // :clown:
-	        role = server.getRolesByName("I like Memes", true).get(0);
+	        role = firstRole(server, "I like Memes");
 	        break;
 	    case "\uD83C\uDFA8": // :art:
-	        role = server.getRolesByName("Artist", true).get(0);
+	        role = firstRole(server, "Artist");
 	        break;
 	    case "\uD83D\uDCBB": // :desktop:
-	        role = server.getRolesByName("hardware", true).get(0);
+	        role = firstRole(server, "hardware");
 	        break;
 	    }
 		return Optional.ofNullable(role);
+	}
+
+	private Role firstRole(Guild server, String name) {
+		return server.getRolesByName(name, true).stream().findFirst().orElse(null);
 	}
 }

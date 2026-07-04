@@ -16,7 +16,6 @@
 package assistant.commands.contacts;
 
 import java.util.List;
-import java.util.Optional;
 
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
@@ -75,20 +74,20 @@ public class EconomicAssistanceCmd extends InteractionModel implements CommandI 
 	@Override
 	public void execute(SlashCommandInteractionEvent event) {
 		// Obtain the service data related to the Asistencia Económica
-		Optional<ServiceDTO> result = service.getService("Asistencia Económica");
+		ServiceDTO result = service.getService("Asistencia Económica");
 		
 		// Check if the command was called from a server
 		if (event.isFromGuild()) {
 			DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
 			int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 			
-			event.replyEmbeds(embed.buildInfoPanel(color, result.get()))
+			event.replyEmbeds(embed.buildInfoPanel(color, result))
 				.setEphemeral(event.isFromGuild()).queue();
 			
 			// Update the user points stats when he uses the command
 			commandEventService.updateCommandUserCount(this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
 		} else {
-			event.replyEmbeds(embed.buildInfoPanel(0x808080, result.get())).queue();
+			event.replyEmbeds(embed.buildInfoPanel(0x808080, result)).queue();
 		}
 	}
 }

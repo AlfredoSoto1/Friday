@@ -16,7 +16,7 @@ public final class OrganizationsService {
   private List<OrganizationDTO> organizations(int page,int size,String search) {
     String path="/api/v1/inelicom/organizations?page_index="+page+"&limit="+size;
     if(search!=null) path+="&search="+URLEncoder.encode(search,StandardCharsets.UTF_8);
-    return BackendClient.getData(path).map(d->d.path("items")).stream().flatMap(n->StreamSupport.stream(n.spliterator(),false)).map(this::map).toList();
+    return BackendClient.getData(path).map(d->d).stream().flatMap(n->StreamSupport.stream(n.spliterator(),false)).map(this::map).toList();
   }
   private OrganizationDTO map(JsonNode n){ OrganizationDTO d=new OrganizationDTO(); d.setId(n.path("organization_id").asInt()); d.setName(n.path("name").asText()); d.setDescription(n.path("description").asText()); return d; }
 }

@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import assistant.app.interactions.ButtonActionEvent;
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
@@ -49,6 +52,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
  *
  */
 public class ListenerAdapterManager extends ListenerAdapter {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ListenerAdapterManager.class);
 	
 	private CountDownLatch latch;
 	
@@ -268,9 +272,20 @@ public class ListenerAdapterManager extends ListenerAdapter {
 		// throw an error message.
 		CommandI command = commands.get(event.getName());
 		
-		if(command != null)
+		if (command == null) {
+			event.reply("The command you entered is not registered!").setEphemeral(true).queue();
+			return;
+		}
+
+		try {
 			command.execute(event);
-		else
-			event.reply("The command you entered is not registered!").queue();
+		} catch (RuntimeException exception) {
+			LOGGER.error("Command /{} failed", event.getName(), exception);
+			String message = "This command could not be completed. Check the bot configuration and backend data.";
+			if (event.isAcknowledged())
+				event.getHook().sendMessage(message).setEphemeral(true).queue();
+			else
+				event.reply(message).setEphemeral(true).queue();
+		}
 	}
 }

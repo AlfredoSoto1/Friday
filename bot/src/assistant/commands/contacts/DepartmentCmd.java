@@ -16,7 +16,6 @@
 package assistant.commands.contacts;
 
 import java.util.List;
-import java.util.Optional;
 
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
@@ -78,14 +77,14 @@ public class DepartmentCmd extends InteractionModel implements CommandI {
 		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		if ("ECE".equalsIgnoreCase(department)) {
-			Optional<ServiceDTO> result = service.getService("Electrical and Computer Engineering");
+			ServiceDTO result = service.getService("Electrical and Computer Engineering");
 			
-			event.replyEmbeds(embed.buildInfoPanel(color, result.get()))
+			event.replyEmbeds(embed.buildInfoPanel(color, result))
 				.setEphemeral(true).queue();
 		} else {
-			Optional<ServiceDTO> result = service.getService("Computer Science & Engineering");
+			ServiceDTO result = service.getService("Computer Science & Engineering");
 			
-			event.replyEmbeds(embed.buildInfoPanel(color, result.get()))
+			event.replyEmbeds(embed.buildInfoPanel(color, result))
 				.setEphemeral(true).queue();
 		}
 		

@@ -20,7 +20,7 @@ public final class ProjectsService {
   private List<ProjectDTO> projects(int page, int size, String search) {
     String path = "/api/v1/inelicom/projects?page_index=" + page + "&limit=" + size;
     if (search != null) path += "&search=" + URLEncoder.encode(search, StandardCharsets.UTF_8);
-    return BackendClient.getData(path).map(data -> data.path("items")).stream()
+    return BackendClient.getData(path).map(data -> data).stream()
       .flatMap(items -> StreamSupport.stream(items.spliterator(), false)).map(this::map).toList();
   }
   private ProjectDTO map(JsonNode node) {

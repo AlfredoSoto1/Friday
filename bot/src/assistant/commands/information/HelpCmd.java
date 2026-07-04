@@ -106,11 +106,11 @@ public class HelpCmd extends InteractionModel implements CommandI {
 		
 		if ("ECE".equalsIgnoreCase(department)) {
 			event.replyFiles(FileUpload.fromData(teamMade))
-				.setEmbeds(embed.buildHelp(color, imageUrl_TeamMade, esoRole.get(), page))
+				.setEmbeds(embed.buildHelp(color, imageUrl_TeamMade, roleMention(esoRole, "Estudiante Orientador"), page))
 				.setEphemeral(event.isFromGuild()).queue();
 		} else {
 			event.replyFiles(FileUpload.fromData(insociic))
-				.setEmbeds(embed.buildHelp(color, imageUrl_InsoCiic, esoRole.get(), page))
+				.setEmbeds(embed.buildHelp(color, imageUrl_InsoCiic, roleMention(esoRole, "Estudiante Orientador"), page))
 				.setEphemeral(event.isFromGuild()).queue();
 		}
 		

@@ -16,7 +16,6 @@
 package assistant.commands.contacts;
 
 import java.util.List;
-import java.util.Optional;
 
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
@@ -82,14 +81,14 @@ public class AcademicAdvisoryCmd extends InteractionModel implements CommandI, M
 		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		if ("ECE".equalsIgnoreCase(department)) {
-			Optional<ServiceDTO> result = service.getService("Asesoría Academica del Departamento INEL/ICOM");
+			ServiceDTO result = service.getService("Asesoría Academica del Departamento INEL/ICOM");
 			
-			event.replyEmbeds(embed.buildInfoPanel(color, result.get()))
+			event.replyEmbeds(embed.buildInfoPanel(color, result))
 				.setEphemeral(true).queue();
 		} else {
-			Optional<ServiceDTO> result = service.getService("Asesoria Académica del Departamento de INSO/CIIC");
+			ServiceDTO result = service.getService("Asesoria Académica del Departamento de INSO/CIIC");
 			
-			event.replyEmbeds(embed.buildInfoPanel(color, result.get()))
+			event.replyEmbeds(embed.buildInfoPanel(color, result))
 				.setEphemeral(true).queue();
 		}
 		

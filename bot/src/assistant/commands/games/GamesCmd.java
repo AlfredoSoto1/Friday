@@ -210,7 +210,7 @@ public class GamesCmd extends InteractionModel implements CommandI, MessengerI {
 			String levelUpMessage = String.format(
 				LEVELING_MESSAGES[random.nextInt(0, LEVELING_MESSAGES.length)], 
 				message.getAuthor().getAsMention(),
-				userRank.get().getLevel());
+				rank.getLevel());
 			
 			channel.sendMessageFormat(levelUpMessage).queue();
 		});

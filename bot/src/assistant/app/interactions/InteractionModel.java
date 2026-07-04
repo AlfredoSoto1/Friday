@@ -83,11 +83,11 @@ public abstract class InteractionModel {
 	protected boolean validateCommandUse(SlashCommandInteractionEvent event) {
 		
 		// Obtain the administrator and developer role for further authentication
-		Role administratorRole = event.getGuild().getRolesByName("administrator", true).get(0);
+		Role administratorRole = event.getGuild().getRolesByName("administrator", true).stream().findFirst().orElse(null);
 		Optional<Role> developerRole = this.getEffectiveRole(MemberPosition.BOT_DEVELOPER, event.getGuild());
 		
 		// Validate if the member has the required role to continue
-		boolean hasRole = event.getMember().getRoles().contains(administratorRole);
+		boolean hasRole = administratorRole != null && event.getMember().getRoles().contains(administratorRole);
 		
 		// Update flag to contain the developer role if present in database
 		if(developerRole.isPresent())
@@ -114,6 +114,10 @@ public abstract class InteractionModel {
 	}
 	protected java.io.File getAsset(String path) {
 		return service.findFromAssets(path);
+	}
+
+	protected String roleMention(Optional<Role> role, String fallback) {
+		return role.map(Role::getAsMention).orElse(fallback);
 	}
 
 	

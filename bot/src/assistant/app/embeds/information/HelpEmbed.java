@@ -20,16 +20,15 @@ import java.util.List;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
-import net.dv8tion.jda.api.entities.Role;
 
 /**
  * @author Alfredo
  */
 public class HelpEmbed {
 	
-	public MessageEmbed buildHelp(int color, String banner, Role esoRole, int page) {
+	public MessageEmbed buildHelp(int color, String banner, String esoRole, int page) {
 		
-		List<Field> fields = getFieldPage(esoRole.getAsMention());
+		List<Field> fields = getFieldPage(esoRole);
 		
 		int fieldsPerPage = 6;
 		int maxPage = fields.size() / fieldsPerPage;

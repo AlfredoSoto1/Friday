@@ -88,27 +88,27 @@ public class RulesCmd extends InteractionModel implements CommandI {
 		Optional<Role> esoRole = super.getEffectiveRole(MemberPosition.ESTUDIANTE_ORIENTADOR, event.getGuild());
 		Optional<Role> botRole = super.getEffectiveRole(MemberPosition.BOTS, event.getGuild());
 		
-		Role admRole = event.getGuild().getRolesByName("Administrator", true).get(0);
+		String admRole = event.getGuild().getRolesByName("Administrator", true).stream().findFirst().map(Role::getAsMention).orElse("Administrator");
 		
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
 		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		event.replyEmbeds(embed.buildGeneralRules(color, 
-				esoRole.get().getAsMention(),
-				botRole.get().getAsMention(),
-				modRole.get().getAsMention(),
-				staRole.get().getAsMention(),
-				admRole.getAsMention(),
-				conRole.get().getAsMention()),
+				roleMention(esoRole, "Estudiante Orientador"),
+				roleMention(botRole, "Bots"),
+				roleMention(modRole, "Moderator"),
+				roleMention(staRole, "Staff"),
+				admRole,
+				roleMention(conRole, "Consejero Profesional")),
 				
 			embed.buildServerUsageRules(color, 
-				bdeRole.get().getAsMention(),
-				modRole.get().getAsMention(),
-				staRole.get().getAsMention()),
+				roleMention(bdeRole, "Bot Developer"),
+				roleMention(modRole, "Moderator"),
+				roleMention(staRole, "Staff")),
 			
 			embed.buildBotUsageRules(color, 
-				bdeRole.get().getAsMention(),
-				esoRole.get().getAsMention())).queue();
+				roleMention(bdeRole, "Bot Developer"),
+				roleMention(esoRole, "Estudiante Orientador"))).queue();
 		
 		// Update the user points stats when he uses the command
 		commandEventService.updateCommandUserCount(this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());

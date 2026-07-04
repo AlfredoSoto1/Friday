@@ -153,6 +153,10 @@ public class VerificationCmd extends InteractionModel implements CommandI {
 			// Mentioned Roles in embedded message
 			Optional<Role> modRole = super.getEffectiveRole(MemberPosition.MODERATOR, textChannel.get().getGuild());
 			Optional<Role> bdeRole = super.getEffectiveRole(MemberPosition.BOT_DEVELOPER, textChannel.get().getGuild());
+			if (modRole.isEmpty() || bdeRole.isEmpty()) {
+				event.reply("Configure the MODERATOR and BOT_DEVELOPER role mappings first.").setEphemeral(true).queue();
+				return;
+			}
 			
 			DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
 			int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
@@ -268,6 +272,10 @@ public class VerificationCmd extends InteractionModel implements CommandI {
 		sendWelcomeMessageToPrepa(privateChannel, server, member, team.get());
 	}
 	
+	private String emojiMention(Guild server, String name, String fallback) {
+		return server.getEmojisByName(name, true).stream().findFirst().map(emoji -> emoji.getAsMention()).orElse(fallback);
+	}
+
 	private void sendWelcomeMessageToPrepa(PrivateChannel privateChannel, Guild server, MemberDTO member, TeamDTO team) {
 		// Obtain discord server information
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(server.getIdLong());
@@ -323,11 +331,11 @@ public class VerificationCmd extends InteractionModel implements CommandI {
 			podrás ver varios de mis comandos que tengo.
 			""",
 				member.getFirstname(),
-				server.getEmojisByName("Huella", true).get(0).getAsMention(),
-				server.getEmojisByName("Huella", true).get(0).getAsMention(),
-				server.getEmojisByName("Huella", true).get(0).getAsMention(),
+				emojiMention(server, "Huella", "🐾"),
+				emojiMention(server, "Huella", "🐾"),
+				emojiMention(server, "Huella", "🐾"),
 				member.getFirstname(),
-				server.getEmojisByName("Huella", true).get(0).getAsMention(),
+				emojiMention(server, "Huella", "🐾"),
 				"ECE".equalsIgnoreCase(discordServer.getDepartment()) ? "TEAM-MADE" : "INSO/CIIC",
 				team.getName(), orientadorNames))
 			.queue();		
@@ -344,9 +352,9 @@ public class VerificationCmd extends InteractionModel implements CommandI {
 			De tener alguna idea respecto al bot o del server como tal, puedes decirle
 			a los Administradores o a los Bot Developers!!
 			""",
-				server.getEmojisByName("Huella", true).get(0).getAsMention(),
+				emojiMention(server, "Huella", "🐾"),
 				member.getFirstname(),
-				server.getEmojisByName("Huella", true).get(0).getAsMention(),
+				emojiMention(server, "Huella", "🐾"),
 				"ECE".equalsIgnoreCase(discordServer.getDepartment()) ? "TEAM-MADE" : "INSO/CIIC"))
 			.queue();		
 	}
@@ -358,6 +366,10 @@ public class VerificationCmd extends InteractionModel implements CommandI {
 		// Set the roles to the member
 		for (DiscordRoleDTO roleDTO : classificationRoles) {
 			Role role = server.getRoleById(roleDTO.getRoleid());
+			if (role == null) {
+				Logger.instance().logFile(LogFeedback.WARNING, "Configured Discord role no longer exists: %s", roleDTO.getRoleid());
+				continue;
+			}
 			
 			try {
 				server.addRoleToMember(member, role).queue(

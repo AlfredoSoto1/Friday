@@ -109,11 +109,11 @@ public class FAQCmd extends InteractionModel implements CommandI {
 		
 		if ("ECE".equalsIgnoreCase(department)) {
 			event.replyFiles(FileUpload.fromData(teamMade))
-				.setEmbeds(embed.buildFAQ(color, imageUrl_TeamMade, bdeRole.get().getAsMention(), esoRole.get().getAsMention(), page))
+				.setEmbeds(embed.buildFAQ(color, imageUrl_TeamMade, roleMention(bdeRole, "Bot Developer"), roleMention(esoRole, "Estudiante Orientador"), page))
 				.setEphemeral(true).queue();
 		} else {
 			event.replyFiles(FileUpload.fromData(insociic))
-				.setEmbeds(embed.buildFAQ(color, imageUrl_InsoCiic, bdeRole.get().getAsMention(), esoRole.get().getAsMention(), page))
+				.setEmbeds(embed.buildFAQ(color, imageUrl_InsoCiic, roleMention(bdeRole, "Bot Developer"), roleMention(esoRole, "Estudiante Orientador"), page))
 				.setEphemeral(true).queue();
 		}
 		
