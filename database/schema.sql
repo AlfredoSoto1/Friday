@@ -233,6 +233,15 @@ CREATE TABLE inelicom.organizations (
   created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE inelicom.curriculums (
+  curriculum_id SERIAL       PRIMARY KEY,
+  program       VARCHAR(50)  NOT NULL UNIQUE,
+  file_name     VARCHAR(255) NOT NULL,
+  content_type  VARCHAR(100) NOT NULL,
+  file_data     BYTEA        NOT NULL,
+  uploaded_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ============================================================================
 -- Dummy Data
 -- ============================================================================

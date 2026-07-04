@@ -1,6 +1,7 @@
 package edu.uprm.friday.bot.commands;
 
 import edu.uprm.friday.bot.backend.BackendClient;
+import edu.uprm.friday.bot.backend.dto.BotButtonDefinition;
 import edu.uprm.friday.bot.backend.dto.BotCommandResponse;
 import edu.uprm.friday.bot.backend.dto.BotGuildProfile;
 import edu.uprm.friday.bot.embeds.EmbedFactory;
@@ -10,6 +11,10 @@ import edu.uprm.friday.bot.interactions.SlashInteractionHandler;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
+
+import java.util.List;
 
 public class BackendContentCommand extends InteractionDefinition implements SlashCommandDefinition {
   private final String name;
@@ -46,8 +51,35 @@ public class BackendContentCommand extends InteractionDefinition implements Slas
     BotGuildProfile profile = backendClient.guildProfile(guildId);
     BotCommandResponse response = backendClient.commandResponse(guildId, name);
 
-    event.replyEmbeds(embedFactory.commandEmbed(profile, response))
-      .setEphemeral(response.ephemeral())
-      .queue();
+    ReplyCallbackAction reply = event.replyEmbeds(embedFactory.commandEmbed(profile, response))
+      .setEphemeral(response.ephemeral());
+
+    List<Button> buttons = toButtons(response.buttons());
+    if (!buttons.isEmpty()) {
+      reply = reply.setActionRow(buttons);
+    }
+
+    reply.queue();
+  }
+
+  private static List<Button> toButtons(List<BotButtonDefinition> definitions) {
+    return definitions.stream()
+      .limit(5)
+      .map(BackendContentCommand::toButton)
+      .toList();
+  }
+
+  private static Button toButton(BotButtonDefinition definition) {
+    if (definition.url() != null && !definition.url().isBlank()) {
+      return Button.link(definition.url(), definition.label());
+    }
+
+    String style = definition.style() == null ? "" : definition.style().toLowerCase();
+    return switch (style) {
+      case "success" -> Button.success(definition.id(), definition.label());
+      case "danger" -> Button.danger(definition.id(), definition.label());
+      case "secondary" -> Button.secondary(definition.id(), definition.label());
+      default -> Button.primary(definition.id(), definition.label());
+    };
   }
 }
