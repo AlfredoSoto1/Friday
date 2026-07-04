@@ -145,6 +145,7 @@ public sealed partial class BotRepository
         UPDATE discord.servers
            SET name = @Name,
                enabled = @Enabled,
+               department_profile = @DepartmentProfile,
                primary_color = @PrimaryColor,
                thumbnail_url = @ThumbnailUrl,
                footer_text = @FooterText,
@@ -159,7 +160,7 @@ public sealed partial class BotRepository
                welcome_channel_id = @WelcomeChannelId,
                welcome_banner_url = @WelcomeBannerUrl
         WHERE guild_id = @GuildId
-        RETURNING name, guild_id, enabled, primary_color, thumbnail_url, footer_text,
+        RETURNING name, guild_id, enabled, department_profile, primary_color, thumbnail_url, footer_text,
                   verif_title, verif_desc, verif_button_id, verif_channel_id, verif_role_id, verif_banner_url,
                   welcome_title, welcome_desc, welcome_channel_id, welcome_banner_url, created_at;
       ";
@@ -169,6 +170,7 @@ public sealed partial class BotRepository
         GuildId = guildId.ToString(),
         request.Name,
         request.Enabled,
+        request.DepartmentProfile,
         request.Theme.PrimaryColor,
         request.Theme.ThumbnailUrl,
         request.Theme.FooterText,

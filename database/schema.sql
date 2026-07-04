@@ -17,6 +17,7 @@ CREATE TABLE discord.servers (
   name               VARCHAR(255) NOT NULL UNIQUE,
   guild_id           VARCHAR(255) NOT NULL UNIQUE,
   enabled            BOOLEAN      NOT NULL DEFAULT FALSE,
+  department_profile VARCHAR(16)  CHECK (department_profile IN ('INEL_ICOM', 'INSO_CIIC')),
   primary_color      VARCHAR(7)   DEFAULT '#5865F2',
   thumbnail_url      VARCHAR(255),
   footer_text        VARCHAR(255) DEFAULT 'Friday',
@@ -191,8 +192,9 @@ CREATE TABLE inelicom.faculties (
 
 CREATE TABLE inelicom.buildings (
   building_id SERIAL       PRIMARY KEY,
+  code        VARCHAR(32) UNIQUE,
   name        VARCHAR(255) NOT NULL UNIQUE,
-  gpin        TEXT         NOT NULL UNIQUE,
+  gpin        TEXT         NOT NULL,
   created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -221,6 +223,10 @@ CREATE TABLE inelicom.rooms (
 
 CREATE TABLE inelicom.projects (
   project_id  SERIAL       PRIMARY KEY,
+  web         TEXT,
+  facebook    TEXT,
+  instagram   TEXT,
+  email       VARCHAR(255),
   name        VARCHAR(255) NOT NULL UNIQUE,
   description TEXT         NOT NULL UNIQUE,
   created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
@@ -228,6 +234,11 @@ CREATE TABLE inelicom.projects (
 
 CREATE TABLE inelicom.organizations (
   organization_id SERIAL       PRIMARY KEY,
+  email           VARCHAR(255),
+  facebook        TEXT,
+  instagram       TEXT,
+  twitter_x       TEXT,
+  web             TEXT,
   name            VARCHAR(255) NOT NULL UNIQUE,
   description     TEXT         NOT NULL UNIQUE,
   created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
@@ -238,190 +249,54 @@ CREATE TABLE inelicom.organizations (
 -- ============================================================================
 
 INSERT INTO discord.servers
-  (name, guild_id, enabled, verif_channel_id, verif_role_id, welcome_channel_id)
+  (name, guild_id, enabled, department_profile, primary_color)
 VALUES
-  ('Friday Test Server 1', '100000000000000001', TRUE, '333', '111', '444'),
-  ('Friday Test Server 2', '100000000000000002', FALSE, '1333', '1111', '1444');
+  ('Friday Test Server', '1518724716486070493', TRUE, 'INEL_ICOM', '#5865F2');
 
 INSERT INTO discord.users (email, first_name, first_last_name) VALUES
   ('student@upr.edu', 'Friday', 'Student'),
-  ('mentor@upr.edu', 'Friday', 'Mentor'),
-  ('staff@upr.edu', 'Friday', 'Staff');
+  ('mentor@upr.edu', 'Friday', 'Mentor');
 
-INSERT INTO discord.servers_users (server_id, user_id, discord_user_id, verified, funfact, xp, level) VALUES
-  (
-    (SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000001'),
-    (SELECT user_id FROM discord.users WHERE email = 'student@upr.edu'),
-    '1234',
-    FALSE,
-    'I like software.',
-    24,
-    1
-  ),
-  (
-    (SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000001'),
-    (SELECT user_id FROM discord.users WHERE email = 'mentor@upr.edu'),
-    '5678',
-    TRUE,
-    'I help new students.',
-    75,
-    2
-  ),
-  (
-    (SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000002'),
-    (SELECT user_id FROM discord.users WHERE email = 'staff@upr.edu'),
-    '9012',
-    TRUE,
-    'I keep the server organized.',
-    10,
-    1
-  );
+INSERT INTO discord.servers_users
+  (server_id, user_id, discord_user_id, verified, funfact, xp, level)
+VALUES
+  ((SELECT server_id FROM discord.servers WHERE guild_id = '1518724716486070493'),
+   (SELECT user_id FROM discord.users WHERE email = 'student@upr.edu'), '1234', FALSE, 'I like software.', 24, 1),
+  ((SELECT server_id FROM discord.servers WHERE guild_id = '1518724716486070493'),
+   (SELECT user_id FROM discord.users WHERE email = 'mentor@upr.edu'), '5678', TRUE, 'I help new students.', 75, 2);
 
 INSERT INTO discord.permissions (name) VALUES
-  ('view_channels'),
-  ('verified_access'),
-  ('manage_server');
+  ('view_channels'), ('verified_access'), ('manage_server');
 
 INSERT INTO discord.roles
   (server_id, discord_role_id, name, color, position, managed, mentionable, hoisted)
 VALUES
-  (
-    (SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000001'),
-    '111',
-    'verified',
-    5793266,
-    1,
-    FALSE,
-    FALSE,
-    FALSE
-  ),
-  (
-    (SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000001'),
-    '112',
-    'mentor',
-    3447003,
-    2,
-    FALSE,
-    TRUE,
-    TRUE
-  ),
-  (
-    (SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000001'),
-    '113',
-    'admin',
-    15158332,
-    3,
-    FALSE,
-    FALSE,
-    TRUE
-  ),
-  (
-    (SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000002'),
-    '1111',
-    'verified',
-    5793266,
-    1,
-    FALSE,
-    FALSE,
-    FALSE
-  );
+  ((SELECT server_id FROM discord.servers WHERE guild_id = '1518724716486070493'), '111', 'verified', 5793266, 1, FALSE, FALSE, FALSE),
+  ((SELECT server_id FROM discord.servers WHERE guild_id = '1518724716486070493'), '112', 'mentor', 3447003, 2, FALSE, TRUE, TRUE),
+  ((SELECT server_id FROM discord.servers WHERE guild_id = '1518724716486070493'), '113', 'admin', 15158332, 3, FALSE, FALSE, TRUE);
 
 INSERT INTO discord.role_permissions (role_id, permission_id) VALUES
-  (
-    (SELECT role_id FROM discord.roles WHERE discord_role_id = '111'),
-    (SELECT permission_id FROM discord.permissions WHERE name = 'verified_access')
-  ),
-  (
-    (SELECT role_id FROM discord.roles WHERE discord_role_id = '112'),
-    (SELECT permission_id FROM discord.permissions WHERE name = 'view_channels')
-  ),
-  (
-    (SELECT role_id FROM discord.roles WHERE discord_role_id = '113'),
-    (SELECT permission_id FROM discord.permissions WHERE name = 'manage_server')
-  );
+  ((SELECT role_id FROM discord.roles WHERE discord_role_id = '111'), (SELECT permission_id FROM discord.permissions WHERE name = 'verified_access')),
+  ((SELECT role_id FROM discord.roles WHERE discord_role_id = '112'), (SELECT permission_id FROM discord.permissions WHERE name = 'view_channels')),
+  ((SELECT role_id FROM discord.roles WHERE discord_role_id = '113'), (SELECT permission_id FROM discord.permissions WHERE name = 'manage_server'));
 
 INSERT INTO discord.user_roles (su_id, role_id) VALUES
-  (
-    (SELECT su_id FROM discord.servers_users WHERE discord_user_id = '1234'),
-    (SELECT role_id FROM discord.roles WHERE discord_role_id = '111')
-  ),
-  (
-    (SELECT su_id FROM discord.servers_users WHERE discord_user_id = '5678'),
-    (SELECT role_id FROM discord.roles WHERE discord_role_id = '111')
-  ),
-  (
-    (SELECT su_id FROM discord.servers_users WHERE discord_user_id = '5678'),
-    (SELECT role_id FROM discord.roles WHERE discord_role_id = '112')
-  );
+  ((SELECT su_id FROM discord.servers_users WHERE discord_user_id = '1234'), (SELECT role_id FROM discord.roles WHERE discord_role_id = '111')),
+  ((SELECT su_id FROM discord.servers_users WHERE discord_user_id = '5678'), (SELECT role_id FROM discord.roles WHERE discord_role_id = '112'));
 
-INSERT INTO discord.teams (server_id, name) VALUES
-  ((SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000001'), 'Orientation'),
-  ((SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000001'), 'Support'),
-  ((SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000002'), 'Archive');
-
-INSERT INTO discord.user_teams (su_id, team_id) VALUES
-  (
-    (SELECT su_id FROM discord.servers_users WHERE discord_user_id = '1234'),
-    (SELECT team_id FROM discord.teams WHERE name = 'Orientation')
-  ),
-  (
-    (SELECT su_id FROM discord.servers_users WHERE discord_user_id = '5678'),
-    (SELECT team_id FROM discord.teams WHERE name = 'Support')
-  ),
-  (
-    (SELECT su_id FROM discord.servers_users WHERE discord_user_id = '9012'),
-    (SELECT team_id FROM discord.teams WHERE name = 'Archive')
-  );
+INSERT INTO discord.teams (server_id, position, name) VALUES
+  ((SELECT server_id FROM discord.servers WHERE guild_id = '1518724716486070493'), 1, 'Orientation'),
+  ((SELECT server_id FROM discord.servers WHERE guild_id = '1518724716486070493'), 2, 'Support');
 
 INSERT INTO discord.channels
-  (server_id, discord_channel_id, parent_channel_id, name, type, position, topic, nsfw)
+  (server_id, discord_channel_id, name, type, position, topic)
 VALUES
-  (
-    (SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000001'),
-    '222',
-    NULL,
-    'general',
-    'text',
-    1,
-    'General chat',
-    FALSE
-  ),
-  (
-    (SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000001'),
-    '333',
-    NULL,
-    'verification',
-    'text',
-    2,
-    'Member verification',
-    FALSE
-  ),
-  (
-    (SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000001'),
-    '444',
-    NULL,
-    'welcome',
-    'text',
-    3,
-    'Welcome messages',
-    FALSE
-  ),
-  (
-    (SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000002'),
-    '1222',
-    NULL,
-    'general',
-    'text',
-    1,
-    'Archived general chat',
-    FALSE
-  );
+  ((SELECT server_id FROM discord.servers WHERE guild_id = '1518724716486070493'), '222', 'general', 'text', 1, 'General chat');
 
 INSERT INTO discord.server_syncs
   (server_id, role_count, channel_count, category_count, synced_by_discord_id)
 VALUES
-  ((SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000001'), 3, 3, 0, '5678'),
-  ((SELECT server_id FROM discord.servers WHERE guild_id = '100000000000000002'), 1, 1, 0, '9012');
+  ((SELECT server_id FROM discord.servers WHERE guild_id = '1518724716486070493'), 3, 1, 0, '5678');
 
 INSERT INTO inelicom.contacts (name, email, phone, website) VALUES
   ('DCSP Office', 'dcsp@uprm.edu', '787-832-4040', 'https://www.uprm.edu/cse'),
@@ -476,14 +351,3 @@ INSERT INTO inelicom.rooms (code, name, building_id, department_id) VALUES
     (SELECT building_id FROM inelicom.buildings WHERE name = 'Monzon Building'),
     (SELECT department_id FROM inelicom.departments WHERE name = 'Department of Mathematical Sciences')
   );
-
-INSERT INTO inelicom.projects (name, description) VALUES
-  ('Friday Assistant', 'Backend and bot services for campus Discord workflows.'),
-  ('Inelicom Catalog', 'Searchable source of departments, rooms, contacts, projects, and organizations.'),
-  ('Student Services Directory', 'Reference data for recurring student support questions.');
-
-INSERT INTO inelicom.organizations (name, description) VALUES
-  ('Computer Science Student Association', 'Student organization for computing talks, workshops, and peer support.'),
-  ('IEEE UPRM Student Branch', 'Engineering student branch focused on technical and professional development.'),
-  ('INELICOM Volunteers', 'Volunteer group supporting departmental activities and events.');
-

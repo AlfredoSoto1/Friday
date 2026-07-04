@@ -32,11 +32,9 @@ public final class VerificationInteraction extends InteractionDefinition impleme
   private static final String EMAIL_INPUT_ID = "email";
   private static final String FUN_FACT_INPUT_ID = "fun_fact";
 
-  private final BackendClient backendClient;
   private final EmbedFactory embedFactory;
 
-  public VerificationInteraction(BackendClient backendClient, EmbedFactory embedFactory) {
-    this.backendClient = backendClient;
+  public VerificationInteraction(EmbedFactory embedFactory) {
     this.embedFactory = embedFactory;
     registerButton(VERIFY_BUTTON_ID, this::showVerificationModal);
     registerModal(VERIFY_MODAL_ID, this::verifyMember);
@@ -56,7 +54,7 @@ public final class VerificationInteraction extends InteractionDefinition impleme
     }
 
     Guild guild = Objects.requireNonNull(event.getGuild());
-    BotGuildProfile profile = backendClient.guildProfile(guild.getIdLong());
+    BotGuildProfile profile = BackendClient.guildProfile(guild.getIdLong());
     TextChannel channel = event.getOption("channel") == null
       ? configuredVerificationChannel(guild, profile)
       : event.getOption("channel").getAsChannel().asTextChannel();
@@ -74,7 +72,7 @@ public final class VerificationInteraction extends InteractionDefinition impleme
 
   @Override
   public void onMemberJoin(GuildMemberJoinEvent event) {
-    BotGuildProfile profile = backendClient.guildProfile(event.getGuild().getIdLong());
+    BotGuildProfile profile = BackendClient.guildProfile(event.getGuild().getIdLong());
     if (!profile.welcome().enabled()) {
       return;
     }
@@ -120,7 +118,7 @@ public final class VerificationInteraction extends InteractionDefinition impleme
 
     String email = event.getValue(EMAIL_INPUT_ID).getAsString();
     String funFact = event.getValue(FUN_FACT_INPUT_ID) == null ? null : event.getValue(FUN_FACT_INPUT_ID).getAsString();
-    BotVerifyMemberResult result = backendClient.verifyMember(event.getGuild().getIdLong(), new BotVerifyMemberRequest(
+    BotVerifyMemberResult result = BackendClient.verifyMember(event.getGuild().getIdLong(), new BotVerifyMemberRequest(
       event.getUser().getId(),
       email,
       funFact));

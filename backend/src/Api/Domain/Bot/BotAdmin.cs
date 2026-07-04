@@ -101,6 +101,7 @@ public sealed class GuildProfileRequest
 {
   public string Name { get; init; } = string.Empty;
   public bool Enabled { get; init; } = true;
+  public string? DepartmentProfile { get; init; }
   public Theme Theme { get; init; } = new();
   public VerificationProfile Verification { get; init; } = new();
   public WelcomeProfile Welcome { get; init; } = new();

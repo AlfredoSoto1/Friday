@@ -14,14 +14,12 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 public class BackendContentCommand extends InteractionDefinition implements SlashCommandDefinition {
   private final String name;
   private final CommandData commandData;
-  private final BackendClient backendClient;
   private final EmbedFactory embedFactory;
   private SlashInteractionHandler customHandler;
 
-  public BackendContentCommand(String name, String description, BackendClient backendClient, EmbedFactory embedFactory) {
+  public BackendContentCommand(String name, String description, EmbedFactory embedFactory) {
     this.name = name;
     this.commandData = Commands.slash(name, description);
-    this.backendClient = backendClient;
     this.embedFactory = embedFactory;
   }
 
@@ -43,8 +41,8 @@ public class BackendContentCommand extends InteractionDefinition implements Slas
     }
 
     long guildId = event.getGuild() == null ? 0 : event.getGuild().getIdLong();
-    BotGuildProfile profile = backendClient.guildProfile(guildId);
-    BotCommandResponse response = backendClient.commandResponse(guildId, name);
+    BotGuildProfile profile = BackendClient.guildProfile(guildId);
+    BotCommandResponse response = BackendClient.commandResponse(guildId, name);
 
     event.replyEmbeds(embedFactory.commandEmbed(profile, response))
       .setEphemeral(response.ephemeral())

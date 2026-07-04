@@ -12,11 +12,9 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class CoinFlipCommand extends InteractionDefinition implements SlashCommandDefinition {
-  private final BackendClient backendClient;
   private final EmbedFactory embedFactory;
 
-  public CoinFlipCommand(BackendClient backendClient, EmbedFactory embedFactory) {
-    this.backendClient = backendClient;
+  public CoinFlipCommand(EmbedFactory embedFactory) {
     this.embedFactory = embedFactory;
   }
 
@@ -28,7 +26,7 @@ public final class CoinFlipCommand extends InteractionDefinition implements Slas
   @Override
   public void handle(SlashCommandInteractionEvent event) {
     long guildId = event.getGuild() == null ? 0 : event.getGuild().getIdLong();
-    BotGuildProfile profile = backendClient.guildProfile(guildId);
+    BotGuildProfile profile = BackendClient.guildProfile(guildId);
     String result = ThreadLocalRandom.current().nextBoolean() ? "Heads" : "Tails";
 
     event.replyEmbeds(embedFactory.gameEmbed(profile, "Coin flip", "The coin landed on **" + result + "**."))

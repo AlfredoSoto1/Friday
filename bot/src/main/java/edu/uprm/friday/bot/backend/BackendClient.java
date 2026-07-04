@@ -27,74 +27,77 @@ import java.util.Optional;
 
 public final class BackendClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(BackendClient.class);
+  private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+    .connectTimeout(Duration.ofSeconds(3))
+    .build();
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+    .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+  private static String baseUrl;
 
-  private final String baseUrl;
-  private final HttpClient httpClient;
-  private final ObjectMapper objectMapper;
-
-  public BackendClient(String baseUrl) {
-    this.baseUrl = baseUrl;
-    this.httpClient = HttpClient.newBuilder()
-      .connectTimeout(Duration.ofSeconds(3))
-      .build();
-    this.objectMapper = new ObjectMapper()
-      .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+  private BackendClient() {
   }
 
-  public List<BotGuildSummary> enabledGuilds() {
+  public static void configure(String backendUrl) {
+    if (backendUrl == null || backendUrl.isBlank()) {
+      throw new IllegalArgumentException("Backend URL must not be blank.");
+    }
+    baseUrl = backendUrl;
+  }
+
+  public static List<BotGuildSummary> enabledGuilds() {
     return get("/api/v1/bot/servers")
-      .map(data -> objectMapper.convertValue(data, new TypeReference<List<BotGuildSummary>>() {}))
+      .map(data -> OBJECT_MAPPER.convertValue(data, new TypeReference<List<BotGuildSummary>>() {}))
       .orElse(List.of());
   }
 
-  public BotGuildProfile guildProfile(long guildId) {
+  public static BotGuildProfile guildProfile(long guildId) {
     return get("/api/v1/bot/servers/" + guildId + "/profile")
-      .map(data -> objectMapper.convertValue(data, BotGuildProfile.class))
+      .map(data -> OBJECT_MAPPER.convertValue(data, BotGuildProfile.class))
       .orElseGet(() -> BotGuildProfile.defaultFor(guildId));
   }
 
-  public BotCommandResponse commandResponse(long guildId, String commandName) {
+  public static BotCommandResponse commandResponse(long guildId, String commandName) {
     return get("/api/v1/bot/servers/" + guildId + "/commands/" + commandName)
-      .map(data -> objectMapper.convertValue(data, BotCommandResponse.class))
+      .map(data -> OBJECT_MAPPER.convertValue(data, BotCommandResponse.class))
       .orElseGet(() -> BotCommandResponse.defaultFor(commandName));
   }
 
-  public BotVerifyMemberResult verifyMember(long guildId, BotVerifyMemberRequest request) {
+  public static BotVerifyMemberResult verifyMember(long guildId, BotVerifyMemberRequest request) {
     return post("/api/v1/bot/servers/" + guildId + "/members/verify", request)
-      .map(data -> objectMapper.convertValue(data, BotVerifyMemberResult.class))
+      .map(data -> OBJECT_MAPPER.convertValue(data, BotVerifyMemberResult.class))
       .orElseGet(() -> new BotVerifyMemberResult(false, "Backend verification is unavailable.", List.of()));
   }
 
-  public BotSyncResult syncGuild(BotSyncRequest request) {
+  public static BotSyncResult syncGuild(BotSyncRequest request) {
     return post("/api/v1/bot/servers/" + request.guildId() + "/sync", request)
-      .map(data -> objectMapper.convertValue(data, BotSyncResult.class))
+      .map(data -> OBJECT_MAPPER.convertValue(data, BotSyncResult.class))
       .orElseGet(() -> BotSyncResult.unavailable(request.guildId()));
   }
 
-  public BotXpResult addXp(long guildId, BotXpRequest request) {
+  public static BotXpResult addXp(long guildId, BotXpRequest request) {
     return post("/api/v1/bot/servers/" + guildId + "/members/xp", request)
-      .map(data -> objectMapper.convertValue(data, BotXpResult.class))
+      .map(data -> OBJECT_MAPPER.convertValue(data, BotXpResult.class))
       .orElseGet(() -> new BotXpResult(request.discordUserId(), 0, 1, false));
   }
 
-  public boolean isGuildEnabled(long guildId) {
+  public static boolean isGuildEnabled(long guildId) {
     return guildProfile(guildId).enabled();
   }
 
-  private Optional<JsonNode> get(String path) {
-    HttpRequest request = HttpRequest.newBuilder(URI.create(baseUrl + path))
+  private static Optional<JsonNode> get(String path) {
+    HttpRequest request = HttpRequest.newBuilder(uri(path))
       .timeout(Duration.ofSeconds(5))
       .GET()
       .build();
     return send(request);
   }
 
-  private Optional<JsonNode> post(String path, Object body) {
+  private static Optional<JsonNode> post(String path, Object body) {
     try {
-      HttpRequest request = HttpRequest.newBuilder(URI.create(baseUrl + path))
+      HttpRequest request = HttpRequest.newBuilder(uri(path))
         .timeout(Duration.ofSeconds(5))
         .header("Content-Type", "application/json")
-        .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+        .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(body)))
         .build();
       return send(request);
     } catch (IOException ex) {
@@ -103,15 +106,15 @@ public final class BackendClient {
     }
   }
 
-  private Optional<JsonNode> send(HttpRequest request) {
+  private static Optional<JsonNode> send(HttpRequest request) {
     try {
-      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() < 200 || response.statusCode() >= 300) {
         LOGGER.warn("Backend request failed: {} {}", response.statusCode(), request.uri());
         return Optional.empty();
       }
 
-      JsonNode envelope = objectMapper.readTree(response.body());
+      JsonNode envelope = OBJECT_MAPPER.readTree(response.body());
       JsonNode data = envelope.get("data");
       return data == null || data.isNull() ? Optional.empty() : Optional.of(data);
     } catch (IOException | InterruptedException ex) {
@@ -121,5 +124,12 @@ public final class BackendClient {
       LOGGER.warn("Backend request unavailable: {} ({})", request.uri(), ex.getMessage());
       return Optional.empty();
     }
+  }
+
+  private static URI uri(String path) {
+    if (baseUrl == null) {
+      throw new IllegalStateException("BackendClient must be configured before use.");
+    }
+    return URI.create(baseUrl + path);
   }
 }

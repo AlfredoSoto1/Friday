@@ -20,10 +20,10 @@ public final class FridayBotApplication {
       return;
     }
 
-    BackendClient backendClient = new BackendClient(config.backendUrl());
+    BackendClient.configure(config.backendUrl());
     EmbedFactory embedFactory = new EmbedFactory();
-    InteractionRegistry registry = CommandCatalog.createDefault(backendClient, embedFactory);
+    InteractionRegistry registry = CommandCatalog.createDefault(embedFactory);
 
-    new DiscordBot(config, backendClient, registry).start();
+    new DiscordBot(config, registry).start();
   }
 }

@@ -21,13 +21,10 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public final class SyncCommand extends InteractionDefinition implements SlashCommandDefinition {
-  private final BackendClient backendClient;
-
-  public SyncCommand(BackendClient backendClient) {
-    this.backendClient = backendClient;
+  
+  public SyncCommand() {
   }
 
   @Override
@@ -48,17 +45,11 @@ public final class SyncCommand extends InteractionDefinition implements SlashCom
       return;
     }
 
-    event.deferReply(true).queue(hook -> CompletableFuture
-      .supplyAsync(() -> backendClient.syncGuild(toRequest(event.getGuild(), event.getUser().getId())))
-      .whenComplete((result, throwable) -> {
-        if (throwable != null) {
-          hook.editOriginal("Sync failed: " + throwable.getMessage()).queue();
-          return;
-        }
-
-        hook.editOriginal("Sync complete. Stored " + result.roleCount() + " roles, "
-          + result.channelCount() + " channels, and " + result.categoryCount() + " categories.").queue();
-      }));
+    event.deferReply(true).queue(hook -> {
+      BotSyncResult result = BackendClient.syncGuild(toRequest(event.getGuild(), event.getUser().getId()));
+      hook.editOriginal("Sync complete. Stored " + result.roleCount() + " roles, "
+        + result.channelCount() + " channels, and " + result.categoryCount() + " categories.").queue();
+    });
   }
 
   private BotSyncRequest toRequest(Guild guild, String syncedByDiscordId) {

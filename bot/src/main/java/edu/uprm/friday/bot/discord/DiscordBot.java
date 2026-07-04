@@ -14,23 +14,30 @@ import org.slf4j.LoggerFactory;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class DiscordBot {
   private static final Logger LOGGER = LoggerFactory.getLogger(DiscordBot.class);
 
   private final BotConfig config;
-  private final BackendClient backendClient;
   private final InteractionRegistry interactionRegistry;
+  private final ExecutorService eventExecutor;
 
-  public DiscordBot(BotConfig config, BackendClient backendClient, InteractionRegistry interactionRegistry) {
+  public DiscordBot(BotConfig config, InteractionRegistry interactionRegistry) {
     this.config = config;
-    this.backendClient = backendClient;
     this.interactionRegistry = interactionRegistry;
+    this.eventExecutor = Executors.newSingleThreadExecutor(runnable -> {
+      Thread thread = new Thread(runnable, "friday-discord-events");
+      thread.setDaemon(false);
+      return thread;
+    });
   }
 
   public JDA start() throws InterruptedException {
     JDA jda = JDABuilder.create(config.discordBotToken(), intents())
-      .addEventListeners(new EventRouter(backendClient, interactionRegistry))
+      .setEventPool(eventExecutor, true)
+      .addEventListeners(new EventRouter(interactionRegistry))
       .build()
       .awaitReady();
 
@@ -48,14 +55,14 @@ public final class DiscordBot {
   }
 
   private void syncCommands(JDA jda) {
-    List<BotGuildSummary> backendGuilds = backendClient.enabledGuilds();
+    List<BotGuildSummary> backendGuilds = BackendClient.enabledGuilds();
     if (!backendGuilds.isEmpty()) {
       backendGuilds.forEach(summary -> syncGuildCommands(jda, summary.guildId()));
       return;
     }
 
     jda.getGuilds().stream()
-      .filter(guild -> backendClient.isGuildEnabled(guild.getIdLong()))
+      .filter(guild -> BackendClient.isGuildEnabled(guild.getIdLong()))
       .forEach(guild -> syncGuildCommands(jda, guild.getIdLong()));
     LOGGER.info("Queued command sync for visible backend-enabled guilds");
   }

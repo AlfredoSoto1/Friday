@@ -39,6 +39,7 @@ public sealed partial class BotRepository : IBotRepository
         SELECT  name,
                 guild_id,
                 enabled,
+                department_profile,
                 primary_color,
                 thumbnail_url,
                 footer_text,
@@ -385,6 +386,7 @@ public sealed partial class BotRepository : IBotRepository
     GuildId = long.Parse((string)record.guild_id),
     Name = (string)record.name,
     Enabled = (bool)record.enabled,
+    DepartmentProfile = (string?)record.department_profile,
     CreatedAt = (DateTime)record.created_at,
     Theme = new Theme
     {

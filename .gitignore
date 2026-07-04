@@ -36,5 +36,4 @@ postgres-data/
 models/
 .cache/
 
-assets/*
-
+attendance/

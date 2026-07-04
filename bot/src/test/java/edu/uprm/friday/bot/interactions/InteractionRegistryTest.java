@@ -1,6 +1,5 @@
 package edu.uprm.friday.bot.interactions;
 
-import edu.uprm.friday.bot.backend.BackendClient;
 import edu.uprm.friday.bot.commands.CommandCatalog;
 import edu.uprm.friday.bot.embeds.EmbedFactory;
 import org.junit.jupiter.api.Test;
@@ -37,9 +36,7 @@ final class InteractionRegistryTest {
 
   @Test
   void registersReadmeCommandsAndCoreFeatureCommands() {
-    InteractionRegistry registry = CommandCatalog.createDefault(
-      new BackendClient("http://localhost:1"),
-      new EmbedFactory());
+    InteractionRegistry registry = CommandCatalog.createDefault(new EmbedFactory());
 
     assertTrue(registry.commandNames().containsAll(README_COMMANDS));
     assertTrue(registry.commandNames().contains("verification-panel"));
@@ -51,9 +48,7 @@ final class InteractionRegistryTest {
   @Test
   void commandNamesAreValidDiscordSlashNames() {
     Pattern slashCommandName = Pattern.compile("^[a-z0-9_-]{1,32}$");
-    InteractionRegistry registry = CommandCatalog.createDefault(
-      new BackendClient("http://localhost:1"),
-      new EmbedFactory());
+    InteractionRegistry registry = CommandCatalog.createDefault(new EmbedFactory());
 
     registry.commandNames().forEach(name -> assertTrue(
       slashCommandName.matcher(name).matches(),
@@ -62,9 +57,7 @@ final class InteractionRegistryTest {
 
   @Test
   void registersCustomVerificationInteractions() {
-    InteractionRegistry registry = CommandCatalog.createDefault(
-      new BackendClient("http://localhost:1"),
-      new EmbedFactory());
+    InteractionRegistry registry = CommandCatalog.createDefault(new EmbedFactory());
 
     assertTrue(registry.button("friday:verification:start").isPresent());
     assertTrue(registry.modal("friday:verification:modal").isPresent());

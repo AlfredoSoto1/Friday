@@ -9,21 +9,19 @@ import edu.uprm.friday.bot.interactions.InteractionDefinition;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public final class LevelingInteraction extends InteractionDefinition {
-  private final BackendClient backendClient;
   private final EmbedFactory embedFactory;
 
-  public LevelingInteraction(BackendClient backendClient, EmbedFactory embedFactory) {
-    this.backendClient = backendClient;
+  public LevelingInteraction(EmbedFactory embedFactory) {
     this.embedFactory = embedFactory;
   }
 
   @Override
   public void onMessageReceived(MessageReceivedEvent event) {
-    BotXpResult result = backendClient.addXp(event.getGuild().getIdLong(), new BotXpRequest(
+    BotXpResult result = BackendClient.addXp(event.getGuild().getIdLong(), new BotXpRequest(
       event.getAuthor().getId()));
 
     if (result.leveledUp()) {
-      BotGuildProfile profile = backendClient.guildProfile(event.getGuild().getIdLong());
+      BotGuildProfile profile = BackendClient.guildProfile(event.getGuild().getIdLong());
       event.getChannel().sendMessageEmbeds(embedFactory.levelUpEmbed(
         profile,
         event.getAuthor().getAsMention(),

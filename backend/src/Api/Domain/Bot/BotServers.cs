@@ -10,6 +10,7 @@ public class GuildSummary
 
 public sealed class GuildProfile : GuildSummary
 {
+  public string? DepartmentProfile { get; init; }
   public Theme Theme { get; init; } = new();
   public VerificationProfile Verification { get; init; } = new();
   public WelcomeProfile Welcome { get; init; } = new();

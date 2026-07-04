@@ -11,11 +11,9 @@ import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public final class EventRouter extends ListenerAdapter {
-  private final BackendClient backendClient;
-  private final InteractionRegistry registry;
+    private final InteractionRegistry registry;
 
-  public EventRouter(BackendClient backendClient, InteractionRegistry registry) {
-    this.backendClient = backendClient;
+  public EventRouter(InteractionRegistry registry) {
     this.registry = registry;
   }
 
@@ -76,6 +74,6 @@ public final class EventRouter extends ListenerAdapter {
   }
 
   private boolean guildEnabled(long guildId) {
-    return guildId == 0 || backendClient.isGuildEnabled(guildId);
+    return guildId == 0 || BackendClient.isGuildEnabled(guildId);
   }
 }
