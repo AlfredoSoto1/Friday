@@ -35,3 +35,6 @@ logs/
 postgres-data/
 models/
 .cache/
+
+assets/*
+

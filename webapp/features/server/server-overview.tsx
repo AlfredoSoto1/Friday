@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Hash, Shield, TriangleAlert, Users } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -30,11 +31,19 @@ import { BotApi } from "@/server/webservices/bot-webservice";
 const curriculumPrograms = ["INEL", "ICOM", "INSO", "CIIC"] as const;
 const bannerTypes = ["Rules banner", "Help banner", "Welcome banner"] as const;
 
-export function ServerOverview({
-  guildId,
-}: {
+interface ServerOverviewProps {
+  serverId: number | null;
   guildId: string;
-}): React.ReactElement {
+  serverName: string;
+  enabled: boolean;
+}
+
+export function ServerOverview({
+  serverId,
+  guildId,
+  serverName,
+  enabled,
+}: ServerOverviewProps): React.ReactElement {
   const [teams, setTeams] = useState<TeamOverview[]>([]);
   const [error, setError] = useState("");
 
@@ -120,7 +129,25 @@ export function ServerOverview({
             Discord roles, linked channels, and assigned members.
           </CardDescription>
           <CardAction>
-            <Button size="sm">{teams.length ? "Edit" : "Start"}</Button>
+            {teams.length ? (
+              <Button size="sm">Edit</Button>
+            ) : (
+              <Button asChild size="sm">
+                <Link
+                  href={{
+                    pathname: "/roster",
+                    query: {
+                      serverId: serverId?.toString() ?? "",
+                      guildId,
+                      name: serverName,
+                      enabled: enabled.toString(),
+                    },
+                  }}
+                >
+                  Prepare student groups
+                </Link>
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
         <CardContent className="min-w-0">

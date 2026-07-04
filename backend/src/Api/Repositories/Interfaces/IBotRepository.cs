@@ -28,6 +28,39 @@ public interface IBotRepository
     long guildId,
     RegisterGuildMemberRequest request);
   Task<Result<MemberVerification, AppError>> VerifyMember(IDbConnection connection, long guildId, VerifyMemberRequest request);
+  Task<Result<IReadOnlyCollection<RosterUserReference>, AppError>> UpsertRosterUsers(
+    IDbConnection connection,
+    IDbTransaction transaction,
+    IReadOnlyCollection<RosterStudentAssignment> students);
+  Task<Result<IReadOnlyCollection<RosterMemberReference>, AppError>> UpsertRosterMembers(
+    IDbConnection connection,
+    IDbTransaction transaction,
+    long guildId,
+    IReadOnlyCollection<RosterUserReference> users);
+  Task<Result<IReadOnlyCollection<RosterTeamReference>, AppError>> ReplaceRosterTeams(
+    IDbConnection connection,
+    IDbTransaction transaction,
+    long guildId,
+    IReadOnlyCollection<string> teamNames);
+  Task<Result<RosterMembersContextResult, AppError>> AssignProgramRoles(
+    IDbConnection connection, IDbTransaction transaction, long guildId,
+    IReadOnlyCollection<RosterStudentAssignment> students,
+    IReadOnlyCollection<RosterUserReference> users,
+    IReadOnlyCollection<RosterMemberReference> members);
+  Task<Result<IReadOnlyCollection<GuildTeam>, AppError>> GetGuildTeams(
+    IDbConnection connection, long guildId);
+  Task<Result<GuildTeam, AppError>> UpdateGuildTeam(
+    IDbConnection connection, IDbTransaction transaction, long guildId,
+    int teamId, UpdateGuildTeamRequest request);
+  Task<Result<bool, AppError>> ResetGuildTeams(
+    IDbConnection connection, IDbTransaction transaction, long guildId);
+  Task<Result<int, AppError>> ReplaceRosterAssignments(
+    IDbConnection connection,
+    IDbTransaction transaction,
+    IReadOnlyCollection<RosterStudentAssignment> students,
+    IReadOnlyCollection<RosterUserReference> users,
+    IReadOnlyCollection<RosterMemberReference> members,
+    IReadOnlyCollection<RosterTeamReference> teams);
   Task<Result<MemberXp, AppError>> AddXp(IDbConnection connection, long guildId, XpRequest request);
 
   // ==========================================================================

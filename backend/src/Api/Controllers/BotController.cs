@@ -129,6 +129,38 @@ public sealed class BotController : ControllerBase
     return result.Send();
   }
 
+  [HttpGet("servers/{guildId:long}/teams")]
+  public async Task<IActionResult> GetGuildTeams([FromRoute] long guildId)
+  {
+    var result = await _service.GetGuildTeams(guildId);
+    return result.Send();
+  }
+
+  [HttpPut("servers/{guildId:long}/teams/{teamId:int}")]
+  public async Task<IActionResult> UpdateGuildTeam(
+    [FromRoute] long guildId, [FromRoute] int teamId,
+    [FromBody] UpdateGuildTeamRequest request)
+  {
+    var result = await _service.UpdateGuildTeam(guildId, teamId, request);
+    return result.Send();
+  }
+
+  [HttpDelete("servers/{guildId:long}/teams")]
+  public async Task<IActionResult> ResetGuildTeams([FromRoute] long guildId)
+  {
+    var result = await _service.ResetGuildTeams(guildId);
+    return result.Send();
+  }
+
+  [HttpPut("servers/{guildId:long}/roster")]
+  public async Task<IActionResult> SaveGuildRoster(
+    [FromRoute] long guildId,
+    [FromBody] SaveGuildRosterRequest request)
+  {
+    var result = await _service.SaveGuildRoster(guildId, request);
+    return result.Send();
+  }
+
   [HttpPost("servers/{guildId:long}/members/verify")]
   public async Task<IActionResult> VerifyMember([FromRoute] long guildId, [FromBody] VerifyMemberRequest request)
   {

@@ -23,6 +23,13 @@ public interface IBotService
   Task<Result<MemberVerification, AppError>> RegisterUserToGuild(long guildId, RegisterGuildMemberRequest request);
   Task<Result<IReadOnlyCollection<MemberVerification>, AppError>> RegisterUsersToGuild(long guildId, BulkRegisterGuildMembersRequest request);
   Task<Result<MemberVerification, AppError>> VerifyMember(long guildId, VerifyMemberRequest request);
+  Task<Result<IReadOnlyCollection<GuildTeam>, AppError>> GetGuildTeams(long guildId);
+  Task<Result<GuildTeam, AppError>> UpdateGuildTeam(
+    long guildId, int teamId, UpdateGuildTeamRequest request);
+  Task<Result<bool, AppError>> ResetGuildTeams(long guildId);
+  Task<Result<SaveGuildRosterResult, AppError>> SaveGuildRoster(
+    long guildId,
+    SaveGuildRosterRequest request);
   Task<Result<MemberXp, AppError>> AddXp(long guildId, XpRequest request);
 
   // ==========================================================================

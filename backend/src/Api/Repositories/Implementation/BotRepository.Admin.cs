@@ -12,9 +12,10 @@ public sealed partial class BotRepository
     try
     {
       const string sql = @"
-        SELECT user_id, email, fullname, username, created_at
+        SELECT user_id, email, CONCAT_WS(' ', first_name, initial, first_last_name, second_last_name) AS fullname,
+               SPLIT_PART(email, '@', 1) AS username, created_at
           FROM discord.users
-        ORDER BY fullname;
+        ORDER BY first_name, first_last_name, second_last_name;
       ";
 
       var records = await connection.QueryAsync(sql);
@@ -31,9 +32,12 @@ public sealed partial class BotRepository
     try
     {
       const string sql = @"
-        INSERT INTO discord.users (email, fullname, username)
-        VALUES (@Email, @Fullname, @Username)
-        RETURNING user_id, email, fullname, username, created_at;
+        INSERT INTO discord.users (email, first_name)
+        VALUES (@Email, @Fullname)
+        RETURNING user_id, email,
+                  first_name AS fullname,
+                  SPLIT_PART(email, '@', 1) AS username,
+                  created_at;
       ";
 
       var record = await connection.QuerySingleAsync(sql, request, transaction);
@@ -52,10 +56,12 @@ public sealed partial class BotRepository
       const string sql = @"
         UPDATE discord.users
            SET email = @Email,
-               fullname = @Fullname,
-               username = @Username
+               first_name = @Fullname
         WHERE user_id = @UserId
-        RETURNING user_id, email, fullname, username, created_at;
+        RETURNING user_id, email,
+                  CONCAT_WS(' ', first_name, initial, first_last_name, second_last_name) AS fullname,
+                  SPLIT_PART(email, '@', 1) AS username,
+                  created_at;
       ";
 
       var record = await connection.QuerySingleOrDefaultAsync(sql, new
@@ -99,8 +105,8 @@ public sealed partial class BotRepository
         SELECT servers_users.su_id,
                users.user_id,
                users.email,
-               users.fullname,
-               users.username,
+               CONCAT_WS(' ', users.first_name, users.initial, users.first_last_name, users.second_last_name) AS fullname,
+               SPLIT_PART(users.email, '@', 1) AS username,
                servers_users.discord_user_id,
                servers_users.verified,
                servers_users.funfact,
@@ -115,10 +121,11 @@ public sealed partial class BotRepository
             LEFT JOIN discord.user_roles USING (su_id)
             LEFT JOIN discord.roles USING (role_id)
         WHERE discord.servers.guild_id = @GuildId
-        GROUP BY servers_users.su_id, users.user_id, users.email, users.fullname, users.username,
+        GROUP BY servers_users.su_id, users.user_id, users.email, users.first_name,
+                 users.initial, users.first_last_name, users.second_last_name,
                  servers_users.discord_user_id, servers_users.verified, servers_users.funfact,
                  servers_users.xp, servers_users.level, servers_users.created_at, servers_users.updated_at
-        ORDER BY users.fullname;
+        ORDER BY users.first_name, users.first_last_name, users.second_last_name;
       ";
 
       var records = await connection.QueryAsync(sql, new { GuildId = guildId.ToString() });

@@ -9,6 +9,7 @@ services:
     volumes:
       - friday-runtime-postgres:/var/lib/postgresql/data
       - ../database/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+      - ../database/migrations/002_roster_user_fields.sql:/docker-entrypoint-initdb.d/002-roster-user-fields.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s

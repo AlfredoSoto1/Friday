@@ -24,8 +24,8 @@
       "version": "os-provided"
     }
   },
-  "onCreateCommand": "bash .devcontainer/scripts/on-create.sh",
-  "postStartCommand": "bash .devcontainer/scripts/on-start.sh",
+  "onCreateCommand": "sed -i 's/\r//' ./.devcontainer/scripts/on-create.sh && chmod +x .devcontainer/scripts/on-create.sh && bash .devcontainer/scripts/on-create.sh",
+  "postStartCommand": "sed -i 's/\r//' ./.devcontainer/scripts/on-start.sh && chmod +x .devcontainer/scripts/on-start.sh && bash .devcontainer/scripts/on-start.sh",
   "customizations": {
     "vscode": {
       "extensions": [
