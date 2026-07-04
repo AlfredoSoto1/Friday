@@ -22,57 +22,57 @@ import java.util.List;
  * @author Alfredo
  */
 public class ContactDTO {
-	
-	private int id;
-	private String email;
-	
-	private List<ExtensionDTO> extensions;
-	private List<WebpageDTO> webpages;
-	private List<SocialMediaDTO> socialmedias;
-	
-	public ContactDTO() {
-		this.extensions = new LinkedList<>();
-		this.webpages = new LinkedList<>();
-		this.socialmedias = new LinkedList<>();
-	}
 
-	public int getId() {
-		return id;
-	}
+  private int id;
+  private String email;
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  private List<ExtensionDTO> extensions;
+  private List<WebpageDTO> webpages;
+  private List<SocialMediaDTO> socialmedias;
 
-	public String getEmail() {
-		return email;
-	}
+  public ContactDTO() {
+    this.extensions = new LinkedList<>();
+    this.webpages = new LinkedList<>();
+    this.socialmedias = new LinkedList<>();
+  }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public List<ExtensionDTO> getExtensions() {
-		return extensions;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public void addExtensions(ExtensionDTO extension) {
-		this.extensions.add(extension);
-	}
+  public String getEmail() {
+    return email;
+  }
 
-	public List<WebpageDTO> getWebpages() {
-		return webpages;
-	}
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-	public void addWebpages(WebpageDTO webpage) {
-		this.webpages.add(webpage);
-	}
+  public List<ExtensionDTO> getExtensions() {
+    return extensions;
+  }
 
-	public List<SocialMediaDTO> getSocialmedias() {
-		return socialmedias;
-	}
+  public void addExtensions(ExtensionDTO extension) {
+    this.extensions.add(extension);
+  }
 
-	public void addSocialmedias(SocialMediaDTO socialmedia) {
-		this.socialmedias.add(socialmedia);
-	}
+  public List<WebpageDTO> getWebpages() {
+    return webpages;
+  }
+
+  public void addWebpages(WebpageDTO webpage) {
+    this.webpages.add(webpage);
+  }
+
+  public List<SocialMediaDTO> getSocialmedias() {
+    return socialmedias;
+  }
+
+  public void addSocialmedias(SocialMediaDTO socialmedia) {
+    this.socialmedias.add(socialmedia);
+  }
 }

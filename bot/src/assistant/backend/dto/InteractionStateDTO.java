@@ -21,36 +21,34 @@ import assistant.app.model.InteractionState;
  * @author Alfredo
  */
 public class InteractionStateDTO {
-	
-	private long state;
-	private long serverId;
-	private InteractionState type;
-	
-	public InteractionStateDTO() {
 
-	}
+  private long state;
+  private long serverId;
+  private InteractionState type;
 
-	public long getState() {
-		return state;
-	}
+  public InteractionStateDTO() {}
 
-	public void setState(long state) {
-		this.state = state;
-	}
+  public long getState() {
+    return state;
+  }
 
-	public long getServerId() {
-		return serverId;
-	}
+  public void setState(long state) {
+    this.state = state;
+  }
 
-	public void setServerId(long serverId) {
-		this.serverId = serverId;
-	}
+  public long getServerId() {
+    return serverId;
+  }
 
-	public InteractionState getType() {
-		return type;
-	}
+  public void setServerId(long serverId) {
+    this.serverId = serverId;
+  }
 
-	public void setType(InteractionState type) {
-		this.type = type;
-	}
+  public InteractionState getType() {
+    return type;
+  }
+
+  public void setType(InteractionState type) {
+    this.type = type;
+  }
 }

@@ -19,57 +19,54 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class DepartmentDTO {
-	
-	private int id;
-	
-	private String name;
-	private String description;
-	private String abreviation;
 
-	private BuildingDTO building;
-	
-	public DepartmentDTO() {
-		
-	}
+  private int id;
 
-	public int getId() {
-		return id;
-	}
+  private String name;
+  private String description;
+  private String abreviation;
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  private BuildingDTO building;
 
-	public String getName() {
-		return name;
-	}
+  public DepartmentDTO() {}
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public String getDescription() {
-		return description;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public String getAbreviation() {
-		return abreviation;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	public void setAbreviation(String abreviation) {
-		this.abreviation = abreviation;
-	}
+  public String getDescription() {
+    return description;
+  }
 
-	public BuildingDTO getBuilding() {
-		return building;
-	}
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-	public void setBuilding(BuildingDTO building) {
-		this.building = building;
-	}
-	
+  public String getAbreviation() {
+    return abreviation;
+  }
+
+  public void setAbreviation(String abreviation) {
+    this.abreviation = abreviation;
+  }
+
+  public BuildingDTO getBuilding() {
+    return building;
+  }
+
+  public void setBuilding(BuildingDTO building) {
+    this.building = building;
+  }
 }

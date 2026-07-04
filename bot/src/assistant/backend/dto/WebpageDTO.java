@@ -19,43 +19,42 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class WebpageDTO {
-	
-	private int id;
-	private String url;
-	private String description;
-	
-	public WebpageDTO() {
-		// TODO Auto-generated constructor stub
-	}
 
-	public WebpageDTO(int id, String url, String description) {
-		this.id = id;
-		this.url = url;
-		this.description = description;
-	}
+  private int id;
+  private String url;
+  private String description;
 
-	public int getId() {
-		return id;
-	}
+  public WebpageDTO() {
+    // TODO Auto-generated constructor stub
+  }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  public WebpageDTO(int id, String url, String description) {
+    this.id = id;
+    this.url = url;
+    this.description = description;
+  }
 
-	public String getUrl() {
-		return url;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public void setUrl(String url) {
-		this.url = url;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public String getDescription() {
-		return description;
-	}
+  public String getUrl() {
+    return url;
+  }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
-	
+  public void setUrl(String url) {
+    this.url = url;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
 }

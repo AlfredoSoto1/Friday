@@ -15,108 +15,121 @@
  */
 package assistant.backend.dto;
 
-import java.util.Objects;
-
 import assistant.app.model.MemberProgram;
+import java.util.Objects;
 
 /**
  * @author Alfredo
  */
 public class StudentDTO {
-	
-	private String firstname;
-	private String lastname;
-	private String initial;
-	private String sex;
-	
-	private String email;
-	private MemberProgram program;
-	
-	public StudentDTO() {
 
-	}
+  private String firstname;
+  private String lastname;
+  private String initial;
+  private String sex;
 
-	public StudentDTO(String firstname, String lastname, String initial, String sex, String email, MemberProgram program) {
-		this.firstname = firstname;
-		this.lastname = lastname;
-		this.initial = initial;
-		this.sex = sex;
-		this.email = email;
-		this.program = program;
-	}
-	
-    @Override
-    public String toString() {
-        return "StudentDTO{" +
-                "firstname='" + firstname + '\'' +
-                ", lastname='" + lastname + '\'' +
-                ", initial='" + initial + '\'' +
-                ", sex='" + sex + '\'' +
-                ", email='" + email + '\'' +
-                ", program='" + program.getLiteral() + '\'' +
-                '}';
-    }
-    
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        StudentDTO that = (StudentDTO) o;
-        return email.equals(that.email);
-    }
+  private String email;
+  private MemberProgram program;
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(email);
-    }
+  public StudentDTO() {}
 
+  public StudentDTO(
+      String firstname,
+      String lastname,
+      String initial,
+      String sex,
+      String email,
+      MemberProgram program) {
+    this.firstname = firstname;
+    this.lastname = lastname;
+    this.initial = initial;
+    this.sex = sex;
+    this.email = email;
+    this.program = program;
+  }
 
-	public String getFirstname() {
-		return firstname;
-	}
+  @Override
+  public String toString() {
+    return "StudentDTO{"
+        + "firstname='"
+        + firstname
+        + '\''
+        + ", lastname='"
+        + lastname
+        + '\''
+        + ", initial='"
+        + initial
+        + '\''
+        + ", sex='"
+        + sex
+        + '\''
+        + ", email='"
+        + email
+        + '\''
+        + ", program='"
+        + program.getLiteral()
+        + '\''
+        + '}';
+  }
 
-	public void setFirstname(String firstname) {
-		this.firstname = firstname;
-	}
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    StudentDTO that = (StudentDTO) o;
+    return email.equals(that.email);
+  }
 
-	public String getLastname() {
-		return lastname;
-	}
+  @Override
+  public int hashCode() {
+    return Objects.hash(email);
+  }
 
-	public void setLastname(String lastname) {
-		this.lastname = lastname;
-	}
+  public String getFirstname() {
+    return firstname;
+  }
 
-	public String getInitial() {
-		return initial;
-	}
+  public void setFirstname(String firstname) {
+    this.firstname = firstname;
+  }
 
-	public void setInitial(String initial) {
-		this.initial = initial;
-	}
+  public String getLastname() {
+    return lastname;
+  }
 
-	public String getSex() {
-		return sex;
-	}
+  public void setLastname(String lastname) {
+    this.lastname = lastname;
+  }
 
-	public void setSex(String sex) {
-		this.sex = sex;
-	}
+  public String getInitial() {
+    return initial;
+  }
 
-	public String getEmail() {
-		return email;
-	}
+  public void setInitial(String initial) {
+    this.initial = initial;
+  }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+  public String getSex() {
+    return sex;
+  }
 
-	public MemberProgram getProgram() {
-		return program;
-	}
+  public void setSex(String sex) {
+    this.sex = sex;
+  }
 
-	public void setProgram(MemberProgram program) {
-		this.program = program;
-	}
+  public String getEmail() {
+    return email;
+  }
 
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public MemberProgram getProgram() {
+    return program;
+  }
+
+  public void setProgram(MemberProgram program) {
+    this.program = program;
+  }
 }

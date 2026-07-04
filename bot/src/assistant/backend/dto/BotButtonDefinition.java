@@ -1,4 +1,3 @@
 package assistant.backend.dto;
 
-public record BotButtonDefinition(String id, String label, String style, String url) {
-}
+public record BotButtonDefinition(String id, String label, String style, String url) {}

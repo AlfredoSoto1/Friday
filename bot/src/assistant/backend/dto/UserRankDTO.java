@@ -19,73 +19,71 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class UserRankDTO {
-	
-	private int userXP;
-	private int milestone;
-	private int level;
-	private int commandsUsed;
-	private long rank;
-	private String username;
-	
-	private boolean hasLevelup;
-	
-	public UserRankDTO() {
 
-	}
+  private int userXP;
+  private int milestone;
+  private int level;
+  private int commandsUsed;
+  private long rank;
+  private String username;
 
-	public boolean isHasLevelup() {
-		return hasLevelup;
-	}
+  private boolean hasLevelup;
 
-	public void setHasLevelup(boolean hasLevelup) {
-		this.hasLevelup = hasLevelup;
-	}
+  public UserRankDTO() {}
 
-	public long getRank() {
-		return rank;
-	}
+  public boolean isHasLevelup() {
+    return hasLevelup;
+  }
 
-	public void setRank(long rank) {
-		this.rank = rank;
-	}
+  public void setHasLevelup(boolean hasLevelup) {
+    this.hasLevelup = hasLevelup;
+  }
 
-	public int getUserXP() {
-		return userXP;
-	}
+  public long getRank() {
+    return rank;
+  }
 
-	public void setUserXP(int userXP) {
-		this.userXP = userXP;
-	}
+  public void setRank(long rank) {
+    this.rank = rank;
+  }
 
-	public String getUsername() {
-		return username;
-	}
+  public int getUserXP() {
+    return userXP;
+  }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+  public void setUserXP(int userXP) {
+    this.userXP = userXP;
+  }
 
-	public int getMilestone() {
-		return milestone;
-	}
+  public String getUsername() {
+    return username;
+  }
 
-	public void setMilestone(int milestone) {
-		this.milestone = milestone;
-	}
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-	public int getLevel() {
-		return level;
-	}
+  public int getMilestone() {
+    return milestone;
+  }
 
-	public void setLevel(int level) {
-		this.level = level;
-	}
+  public void setMilestone(int milestone) {
+    this.milestone = milestone;
+  }
 
-	public int getCommandsUsed() {
-		return commandsUsed;
-	}
+  public int getLevel() {
+    return level;
+  }
 
-	public void setCommandsUsed(int commandsUsed) {
-		this.commandsUsed = commandsUsed;
-	}
+  public void setLevel(int level) {
+    this.level = level;
+  }
+
+  public int getCommandsUsed() {
+    return commandsUsed;
+  }
+
+  public void setCommandsUsed(int commandsUsed) {
+    this.commandsUsed = commandsUsed;
+  }
 }

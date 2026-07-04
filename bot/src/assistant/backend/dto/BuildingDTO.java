@@ -19,45 +19,43 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class BuildingDTO {
-	
-	private int id;
-	private String code;
-	private String name;
-	private String gpin;
-	
-	public BuildingDTO() {
-		
-	}
-	
-	public int getId() {
-		return id;
-	}
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  private int id;
+  private String code;
+  private String name;
+  private String gpin;
 
-	public String getCode() {
-		return code;
-	}
+  public BuildingDTO() {}
 
-	public void setCode(String code) {
-		this.code = code;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public String getCode() {
+    return code;
+  }
 
-	public String getGpin() {
-		return gpin;
-	}
+  public void setCode(String code) {
+    this.code = code;
+  }
 
-	public void setGpin(String gpin) {
-		this.gpin = gpin;
-	}
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getGpin() {
+    return gpin;
+  }
+
+  public void setGpin(String gpin) {
+    this.gpin = gpin;
+  }
 }

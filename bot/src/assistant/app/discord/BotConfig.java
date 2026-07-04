@@ -1,4 +1,4 @@
-package assistant.app.config;
+package assistant.app.discord;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -6,15 +6,14 @@ import java.util.Map;
 import java.util.Optional;
 
 public record BotConfig(
-  String discordBotToken,
-  String backendUrl
-) {
+    String discordBotToken,
+    String backendUrl) {
   private static final String DEFAULT_BACKEND_URL = "http://localhost:8080";
 
   public static BotConfig load() {
     Dotenv dotenv = Dotenv.configure()
-      .ignoreIfMissing()
-      .load();
+        .ignoreIfMissing()
+        .load();
 
     return from(name -> {
       String envValue = System.getenv(name);

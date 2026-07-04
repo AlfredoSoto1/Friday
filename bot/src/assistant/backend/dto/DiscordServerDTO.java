@@ -19,63 +19,61 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class DiscordServerDTO {
-	
-	private int id;
-	private long serverId;
-	private long logChannelId;
-	private String joinedAt;
-	private String department;
-	private String color;
-	
-	public DiscordServerDTO() {
 
-	}
+  private int id;
+  private long serverId;
+  private long logChannelId;
+  private String joinedAt;
+  private String department;
+  private String color;
 
-	public int getId() {
-		return id;
-	}
+  public DiscordServerDTO() {}
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public long getServerId() {
-		return serverId;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public void setServerId(long serverid) {
-		this.serverId = serverid;
-	}
+  public long getServerId() {
+    return serverId;
+  }
 
-	public long getLogChannelId() {
-		return logChannelId;
-	}
+  public void setServerId(long serverid) {
+    this.serverId = serverid;
+  }
 
-	public void setLogChannelId(long logChannelId) {
-		this.logChannelId = logChannelId;
-	}
+  public long getLogChannelId() {
+    return logChannelId;
+  }
 
-	public String getJoinedAt() {
-		return joinedAt;
-	}
+  public void setLogChannelId(long logChannelId) {
+    this.logChannelId = logChannelId;
+  }
 
-	public void setJoinedAt(String joinedAt) {
-		this.joinedAt = joinedAt;
-	}
+  public String getJoinedAt() {
+    return joinedAt;
+  }
 
-	public String getDepartment() {
-		return department;
-	}
+  public void setJoinedAt(String joinedAt) {
+    this.joinedAt = joinedAt;
+  }
 
-	public void setDepartment(String department) {
-		this.department = department;
-	}
+  public String getDepartment() {
+    return department;
+  }
 
-	public String getColor() {
-		return color;
-	}
+  public void setDepartment(String department) {
+    this.department = department;
+  }
 
-	public void setColor(String color) {
-		this.color = color;
-	}
+  public String getColor() {
+    return color;
+  }
+
+  public void setColor(String color) {
+    this.color = color;
+  }
 }

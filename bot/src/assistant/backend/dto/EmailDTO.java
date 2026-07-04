@@ -19,28 +19,25 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class EmailDTO {
-	
-	private int id;
-	private String email;
-	
-	public EmailDTO() {
-		
-	}
 
-	public int getId() {
-		return id;
-	}
+  private int id;
+  private String email;
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  public EmailDTO() {}
 
-	public String getEmail() {
-		return email;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}	
-	
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
 }

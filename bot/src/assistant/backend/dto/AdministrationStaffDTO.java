@@ -19,56 +19,55 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class AdministrationStaffDTO {
-	
-	private int id;
-	private int serviceId;
-	private ContactDTO contact;
-	
-	private String name;
-	private String position;
-	
-	public AdministrationStaffDTO() {
-		// TODO Auto-generated constructor stub
-	}
 
-	public int getId() {
-		return id;
-	}
+  private int id;
+  private int serviceId;
+  private ContactDTO contact;
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  private String name;
+  private String position;
 
-	public int getServiceId() {
-		return serviceId;
-	}
+  public AdministrationStaffDTO() {
+    // TODO Auto-generated constructor stub
+  }
 
-	public void setServiceId(int serviceId) {
-		this.serviceId = serviceId;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public ContactDTO getContact() {
-		return contact;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public void setContact(ContactDTO contact) {
-		this.contact = contact;
-	}
+  public int getServiceId() {
+    return serviceId;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public void setServiceId(int serviceId) {
+    this.serviceId = serviceId;
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public ContactDTO getContact() {
+    return contact;
+  }
 
-	public String getPosition() {
-		return position;
-	}
+  public void setContact(ContactDTO contact) {
+    this.contact = contact;
+  }
 
-	public void setPosition(String position) {
-		this.position = position;
-	}
-	
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getPosition() {
+    return position;
+  }
+
+  public void setPosition(String position) {
+    this.position = position;
+  }
 }

@@ -19,55 +19,55 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class DiscordRoleDTO {
-	
-	private int id;
-	private long roleid;
-	private long serverid;        // This is the actual server id from discord
-	private String name;          // This is the name that appears on the discord server
-	private String effectivename; // This is the global name that we want to refer to this role in this application
-	
-	public DiscordRoleDTO() {
-	
-	}
 
-	public long getRoleid() {
-		return roleid;
-	}
+  private int id;
+  private long roleid;
+  private long serverid; // This is the actual server id from discord
+  private String name; // This is the name that appears on the discord server
+  private String
+      effectivename; // This is the global name that we want to refer to this role in this
 
-	public void setRoleid(long roleid) {
-		this.roleid = roleid;
-	}
+  // application
 
-	public int getId() {
-		return id;
-	}
+  public DiscordRoleDTO() {}
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  public long getRoleid() {
+    return roleid;
+  }
 
-	public long getServerid() {
-		return serverid;
-	}
+  public void setRoleid(long roleid) {
+    this.roleid = roleid;
+  }
 
-	public void setServerid(long serverid) {
-		this.serverid = serverid;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public long getServerid() {
+    return serverid;
+  }
 
-	public String getEffectivename() {
-		return effectivename;
-	}
+  public void setServerid(long serverid) {
+    this.serverid = serverid;
+  }
 
-	public void setEffectivename(String effectivename) {
-		this.effectivename = effectivename;
-	}
-	
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getEffectivename() {
+    return effectivename;
+  }
+
+  public void setEffectivename(String effectivename) {
+    this.effectivename = effectivename;
+  }
 }

@@ -19,45 +19,43 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class PrepaOrientadorDTO {
-	
-	private String firstname;
-	private String lastname;
-	private String teamname;
-	private String organization;
-	
-	public PrepaOrientadorDTO() {
 
-	}
+  private String firstname;
+  private String lastname;
+  private String teamname;
+  private String organization;
 
-	public String getFirstname() {
-		return firstname;
-	}
+  public PrepaOrientadorDTO() {}
 
-	public void setFirstname(String firstname) {
-		this.firstname = firstname;
-	}
+  public String getFirstname() {
+    return firstname;
+  }
 
-	public String getLastname() {
-		return lastname;
-	}
+  public void setFirstname(String firstname) {
+    this.firstname = firstname;
+  }
 
-	public void setLastname(String lastname) {
-		this.lastname = lastname;
-	}
+  public String getLastname() {
+    return lastname;
+  }
 
-	public String getTeamname() {
-		return teamname;
-	}
+  public void setLastname(String lastname) {
+    this.lastname = lastname;
+  }
 
-	public void setTeamname(String teamname) {
-		this.teamname = teamname;
-	}
+  public String getTeamname() {
+    return teamname;
+  }
 
-	public String getOrganization() {
-		return organization;
-	}
+  public void setTeamname(String teamname) {
+    this.teamname = teamname;
+  }
 
-	public void setOrganization(String organization) {
-		this.organization = organization;
-	}
+  public String getOrganization() {
+    return organization;
+  }
+
+  public void setOrganization(String organization) {
+    this.organization = organization;
+  }
 }

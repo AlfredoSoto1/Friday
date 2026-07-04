@@ -52,8 +52,8 @@
   </dependencies>
 
   <build>
-    <sourceDirectory>src/assistant</sourceDirectory>
-    <resources><resource><directory>src/assistant</directory><excludes><exclude>**/*.java</exclude></excludes></resource></resources>
+    <sourceDirectory>src</sourceDirectory>
+    <resources><resource><directory>src</directory><excludes><exclude>**/*.java</exclude></excludes></resource></resources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

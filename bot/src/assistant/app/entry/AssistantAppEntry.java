@@ -1,7 +1,7 @@
 package assistant.app.entry;
 
 import assistant.backend.BackendClient;
-import assistant.app.config.BotConfig;
+import assistant.app.discord.BotConfig;
 import assistant.app.discord.ECEAssistant;
 
 public final class AssistantAppEntry {

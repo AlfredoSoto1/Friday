@@ -20,74 +20,71 @@ package assistant.backend.dto;
  */
 public class FacultyDTO {
 
-	private int id;
+  private int id;
 
-	private String name;
-	private String description;
-	private String department;
-	private String office;
-	private String jobentitlement;
+  private String name;
+  private String description;
+  private String department;
+  private String office;
+  private String jobentitlement;
 
-	private ContactDTO contact;
+  private ContactDTO contact;
 
-	public FacultyDTO() {
-		
-	}
+  public FacultyDTO() {}
 
-	public int getId() {
-		return id;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	public String getJobentitlement() {
-		return jobentitlement;
-	}
+  public String getJobentitlement() {
+    return jobentitlement;
+  }
 
-	public void setJobentitlement(String jobentitlement) {
-		this.jobentitlement = jobentitlement;
-	}
+  public void setJobentitlement(String jobentitlement) {
+    this.jobentitlement = jobentitlement;
+  }
 
-	public String getDescription() {
-		return description;
-	}
+  public String getDescription() {
+    return description;
+  }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-	public String getOffice() {
-		return office;
-	}
+  public String getOffice() {
+    return office;
+  }
 
-	public void setOffice(String office) {
-		this.office = office;
-	}
+  public void setOffice(String office) {
+    this.office = office;
+  }
 
-	public ContactDTO getContact() {
-		return contact;
-	}
+  public ContactDTO getContact() {
+    return contact;
+  }
 
-	public void setContact(ContactDTO contact) {
-		this.contact = contact;
-	}
+  public void setContact(ContactDTO contact) {
+    this.contact = contact;
+  }
 
-	public String getDepartment() {
-		return department;
-	}
+  public String getDepartment() {
+    return department;
+  }
 
-	public void setDepartment(String department) {
-		this.department = department;
-	}
-
+  public void setDepartment(String department) {
+    this.department = department;
+  }
 }

@@ -1,4 +1,4 @@
-package assistant.app.embeds;
+package assistant.app.discord;
 
 import assistant.backend.dto.BotCommandResponse;
 import assistant.backend.dto.BotGuildProfile;
@@ -10,8 +10,8 @@ import java.time.Instant;
 public final class EmbedFactory {
   public MessageEmbed commandEmbed(BotGuildProfile profile, BotCommandResponse response) {
     EmbedBuilder builder = base(profile, response.color())
-      .setTitle(response.title())
-      .setDescription(response.description());
+        .setTitle(response.title())
+        .setDescription(response.description());
 
     if (response.imageUrl() != null && !response.imageUrl().isBlank()) {
       builder.setImage(response.imageUrl());
@@ -24,9 +24,11 @@ public final class EmbedFactory {
 
   public MessageEmbed verificationEmbed(BotGuildProfile profile) {
     EmbedBuilder builder = base(profile, null)
-      .setTitle(profile.verification().title())
-      .setDescription(profile.verification().description())
-      .addField("Pasos", "1. Presiona el boton de verificacion.\n2. Escribe tu correo institucional.\n3. Espera que Friday asigne tus roles.", false);
+        .setTitle(profile.verification().title())
+        .setDescription(profile.verification().description())
+        .addField("Pasos",
+            "1. Presiona el boton de verificacion.\n2. Escribe tu correo institucional.\n3. Espera que Friday asigne tus roles.",
+            false);
 
     if (profile.verification().bannerUrl() != null && !profile.verification().bannerUrl().isBlank()) {
       builder.setImage(profile.verification().bannerUrl());
@@ -36,8 +38,8 @@ public final class EmbedFactory {
 
   public MessageEmbed welcomeEmbed(BotGuildProfile profile) {
     EmbedBuilder builder = base(profile, null)
-      .setTitle(profile.welcome().title())
-      .setDescription(profile.welcome().description());
+        .setTitle(profile.welcome().title())
+        .setDescription(profile.welcome().description());
 
     if (profile.welcome().bannerUrl() != null && !profile.welcome().bannerUrl().isBlank()) {
       builder.setImage(profile.welcome().bannerUrl());
@@ -47,22 +49,22 @@ public final class EmbedFactory {
 
   public MessageEmbed levelUpEmbed(BotGuildProfile profile, String mention, int level) {
     return base(profile, null)
-      .setTitle("Level up")
-      .setDescription(mention + " reached level **" + level + "**.")
-      .build();
+        .setTitle("Level up")
+        .setDescription(mention + " reached level **" + level + "**.")
+        .build();
   }
 
   public MessageEmbed gameEmbed(BotGuildProfile profile, String title, String description) {
     return base(profile, null)
-      .setTitle(title)
-      .setDescription(description)
-      .build();
+        .setTitle(title)
+        .setDescription(description)
+        .build();
   }
 
   private EmbedBuilder base(BotGuildProfile profile, String overrideColor) {
     EmbedBuilder builder = new EmbedBuilder()
-      .setColor(parseColor(overrideColor == null ? profile.theme().primaryColor() : overrideColor))
-      .setTimestamp(Instant.now());
+        .setColor(parseColor(overrideColor == null ? profile.theme().primaryColor() : overrideColor))
+        .setTimestamp(Instant.now());
 
     if (profile.theme().thumbnailUrl() != null && !profile.theme().thumbnailUrl().isBlank()) {
       builder.setThumbnail(profile.theme().thumbnailUrl());

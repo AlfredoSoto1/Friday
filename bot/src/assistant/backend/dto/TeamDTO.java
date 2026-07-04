@@ -19,55 +19,52 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class TeamDTO {
-	
-	private int id;
-	private String name;
-	private String orgname;
-	private String color;
-	private DiscordRoleDTO teamRole;
-	
-	public TeamDTO() {
-		
-	}
 
-	public int getId() {
-		return id;
-	}
+  private int id;
+  private String name;
+  private String orgname;
+  private String color;
+  private DiscordRoleDTO teamRole;
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  public TeamDTO() {}
 
-	public String getName() {
-		return name;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public String getOrgname() {
-		return orgname;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public void setOrgname(String orgname) {
-		this.orgname = orgname;
-	}
-	
-	public String getColor() {
-		return color;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	public void setColor(String color) {
-		this.color = color;
-	}
+  public String getOrgname() {
+    return orgname;
+  }
 
-	public DiscordRoleDTO getTeamRole() {
-		return teamRole;
-	}
+  public void setOrgname(String orgname) {
+    this.orgname = orgname;
+  }
 
-	public void setTeamRole(DiscordRoleDTO teamRole) {
-		this.teamRole = teamRole;
-	}
-	
+  public String getColor() {
+    return color;
+  }
+
+  public void setColor(String color) {
+    this.color = color;
+  }
+
+  public DiscordRoleDTO getTeamRole() {
+    return teamRole;
+  }
+
+  public void setTeamRole(DiscordRoleDTO teamRole) {
+    this.teamRole = teamRole;
+  }
 }

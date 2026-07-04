@@ -1,9 +1,79 @@
 package assistant.backend.service;
-import assistant.backend.BackendClient; import assistant.backend.dto.*; import com.fasterxml.jackson.databind.JsonNode; import java.net.*; import java.nio.charset.StandardCharsets; import java.util.*; import java.util.stream.StreamSupport;
+
+import assistant.backend.BackendClient;
+import assistant.backend.dto.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.StreamSupport;
+
 public final class ServicesService {
- public List<String> getServiceNames(){return contacts(null).stream().map(ServiceDTO::getName).toList();} public List<ServiceDTO> getAllServices(int p,int s){return contacts(null);} public ServiceDTO getService(String name){ String lookup=lookupName(name); return contacts(lookup).stream().findFirst().orElseGet(()->unavailable(name)); }
- private String lookupName(String name){ String n=name.toLowerCase(Locale.ROOT); if(n.contains("consejer")||n.contains("dcsp")) return "DCSP"; if(n.contains("transito")||n.contains("vigilancia")||n.contains("guardia")) return "Guardia"; if(n.contains("asesor")) return "Asesoria"; if(n.contains("asistencia")) return "Asistencia"; return name; }
- private ServiceDTO unavailable(String name){ ServiceDTO d=new ServiceDTO(); d.setName(name); d.setDescription("La información de este contacto no está configurada en el backend."); d.setAvailability(""); d.setDepartmentAbbreviation(""); d.setBuildingName(""); d.setBuildingCode(""); d.setContact(new ContactDTO()); return d; }
- private List<ServiceDTO> contacts(String search){String p="/api/v1/inelicom/contacts?limit=25"+(search==null?"":"&search="+URLEncoder.encode(search,StandardCharsets.UTF_8)); return BackendClient.getData(p).map(n->n).stream().flatMap(n->StreamSupport.stream(n.spliterator(),false)).map(this::map).toList();}
- private ServiceDTO map(JsonNode n){ServiceDTO d=new ServiceDTO();d.setId(n.path("contact_id").asInt());d.setName(n.path("name").asText());d.setDescription(n.path("phone").asText());d.setAvailability("");d.setDepartmentAbbreviation("");d.setBuildingName("");d.setBuildingCode("");ContactDTO c=new ContactDTO();c.setEmail(n.path("email").asText());if(!n.path("website").asText().isBlank()){WebpageDTO w=new WebpageDTO();w.setDescription("Website");w.setUrl(n.path("website").asText());c.addWebpages(w);}d.setContact(c);return d;}
+  public List<String> getServiceNames() {
+    return contacts(null).stream().map(ServiceDTO::getName).toList();
+  }
+
+  public List<ServiceDTO> getAllServices(int p, int s) {
+    return contacts(null);
+  }
+
+  public ServiceDTO getService(String name) {
+    String lookup = lookupName(name);
+    return contacts(lookup).stream().findFirst().orElseGet(() -> unavailable(name));
+  }
+
+  private String lookupName(String name) {
+    String n = name.toLowerCase(Locale.ROOT);
+    if (n.contains("consejer") || n.contains("dcsp")) return "DCSP";
+    if (n.contains("transito") || n.contains("vigilancia") || n.contains("guardia"))
+      return "Guardia";
+    if (n.contains("asesor")) return "Asesoria";
+    if (n.contains("asistencia")) return "Asistencia";
+    return name;
+  }
+
+  private ServiceDTO unavailable(String name) {
+    ServiceDTO d = new ServiceDTO();
+    d.setName(name);
+    d.setDescription("La información de este contacto no está configurada en el backend.");
+    d.setAvailability("");
+    d.setDepartmentAbbreviation("");
+    d.setBuildingName("");
+    d.setBuildingCode("");
+    d.setContact(new ContactDTO());
+    return d;
+  }
+
+  private List<ServiceDTO> contacts(String search) {
+    String p =
+        "/api/v1/inelicom/contacts?limit=25"
+            + (search == null
+                ? ""
+                : "&search=" + URLEncoder.encode(search, StandardCharsets.UTF_8));
+    return BackendClient.getData(p).map(n -> n).stream()
+        .flatMap(n -> StreamSupport.stream(n.spliterator(), false))
+        .map(this::map)
+        .toList();
+  }
+
+  private ServiceDTO map(JsonNode n) {
+    ServiceDTO d = new ServiceDTO();
+    d.setId(n.path("contact_id").asInt());
+    d.setName(n.path("name").asText());
+    d.setDescription(n.path("phone").asText());
+    d.setAvailability("");
+    d.setDepartmentAbbreviation("");
+    d.setBuildingName("");
+    d.setBuildingCode("");
+    ContactDTO c = new ContactDTO();
+    c.setEmail(n.path("email").asText());
+    if (!n.path("website").asText().isBlank()) {
+      WebpageDTO w = new WebpageDTO();
+      w.setDescription("Website");
+      w.setUrl(n.path("website").asText());
+      c.addWebpages(w);
+    }
+    d.setContact(c);
+    return d;
+  }
 }

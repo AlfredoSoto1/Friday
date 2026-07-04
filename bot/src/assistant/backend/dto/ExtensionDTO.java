@@ -19,32 +19,32 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class ExtensionDTO {
-	
-	private int id;
-	private String ext;
 
-	public ExtensionDTO() {
-		// TODO Auto-generated constructor stub
-	}
+  private int id;
+  private String ext;
 
-	public ExtensionDTO(int id, String ext) {
-		this.id = id;
-		this.ext = ext;
-	}
+  public ExtensionDTO() {
+    // TODO Auto-generated constructor stub
+  }
 
-	public int getId() {
-		return id;
-	}
+  public ExtensionDTO(int id, String ext) {
+    this.id = id;
+    this.ext = ext;
+  }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public String getExt() {
-		return ext;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public void setExt(String ext) {
-		this.ext = ext;
-	}
+  public String getExt() {
+    return ext;
+  }
+
+  public void setExt(String ext) {
+    this.ext = ext;
+  }
 }

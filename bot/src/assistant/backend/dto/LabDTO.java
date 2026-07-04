@@ -19,55 +19,52 @@ package assistant.backend.dto;
  * @author Alfredo
  */
 public class LabDTO {
-	
-	private int id;
-	private String name;
-	private String code;
-	private String buildingCode;
-	private String buildingName;
-	
-	public LabDTO() {
-		
-	}
 
-	public int getId() {
-		return id;
-	}
+  private int id;
+  private String name;
+  private String code;
+  private String buildingCode;
+  private String buildingName;
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  public LabDTO() {}
 
-	public String getName() {
-		return name;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public String getCode() {
-		return code;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public void setCode(String code) {
-		this.code = code;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	public String getBuildingName() {
-		return buildingName;
-	}
+  public String getCode() {
+    return code;
+  }
 
-	public void setBuildingName(String buildingName) {
-		this.buildingName = buildingName;
-	}
+  public void setCode(String code) {
+    this.code = code;
+  }
 
-	public String getBuildingCode() {
-		return buildingCode;
-	}
+  public String getBuildingName() {
+    return buildingName;
+  }
 
-	public void setBuildingCode(String buildingCode) {
-		this.buildingCode = buildingCode;
-	}
-	
+  public void setBuildingName(String buildingName) {
+    this.buildingName = buildingName;
+  }
+
+  public String getBuildingCode() {
+    return buildingCode;
+  }
+
+  public void setBuildingCode(String buildingCode) {
+    this.buildingCode = buildingCode;
+  }
 }

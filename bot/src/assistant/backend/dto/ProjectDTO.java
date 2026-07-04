@@ -22,80 +22,92 @@ import java.util.List;
  * @author Alfredo
  */
 public class ProjectDTO {
-	
-	private int id;
-	private String name;
-	private String description;
-	private String email;
-	private String website;
-	private List<String> platforms;
-	private List<String> urlhandle;
-	
-	public ProjectDTO() {
-		this.platforms = new ArrayList<>();
-		this.urlhandle = new ArrayList<>();
-	}
 
-	@Override
-	public String toString() {
-		return "ProjectDTO [id=" + id + ", name=" + name + ", description=" + description + ", email=" + email
-				+ ", website=" + website + ", platforms=" + platforms + ", urlhandle=" + urlhandle + "]";
-	}
+  private int id;
+  private String name;
+  private String description;
+  private String email;
+  private String website;
+  private List<String> platforms;
+  private List<String> urlhandle;
 
-	public int getId() {
-		return id;
-	}
+  public ProjectDTO() {
+    this.platforms = new ArrayList<>();
+    this.urlhandle = new ArrayList<>();
+  }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  @Override
+  public String toString() {
+    return "ProjectDTO [id="
+        + id
+        + ", name="
+        + name
+        + ", description="
+        + description
+        + ", email="
+        + email
+        + ", website="
+        + website
+        + ", platforms="
+        + platforms
+        + ", urlhandle="
+        + urlhandle
+        + "]";
+  }
 
-	public String getName() {
-		return name;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-	public String getDescription() {
-		return description;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	public String getEmail() {
-		return email;
-	}
+  public String getDescription() {
+    return description;
+  }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-	public String getWebsite() {
-		return website;
-	}
+  public String getEmail() {
+    return email;
+  }
 
-	public void setWebsite(String website) {
-		this.website = website;
-	}
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-	public List<String> getPlatforms() {
-		return platforms;
-	}
+  public String getWebsite() {
+    return website;
+  }
 
-	public void addPlatforms(String platform) {
-		this.platforms.add(platform);
-	}
+  public void setWebsite(String website) {
+    this.website = website;
+  }
 
-	public List<String> getUrlhandle() {
-		return urlhandle;
-	}
+  public List<String> getPlatforms() {
+    return platforms;
+  }
 
-	public void addUrlhandle(String urlhandle) {
-		this.urlhandle.add(urlhandle);
-	}
-	
+  public void addPlatforms(String platform) {
+    this.platforms.add(platform);
+  }
+
+  public List<String> getUrlhandle() {
+    return urlhandle;
+  }
+
+  public void addUrlhandle(String urlhandle) {
+    this.urlhandle.add(urlhandle);
+  }
 }
