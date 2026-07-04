@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.information;
 
-import java.awt.Color;
 import java.util.List;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -27,7 +26,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field;
  */
 public class FAQEmbed {
 	
-	public MessageEmbed buildFAQ(Color color, String banner, String bdeRole, String esoRole, int page) {
+	public MessageEmbed buildFAQ(int color, String banner, String bdeRole, String esoRole, int page) {
 		
 		List<Field> fields = getFieldPage(bdeRole, esoRole);
 		
@@ -59,7 +58,7 @@ public class FAQEmbed {
 		return embed.build();
 	}
 	
-	public MessageEmbed buildFAQDM(Color color, String bdeRole, String esoRole, int page) {
+	public MessageEmbed buildFAQDM(int color, String bdeRole, String esoRole, int page) {
 		
 		List<Field> fields = getFieldPage(bdeRole, esoRole);
 		

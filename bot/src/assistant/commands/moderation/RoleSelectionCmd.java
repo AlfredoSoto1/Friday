@@ -15,7 +15,6 @@
  */
 package assistant.commands.moderation;
 
-import java.awt.Color;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -207,7 +206,7 @@ public class RoleSelectionCmd extends InteractionModel implements CommandI, Mess
 	private void sendBuffet(TextChannel channel) {
 		Guild server = channel.getGuild();
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(server.getIdLong());
-		Color color = Color.decode("#" + discordServer.getColor());
+		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		// Build the buffets to be displayed
 		Pair<MessageEmbed, Consumer<Message>> coding = embed.buildCodingBuffet(color, server);

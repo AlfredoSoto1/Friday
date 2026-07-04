@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.information;
 
-import java.awt.Color;
 import java.util.List;
 
 import assistant.backend.dto.ProjectDTO;
@@ -31,7 +30,7 @@ public class ProjectsEmbed {
 
 	}
 	
-	public MessageEmbed buildProject(Color color, ProjectDTO project) {
+	public MessageEmbed buildProject(int color, ProjectDTO project) {
 		StringBuilder socialMediaBuilder = new StringBuilder();
 
         List<String> platforms = project.getPlatforms();

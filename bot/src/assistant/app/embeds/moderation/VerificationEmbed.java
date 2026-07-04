@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.moderation;
 
-import java.awt.Color;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -31,7 +30,7 @@ public class VerificationEmbed {
 		
 	}
 	
-	public MessageEmbed buildVerificationPrompt(Role modRole, Role bdeRole, Color color) {
+	public MessageEmbed buildVerificationPrompt(Role modRole, Role bdeRole, int color) {
 		return new EmbedBuilder().setColor(color)
 			.setTitle("**¡Bienvenido al servidor!** :wave:")
 			.setDescription(
@@ -59,11 +58,11 @@ public class VerificationEmbed {
 			.build();
 	}
 	
-	public MessageEmbed buildServerBanner(String imageUrl, Color color) {
+	public MessageEmbed buildServerBanner(String imageUrl, int color) {
 		return new EmbedBuilder().setColor(color).setImage(imageUrl).build();
 	}
 	
-	public MessageEmbed buildWelcomePrompt(Guild server, String department, Color color) {
+	public MessageEmbed buildWelcomePrompt(Guild server, String department, int color) {
 		String organization = "ECE".equalsIgnoreCase(department) ? "TEAM-MADE" : "INSO/CIIC";
 		
 		return new EmbedBuilder().setColor(color)

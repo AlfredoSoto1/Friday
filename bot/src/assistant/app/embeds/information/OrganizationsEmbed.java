@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.information;
 
-import java.awt.Color;
 import java.util.List;
 
 import assistant.backend.dto.OrganizationDTO;
@@ -31,7 +30,7 @@ public class OrganizationsEmbed {
 
 	}
 	
-	public MessageEmbed buildOrganization(Color color, OrganizationDTO organization) {
+	public MessageEmbed buildOrganization(int color, OrganizationDTO organization) {
 		StringBuilder socialMediaBuilder = new StringBuilder();
 
         List<String> platforms = organization.getPlatforms();

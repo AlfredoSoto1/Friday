@@ -76,7 +76,7 @@ public class CalendarCmd extends InteractionModel implements CommandI {
 			Presta atención a la esquina inferior derecha del calendario.
 			se ve asi:
 			""", event.getUser().getAsMention()))
-		.addFiles(FileUpload.fromData(new File("assistant/images/google_add_calendar.png")))
+		.addFiles(FileUpload.fromData(getAsset("images/google_add_calendar.png")))
 			.setEphemeral(event.isFromGuild()).queue();
 		
 		if (event.isFromGuild()) {

@@ -15,7 +15,6 @@
  */
 package assistant.commands.information;
 
-import java.awt.Color;
 import java.util.List;
 
 import assistant.app.interactions.CommandI;
@@ -84,7 +83,7 @@ public class EOInfoCmd extends InteractionModel implements CommandI {
 		Guild server = event.getGuild();
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(server.getIdLong());
 		String department = discordServer.getDepartment();
-		Color color = Color.decode("#" + discordServer.getColor());
+		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		List<MemberDTO> member = service.getAllMembers(page, 3, MemberRetrievement.VERIFIED_ORIENTADOR, server.getIdLong());
 		long maxPages = service.memberCount(MemberRetrievement.VERIFIED_ORIENTADOR, server.getIdLong()) / 3;

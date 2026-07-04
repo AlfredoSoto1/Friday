@@ -90,25 +90,25 @@ public class CurriculumCmd extends InteractionModel implements CommandI {
 		
 		switch(event.getOption(COMMAND_LABEL).getAsString()) {
 		case OPTION_CHOICE_INEL:
-			File INELcurriculum = new File("assistant/curriculos/INEL.pdf");
+			File INELcurriculum = getAsset("curriculos/INEL.pdf");
 			event.reply("> Here is the Electrical Engineering Curriculum")
 				.addFiles(FileUpload.fromData(INELcurriculum))
 				.setEphemeral(true).queue();
 			break;
 		case OPTION_CHOICE_ICOM:
-			File ICOMcurriculum = new File("assistant/curriculos/ICOM.pdf");
+			File ICOMcurriculum = getAsset("curriculos/ICOM.pdf");
 			event.reply("> Here is the Computer Engineering Curriculum")
 				.addFiles(FileUpload.fromData(ICOMcurriculum))
 				.setEphemeral(true).queue();
 			break;
 		case OPTION_CHOICE_INSO:
-			File INSOcurriculum = new File("assistant/curriculos/INSO.pdf");
+			File INSOcurriculum = getAsset("curriculos/INSO.pdf");
 			event.reply("> Here is the Software Engineering Curriculum")
 				.addFiles(FileUpload.fromData(INSOcurriculum))
 				.setEphemeral(true).queue();
 			break;
 		case OPTION_CHOICE_CIIC:
-			File CIICcurriculum = new File("assistant/curriculos/CIIC.pdf");
+			File CIICcurriculum = getAsset("curriculos/CIIC.pdf");
 			event.reply("> Here is the Computer Science & Engineering Curriculum")
 				.addFiles(FileUpload.fromData(CIICcurriculum))
 				.setEphemeral(true).queue();

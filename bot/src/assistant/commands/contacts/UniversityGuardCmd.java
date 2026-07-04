@@ -15,7 +15,6 @@
  */
 package assistant.commands.contacts;
 
-import java.awt.Color;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,7 +80,7 @@ public class UniversityGuardCmd extends InteractionModel implements CommandI {
 		// Check if the command was called from a server
 		if (event.isFromGuild()) {
 			DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-			Color color = Color.decode("#" + discordServer.getColor());
+			int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 			
 			event.replyEmbeds(embed.buildInfoPanel(color, result.get()))
 				.setEphemeral(event.isFromGuild()).queue();
@@ -89,7 +88,7 @@ public class UniversityGuardCmd extends InteractionModel implements CommandI {
 			// Update the user points stats when he uses the command
 			commandEventService.updateCommandUserCount(this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
 		} else {
-			event.replyEmbeds(embed.buildInfoPanel(Color.GRAY, result.get())).queue();
+			event.replyEmbeds(embed.buildInfoPanel(0x808080, result.get())).queue();
 		}
 	}
 }

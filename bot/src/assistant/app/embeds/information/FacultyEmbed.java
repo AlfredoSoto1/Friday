@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.information;
 
-import java.awt.Color;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,7 +33,7 @@ public class FacultyEmbed {
 	
 	}
 	
-	public MessageEmbed buildFaculty(Color color, String department, List<FacultyDTO> faculty, long page, long maxPages) {
+	public MessageEmbed buildFaculty(int color, String department, List<FacultyDTO> faculty, long page, long maxPages) {
 		
 		EmbedBuilder embed = new EmbedBuilder()
 			.setColor(color)

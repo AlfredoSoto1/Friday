@@ -15,7 +15,6 @@
  */
 package assistant.interactions.moderation;
 
-import java.awt.Color;
 import java.io.File;
 import java.util.List;
 
@@ -62,17 +61,17 @@ public class WelcomeMessenger extends InteractionModel implements MessengerI {
 		
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(server.getIdLong());
 		String department = discordServer.getDepartment();
-		Color color = Color.decode("#" + discordServer.getColor());
+		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		String imageUrl_TeamMade = "attachment://WelcomeBanner_TEAM_MADE.png";
 		String imageUrl_InsoCiic = "attachment://WelcomeBanner_INSO_CIIC.png";
 		
 		if ("ECE".equalsIgnoreCase(department)) {
-			File teamMade = new File("assistant/images/WelcomeBanner_TEAM_MADE.png");
+			File teamMade = getAsset("images/WelcomeBanner_TEAM_MADE.png");
 			privateChannel.sendFiles(FileUpload.fromData(teamMade))
 				.setEmbeds(embed.buildServerBanner(imageUrl_TeamMade, color)).queue();
 		} else {
-			File insociic = new File("assistant/images/WelcomeBanner_INSO_CIIC.png");
+			File insociic = getAsset("images/WelcomeBanner_INSO_CIIC.png");
 			privateChannel.sendFiles(FileUpload.fromData(insociic))
 				.setEmbeds(embed.buildServerBanner(imageUrl_InsoCiic, color)).queue();
 		}

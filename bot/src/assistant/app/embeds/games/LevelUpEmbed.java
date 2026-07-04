@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.games;
 
-import java.awt.Color;
 import java.util.List;
 
 import assistant.backend.dto.UserRankDTO;
@@ -27,14 +26,14 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
  */
 public class LevelUpEmbed {
 	
-	public MessageEmbed buildUserLevelUpCongrats(Color color, String pfpUrl) {
+	public MessageEmbed buildUserLevelUpCongrats(int color, String pfpUrl) {
 		return new EmbedBuilder()
 			.setImage(pfpUrl)
 			.setColor(color)
 			.build();
 	}
 	
-	public MessageEmbed buildLeaderboard(Color color, List<UserRankDTO> leaderboard) {
+	public MessageEmbed buildLeaderboard(int color, List<UserRankDTO> leaderboard) {
 		EmbedBuilder embed = new EmbedBuilder()
 			.setColor(color)
 			.setTitle("Leaderboard");
@@ -54,7 +53,7 @@ public class LevelUpEmbed {
 		return embed.build();
 	}
 	
-	public MessageEmbed buildLeaderboardPosition(Color color, UserRankDTO userRank, String pfpUrl) {
+	public MessageEmbed buildLeaderboardPosition(int color, UserRankDTO userRank, String pfpUrl) {
 		
 		int progress = (int)(100.0 * userRank.getUserXP() / (double)userRank.getMilestone());
 		

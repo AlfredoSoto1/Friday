@@ -15,7 +15,6 @@
  */
 package assistant.commands.information;
 
-import java.awt.Color;
 import java.util.List;
 
 import assistant.app.interactions.CommandI;
@@ -82,7 +81,7 @@ public class FacultyCmd extends InteractionModel implements CommandI {
 		
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
 		String department = discordServer.getDepartment();
-		Color color = Color.decode("#" + discordServer.getColor());
+		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		List<FacultyDTO> faculty = service.getFaculty(page, 3, department);
 		long maxPages = service.getRecordCount(department) / 3;

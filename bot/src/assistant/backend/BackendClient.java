@@ -2,6 +2,7 @@ package assistant.backend;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import assistant.backend.dto.BotCommandResponse;
@@ -31,7 +32,8 @@ public final class BackendClient {
     .connectTimeout(Duration.ofSeconds(3))
     .build();
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-    .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+    .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private static String baseUrl;
 
   private BackendClient() {

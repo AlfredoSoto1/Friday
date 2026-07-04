@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.information;
 
-import java.awt.Color;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -25,7 +24,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
  */
 public class LinksEmbed {
 	
-	public MessageEmbed buildLinks(Color color) {
+	public MessageEmbed buildLinks(int color) {
 		return new EmbedBuilder()
 			.setColor(color)
 			.setTitle("Links importantes :nerd:")

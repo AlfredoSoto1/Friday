@@ -71,7 +71,7 @@ public class MadeWebCmd extends InteractionModel implements CommandI {
 			Aquí el enlace para la página web de Made! :green_heart:
 			https://sites.google.com/upr.edu/maderodriguez/
 			""")
-		.addFiles(FileUpload.fromData(new File("assets/images/MadeWeb.png"))).queue();
+		.addFiles(FileUpload.fromData(getAsset("images/MadeWeb.png"))).queue();
 		
 		// Update the user points stats when he uses the command
 		commandEventService.updateCommandUserCount(this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());

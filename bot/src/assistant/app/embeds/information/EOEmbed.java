@@ -3,7 +3,6 @@
  */
 package assistant.app.embeds.information;
 
-import java.awt.Color;
 import java.util.List;
 
 import assistant.backend.dto.MemberDTO;
@@ -19,7 +18,7 @@ public class EOEmbed {
 
 	}
 	
-	public MessageEmbed buildEO(Color color, String department, List<MemberDTO> members, long page, long maxPages) {
+	public MessageEmbed buildEO(int color, String department, List<MemberDTO> members, long page, long maxPages) {
 		EmbedBuilder embed = new EmbedBuilder()
 				.setColor(color)
 				.setTitle(department + " orientadores")

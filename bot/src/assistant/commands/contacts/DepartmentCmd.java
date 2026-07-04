@@ -15,7 +15,6 @@
  */
 package assistant.commands.contacts;
 
-import java.awt.Color;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,7 +75,7 @@ public class DepartmentCmd extends InteractionModel implements CommandI {
 	public void execute(SlashCommandInteractionEvent event) {
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
 		String department = discordServer.getDepartment();
-		Color color = Color.decode("#" + discordServer.getColor());
+		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		if ("ECE".equalsIgnoreCase(department)) {
 			Optional<ServiceDTO> result = service.getService("Electrical and Computer Engineering");

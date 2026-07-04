@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.information;
 
-import java.awt.Color;
 import java.util.List;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -28,7 +27,7 @@ import net.dv8tion.jda.api.entities.Role;
  */
 public class HelpEmbed {
 	
-	public MessageEmbed buildHelp(Color color, String banner, Role esoRole, int page) {
+	public MessageEmbed buildHelp(int color, String banner, Role esoRole, int page) {
 		
 		List<Field> fields = getFieldPage(esoRole.getAsMention());
 		

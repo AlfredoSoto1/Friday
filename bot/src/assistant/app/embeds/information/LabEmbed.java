@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.information;
 
-import java.awt.Color;
 import java.util.List;
 
 import assistant.backend.dto.LabDTO;
@@ -27,7 +26,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
  */
 public class LabEmbed {
 	
-	public MessageEmbed buildLab(Color color, String code, List<LabDTO> labs) {
+	public MessageEmbed buildLab(int color, String code, List<LabDTO> labs) {
 		if (labs.isEmpty()) {
 			return new EmbedBuilder()
 				.setColor(color)

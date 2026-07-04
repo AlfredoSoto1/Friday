@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.contacts;
 
-import java.awt.Color;
 
 import assistant.backend.dto.ServiceDTO;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -26,7 +25,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
  */
 public class ServicesEmbed {
 	
-	public MessageEmbed buildInfoPanel(Color color, ServiceDTO service) {
+	public MessageEmbed buildInfoPanel(int color, ServiceDTO service) {
 		StringBuilder additional = new StringBuilder();
 		StringBuilder contacts = new StringBuilder();
 		

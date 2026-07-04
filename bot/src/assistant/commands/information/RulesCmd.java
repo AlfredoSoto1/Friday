@@ -15,7 +15,6 @@
  */
 package assistant.commands.information;
 
-import java.awt.Color;
 import java.util.List;
 import java.util.Optional;
 
@@ -92,7 +91,7 @@ public class RulesCmd extends InteractionModel implements CommandI {
 		Role admRole = event.getGuild().getRolesByName("Administrator", true).get(0);
 		
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-		Color color = Color.decode("#" + discordServer.getColor());
+		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		event.replyEmbeds(embed.buildGeneralRules(color, 
 				esoRole.get().getAsMention(),
@@ -116,7 +115,7 @@ public class RulesCmd extends InteractionModel implements CommandI {
 	}
 	
 	private void fromDM(SlashCommandInteractionEvent event) {
-		event.replyEmbeds(embed.buildGeneralRules(Color.GRAY, 
+		event.replyEmbeds(embed.buildGeneralRules(0x808080, 
 				"Estudiante Orientador",
 				"Bots",
 				"Moderador",
@@ -124,12 +123,12 @@ public class RulesCmd extends InteractionModel implements CommandI {
 				"Administrator",
 				"Consejero Profesional"),
 				
-			embed.buildServerUsageRules(Color.GRAY, 
+			embed.buildServerUsageRules(0x808080, 
 				"BotDeveloper",
 				"Moderador",
 				"Staff"),
 			
-			embed.buildBotUsageRules(Color.GRAY, 
+			embed.buildBotUsageRules(0x808080, 
 				"BotDeveloper",
 				"Estudiante Orientador")).queue();
 	}

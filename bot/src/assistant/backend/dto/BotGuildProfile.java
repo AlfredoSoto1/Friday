@@ -4,6 +4,8 @@ public record BotGuildProfile(
   long guildId,
   String name,
   boolean enabled,
+  String departmentProfile,
+  String createdAt,
   BotTheme theme,
   BotVerificationProfile verification,
   BotWelcomeProfile welcome
@@ -13,6 +15,8 @@ public record BotGuildProfile(
       guildId,
       "Discord Server " + guildId,
       true,
+      null,
+      null,
       BotTheme.defaults(),
       BotVerificationProfile.defaults(),
       BotWelcomeProfile.defaults());

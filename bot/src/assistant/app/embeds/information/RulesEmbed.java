@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.information;
 
-import java.awt.Color;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -25,7 +24,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
  */
 public class RulesEmbed {
 	
-	public MessageEmbed buildGeneralRules(Color color, String esoRole, String botRole, String modRole, String staRole, String admRole, String conRole) {
+	public MessageEmbed buildGeneralRules(int color, String esoRole, String botRole, String modRole, String staRole, String admRole, String conRole) {
 		return new EmbedBuilder()
 			.setColor(color)
 			.setTitle(":straight_ruler: Estas son las reglas a seguir para tener un ambiente sano.")
@@ -66,7 +65,7 @@ public class RulesEmbed {
 			.build();
 	}
 	
-	public MessageEmbed buildServerUsageRules(Color color, String bdeRole, String modRole, String staRole) {
+	public MessageEmbed buildServerUsageRules(int color, String bdeRole, String modRole, String staRole) {
 		return new EmbedBuilder()
 				.setColor(color)
 				.setTitle("Uso del servidor")
@@ -93,7 +92,7 @@ public class RulesEmbed {
 				.build();
 	}
 	
-	public MessageEmbed buildBotUsageRules(Color color, String bdeRole, String esoRole) {
+	public MessageEmbed buildBotUsageRules(int color, String bdeRole, String esoRole) {
 		return new EmbedBuilder()
 			.setColor(color)
 			.setTitle("Uso del Assistant")

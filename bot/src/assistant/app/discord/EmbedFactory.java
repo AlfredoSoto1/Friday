@@ -5,7 +5,6 @@ import assistant.backend.dto.BotGuildProfile;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
-import java.awt.Color;
 import java.time.Instant;
 
 public final class EmbedFactory {
@@ -74,14 +73,14 @@ public final class EmbedFactory {
     return builder;
   }
 
-  private Color parseColor(String value) {
+  private int parseColor(String value) {
     if (value == null || value.isBlank()) {
-      return new Color(0x2f80ed);
+      return 0x2f80ed;
     }
     try {
-      return Color.decode("#" + value.replace("#", ""));
+      return Integer.parseInt(value.replace("#", ""), 16);
     } catch (NumberFormatException ignored) {
-      return new Color(0x2f80ed);
+      return 0x2f80ed;
     }
   }
 }

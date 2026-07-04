@@ -15,7 +15,6 @@
  */
 package assistant.commands.links;
 
-import java.awt.Color;
 import java.util.List;
 
 import assistant.app.interactions.CommandI;
@@ -78,7 +77,7 @@ public class LinksCmd extends InteractionModel implements CommandI {
 	
 	private void fromServer(SlashCommandInteractionEvent event) {
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-		Color color = Color.decode("#" + discordServer.getColor());
+		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		event.replyEmbeds(embed.buildLinks(color))
 			.setEphemeral(true).queue();
@@ -88,6 +87,6 @@ public class LinksCmd extends InteractionModel implements CommandI {
 	}
 	
 	private void fromDM(SlashCommandInteractionEvent event) {
-		event.replyEmbeds(embed.buildLinks(Color.GRAY)).queue();
+		event.replyEmbeds(embed.buildLinks(0x808080)).queue();
 	}
 }

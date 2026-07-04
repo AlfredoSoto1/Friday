@@ -15,7 +15,6 @@
  */
 package assistant.app.embeds.moderation;
 
-import java.awt.Color;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -37,7 +36,7 @@ public class RoleSelectionEmbed {
 
 	}
 	
-	public Pair<MessageEmbed, Consumer<Message>> buildCodingBuffet(Color color, Guild server) {
+	public Pair<MessageEmbed, Consumer<Message>> buildCodingBuffet(int color, Guild server) {
 		List<RichCustomEmoji> reactionEmojis = List.of(
 			server.getEmojisByName("JavaScript", true).get(0),
 			server.getEmojisByName("TS",         true).get(0),
@@ -100,7 +99,7 @@ public class RoleSelectionEmbed {
 		return Pair.of(embed, consumer);
 	}
 	
-	public Pair<MessageEmbed, Consumer<Message>> buildGamingBuffet(Color color, Guild server) {
+	public Pair<MessageEmbed, Consumer<Message>> buildGamingBuffet(int color, Guild server) {
 		List<RichCustomEmoji> reactionEmojis = List.of(
 			server.getEmojisByName("fortnite",   true).get(0),
 			server.getEmojisByName("valorant",   true).get(0),
@@ -164,7 +163,7 @@ public class RoleSelectionEmbed {
 		return Pair.of(embed, consumer);
 	}
 
-	public Pair<MessageEmbed, Consumer<Message>> buildEntertainmentBuffet(Color color) {
+	public Pair<MessageEmbed, Consumer<Message>> buildEntertainmentBuffet(int color) {
 	    // Unicode representations of the emojis
 	    List<String> reactionEmojis = List.of(
 	        "\uD83D\uDCFA", // :tv:            // series

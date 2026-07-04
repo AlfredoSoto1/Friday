@@ -15,7 +15,6 @@
  */
 package assistant.commands.information;
 
-import java.awt.Color;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
@@ -54,8 +53,8 @@ public class FAQCmd extends InteractionModel implements CommandI {
 	
 	@Override
 	public void onGuildInit(Guild server) {
-		this.teamMade = new File("assistant/images/FAQ_Banner_TEAM-MADE.png");
-		this.insociic = new File("assistant/images/FAQ_Banner_INSO_CIIC.png");
+		this.teamMade = getAsset("images/FAQ_Banner_TEAM-MADE.png");
+		this.insociic = getAsset("images/FAQ_Banner_INSO_CIIC.png");
 	}
 	
 	@Override
@@ -103,7 +102,7 @@ public class FAQCmd extends InteractionModel implements CommandI {
 		
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
 		String department = discordServer.getDepartment();
-		Color color = Color.decode("#" + discordServer.getColor());
+		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		String imageUrl_TeamMade = "attachment://FAQ_Banner_TEAM-MADE.png";
 		String imageUrl_InsoCiic = "attachment://FAQ_Banner_INSO_CIIC.png";
@@ -124,6 +123,6 @@ public class FAQCmd extends InteractionModel implements CommandI {
 	
 	private void fromDM(SlashCommandInteractionEvent event) {
 		int page = event.getOption("page").getAsInt();
-		event.replyEmbeds(embed.buildFAQDM(Color.GRAY, "BotDeveloper", "EstudianteOrientador", page)).queue();
+		event.replyEmbeds(embed.buildFAQDM(0x808080, "BotDeveloper", "EstudianteOrientador", page)).queue();
 	}
 }

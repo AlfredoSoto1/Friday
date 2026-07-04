@@ -15,7 +15,6 @@
  */
 package assistant.commands.information;
 
-import java.awt.Color;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -99,7 +98,7 @@ public class OrgsCmd extends InteractionModel implements CommandI {
 	
 	private void fromServer(SlashCommandInteractionEvent event, String selectedProject) {
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-		Color color = Color.decode("#" + discordServer.getColor());
+		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		Optional<OrganizationDTO> project = service.getOrganization(selectedProject);
 		
@@ -119,7 +118,7 @@ public class OrgsCmd extends InteractionModel implements CommandI {
 		Optional<OrganizationDTO> project = service.getOrganization(selectedProject);
 		
 		if (project.isPresent()) {
-			event.replyEmbeds(embed.buildOrganization(Color.GRAY, project.get())).queue();
+			event.replyEmbeds(embed.buildOrganization(0x808080, project.get())).queue();
 		} else {
 			event.reply("Hmm creo que la organización que me diste no existe en mi base de datos :confused:").queue();
 		}

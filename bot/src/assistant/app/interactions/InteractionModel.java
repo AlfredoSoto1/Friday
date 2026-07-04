@@ -112,6 +112,10 @@ public abstract class InteractionModel {
 	protected DiscordServerDTO getServerOwnerInfo(long server) {
 		return service.getRegisteredDiscordServer(server).get();
 	}
+	protected java.io.File getAsset(String path) {
+		return service.findFromAssets(path);
+	}
+
 	
 	protected boolean cacheUniqueState(InteractionState type, long state, long sever) {
 		return service.cacheInteractionState(type, state, sever);

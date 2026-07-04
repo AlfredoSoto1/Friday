@@ -15,7 +15,6 @@
  */
 package assistant.commands.games;
 
-import java.awt.Color;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,7 +76,7 @@ public class LeaderboardCmd extends InteractionModel implements CommandI {
 	@Override
 	public void execute(SlashCommandInteractionEvent event) {
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-		Color color = Color.decode("#" + discordServer.getColor());
+		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		String option = event.getOption("insights").getAsString();
 		

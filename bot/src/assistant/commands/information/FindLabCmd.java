@@ -15,7 +15,6 @@
  */
 package assistant.commands.information;
 
-import java.awt.Color;
 import java.util.List;
 
 import assistant.app.interactions.CommandI;
@@ -87,7 +86,7 @@ public class FindLabCmd extends InteractionModel implements CommandI {
 	
 	private void fromServer(SlashCommandInteractionEvent event) {
 		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-		Color color = Color.decode("#" + discordServer.getColor());
+		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 		
 		// Obtain building codification from command
 		String roomCode = event.getOption(COMMAND_LABEL).getAsString();
@@ -110,6 +109,6 @@ public class FindLabCmd extends InteractionModel implements CommandI {
 		List<LabDTO> labs = service.getLabsFrom(roomCode);
 		
 		// Reply in form of embed
-		event.replyEmbeds(embed.buildLab(Color.GRAY, roomCode, labs)).queue();
+		event.replyEmbeds(embed.buildLab(0x808080, roomCode, labs)).queue();
 	}
 }
