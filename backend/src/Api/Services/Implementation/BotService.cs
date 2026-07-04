@@ -34,6 +34,12 @@ public sealed partial class BotService : IBotService
     return await _repository.GetGuildProfile(connection, guildId);
   }
 
+  public Task<Result<IReadOnlyCollection<string>, AppError>> GetProfanities()
+  {
+    IReadOnlyCollection<string> words = ["cabron", "carajo", "cojones", "puta", "puto"];
+    return Task.FromResult(Result<IReadOnlyCollection<string>, AppError>.Ok(words));
+  }
+
   public async Task<Result<BotCommandResponse, AppError>> GetCommandResponse(long guildId, string commandName)
   {
     _ = guildId;

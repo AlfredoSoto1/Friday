@@ -19,9 +19,9 @@ import java.awt.Color;
 import java.util.List;
 import java.util.Optional;
 
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.embeds.games.LevelUpEmbed;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.embeds.games.LevelUpEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.UserRankDTO;
 import assistant.backend.service.GameService;

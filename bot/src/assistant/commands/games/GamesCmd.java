@@ -19,10 +19,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.discord.interaction.KeywordResponder;
-import assistant.app.legacy.discord.interaction.MessengerI;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.interactions.KeywordResponder;
+import assistant.app.interactions.MessengerI;
 import assistant.backend.dto.UserRankDTO;
 import assistant.backend.service.GameService;
 import net.dv8tion.jda.api.entities.Guild;

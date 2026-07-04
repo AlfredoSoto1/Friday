@@ -18,9 +18,9 @@ package assistant.commands.information;
 import java.awt.Color;
 import java.util.List;
 
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.embeds.information.LabEmbed;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.embeds.information.LabEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.LabDTO;
 import assistant.backend.service.BuildingService;

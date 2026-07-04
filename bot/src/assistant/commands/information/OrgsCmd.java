@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.embeds.information.OrganizationsEmbed;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.embeds.information.OrganizationsEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.OrganizationDTO;
 import assistant.backend.service.GameService;

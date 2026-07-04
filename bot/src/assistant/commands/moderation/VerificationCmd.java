@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
 
 import assistant.app.core.Logger;
 import assistant.app.core.Logger.LogFeedback;
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.discord.object.MemberPosition;
-import assistant.app.legacy.embeds.moderation.VerificationEmbed;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.model.MemberPosition;
+import assistant.app.embeds.moderation.VerificationEmbed;
 import assistant.backend.dto.DiscordRoleDTO;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.MemberDTO;

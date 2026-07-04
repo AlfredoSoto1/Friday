@@ -1,127 +1,22 @@
-/*
- * Copyright 2024 Alfredo Soto
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package assistant.backend.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import assistant.database.SubTransactionResult;
-import assistant.backend.dao.OrganizationsDAO;
+import assistant.backend.BackendClient;
 import assistant.backend.dto.OrganizationDTO;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.StreamSupport;
 
-/**
- * @author Alfredo
- */
-@Service
-public class OrganizationsService {
-
-	private final OrganizationsDAO organizationDAO;
-	
-	@Autowired
-	public OrganizationsService(OrganizationsDAO projectDAO) {
-		this.organizationDAO = projectDAO;
-	}
-	
-	/**
-	 * @param page
-	 * @param size
-	 * @return List of organization names
-	 */
-	public List<String> getOrganizationNames(int page, int size) {
-        SubTransactionResult result = organizationDAO.queryOrganizationNames(page, size);
-        
-        List<String> names = new ArrayList<>();
-        for (int i = 0; i < result.rowCount(); i++) {
-			names.add(result.getValue("name", i));
-		}
-		return names;
-	}
-	
-	/**
-	 * @param page
-	 * @param size
-	 * @return List of organizations
-	 */
-	public List<OrganizationDTO> getAllOrganizations(int page, int size) {
-        SubTransactionResult result = organizationDAO.queryAllOrganizations(page, size);
-        
-        Map<Integer, OrganizationDTO> orgs = new HashMap<>();
-        for (int i = 0; i < result.rowCount(); i++) {
-        	if (orgs.containsKey(result.getValue("orgid", i))) {
-        		OrganizationDTO org = orgs.get(result.getValue("orgid", i));
-        		org.addPlatforms(result.getValue("platform", i));
-        		org.addUrlhandle(result.getValue("urlhandle", i));
-        		continue;
-        	}
-        	OrganizationDTO org = new OrganizationDTO();
-        	org.setId(result.getValue("orgid",    i));
-        	org.setName(result.getValue("name",   i));
-        	org.setEmail(result.getValue("email", i));
-        	org.setDescription(result.getValue("description", i));
-			
-        	org.setWebsite(result.getValue("url", i));
-        	org.addPlatforms(result.getValue("platform",  i));
-        	org.addUrlhandle(result.getValue("urlhandle", i));
-			
-			orgs.put(org.getId(), org);
-		}
-		return new ArrayList<>(orgs.values());
-	}
-	
-	/**
-	 * @param name
-	 * @return Single organization by name
-	 */
-	public Optional<OrganizationDTO> getOrganization(String name) {
-		SubTransactionResult result = organizationDAO.queryOrganization(name);
-		
-		if (result.isEmpty())
-			return Optional.empty();
-		
-		 Map<Integer, OrganizationDTO> orgs = new HashMap<>();
-        for (int i = 0; i < result.rowCount(); i++) {
-        	if (orgs.containsKey(result.getValue("orgid", i))) {
-        		OrganizationDTO org = orgs.get(result.getValue("orgid", i));
-        		org.addPlatforms(result.getValue("platform",  i));
-        		org.addUrlhandle(result.getValue("urlhandle", i));
-        		continue;
-        	}
-        	OrganizationDTO org = new OrganizationDTO();
-        	org.setId(result.getValue("orgid",    i));
-        	org.setName(result.getValue("name",   i));
-        	org.setEmail(result.getValue("email", i));
-        	org.setDescription(result.getValue("description", i));
-			
-        	org.setWebsite(result.getValue("url", i));
-        	org.addPlatforms(result.getValue("platform",  i));
-        	org.addUrlhandle(result.getValue("urlhandle", i));
-			
-			orgs.put(org.getId(), org);
-		}
-        
-        if (orgs.size() != 1)
-        	return Optional.empty();
-        
-        Map.Entry<Integer, OrganizationDTO> entry = orgs.entrySet().iterator().next();
-		return Optional.of(entry.getValue());
-	}
+public final class OrganizationsService {
+  public List<String> getOrganizationNames(int page, int size) { return organizations(page,size,null).stream().map(OrganizationDTO::getName).toList(); }
+  public List<OrganizationDTO> getAllOrganizations(int page, int size) { return organizations(page,size,null); }
+  public Optional<OrganizationDTO> getOrganization(String name) { return organizations(0,25,name).stream().filter(o -> o.getName().equalsIgnoreCase(name)).findFirst(); }
+  private List<OrganizationDTO> organizations(int page,int size,String search) {
+    String path="/api/v1/inelicom/organizations?page_index="+page+"&limit="+size;
+    if(search!=null) path+="&search="+URLEncoder.encode(search,StandardCharsets.UTF_8);
+    return BackendClient.getData(path).map(d->d.path("items")).stream().flatMap(n->StreamSupport.stream(n.spliterator(),false)).map(this::map).toList();
+  }
+  private OrganizationDTO map(JsonNode n){ OrganizationDTO d=new OrganizationDTO(); d.setId(n.path("organization_id").asInt()); d.setName(n.path("name").asText()); d.setDescription(n.path("description").asText()); return d; }
 }

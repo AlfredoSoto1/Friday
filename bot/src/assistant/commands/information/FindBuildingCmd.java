@@ -18,8 +18,8 @@ package assistant.commands.information;
 import java.util.List;
 import java.util.Optional;
 
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
 import assistant.backend.dto.BuildingDTO;
 import assistant.backend.service.BuildingService;
 import assistant.backend.service.GameService;

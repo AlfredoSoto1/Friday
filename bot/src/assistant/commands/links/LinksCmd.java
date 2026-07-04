@@ -18,9 +18,9 @@ package assistant.commands.links;
 import java.awt.Color;
 import java.util.List;
 
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.embeds.information.LinksEmbed;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.embeds.information.LinksEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.service.GameService;
 import net.dv8tion.jda.api.entities.Guild;

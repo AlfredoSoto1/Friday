@@ -15,7 +15,7 @@
  */
 package assistant.backend.dto;
 
-import assistant.app.legacy.discord.object.MemberProgram;
+import assistant.app.model.MemberProgram;
 
 /**
  * @author Alfredo

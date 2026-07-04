@@ -24,11 +24,11 @@ import java.util.function.Consumer;
 
 import assistant.app.core.Logger;
 import assistant.app.core.Logger.LogFeedback;
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.discord.interaction.MessengerI;
-import assistant.app.legacy.discord.object.InteractionState;
-import assistant.app.legacy.embeds.moderation.RoleSelectionEmbed;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.interactions.MessengerI;
+import assistant.app.model.InteractionState;
+import assistant.app.embeds.moderation.RoleSelectionEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.InteractionStateDTO;
 import net.dv8tion.jda.api.entities.Guild;

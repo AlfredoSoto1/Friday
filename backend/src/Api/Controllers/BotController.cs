@@ -17,6 +17,13 @@ public sealed class BotController : ControllerBase
     _service = service;
   }
 
+  [HttpGet("profanities")]
+  public async Task<IActionResult> GetProfanities()
+  {
+    var result = await _service.GetProfanities();
+    return result.Send();
+  }
+
   [HttpGet("servers")]
   public async Task<IActionResult> GetEnabledGuilds()
   {

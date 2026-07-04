@@ -17,7 +17,7 @@ package assistant.backend.dto;
 
 import java.util.Objects;
 
-import assistant.app.legacy.discord.object.MemberProgram;
+import assistant.app.model.MemberProgram;
 
 /**
  * @author Alfredo

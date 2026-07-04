@@ -84,6 +84,18 @@ public final class BackendClient {
     return guildProfile(guildId).enabled();
   }
 
+  public static Optional<JsonNode> getData(String path) {
+    return get(path);
+  }
+
+  public static Optional<JsonNode> postData(String path, Object body) {
+    return post(path, body);
+  }
+
+  public static ObjectMapper mapper() {
+    return OBJECT_MAPPER;
+  }
+
   private static Optional<JsonNode> get(String path) {
     HttpRequest request = HttpRequest.newBuilder(uri(path))
       .timeout(Duration.ofSeconds(5))

@@ -19,9 +19,9 @@ import java.awt.Color;
 import java.io.File;
 import java.util.List;
 
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.discord.interaction.MessengerI;
-import assistant.app.legacy.embeds.moderation.VerificationEmbed;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.interactions.MessengerI;
+import assistant.app.embeds.moderation.VerificationEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;

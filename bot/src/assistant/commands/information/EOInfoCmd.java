@@ -18,10 +18,10 @@ package assistant.commands.information;
 import java.awt.Color;
 import java.util.List;
 
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.discord.object.MemberRetrievement;
-import assistant.app.legacy.embeds.information.EOEmbed;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.model.MemberRetrievement;
+import assistant.app.embeds.information.EOEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.MemberDTO;
 import assistant.backend.service.GameService;

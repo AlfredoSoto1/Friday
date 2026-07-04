@@ -20,10 +20,10 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.discord.object.MemberPosition;
-import assistant.app.legacy.embeds.information.HelpEmbed;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.model.MemberPosition;
+import assistant.app.embeds.information.HelpEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.service.GameService;
 import net.dv8tion.jda.api.entities.Guild;

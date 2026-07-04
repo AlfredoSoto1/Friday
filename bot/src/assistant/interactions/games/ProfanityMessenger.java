@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.discord.interaction.MessengerI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.interactions.MessengerI;
 import assistant.backend.service.DiscordService;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;

@@ -17,8 +17,8 @@ package assistant.commands.information;
 
 import java.util.List;
 
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
 import assistant.backend.service.GameService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;

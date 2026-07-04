@@ -36,6 +36,7 @@ public interface IBotService
   // Commands, roles, and channels
   // ==========================================================================
   Task<Result<BotCommandResponse, AppError>> GetCommandResponse(long guildId, string commandName);
+  Task<Result<IReadOnlyCollection<string>, AppError>> GetProfanities();
   Task<Result<IReadOnlyCollection<BotRole>, AppError>> GetGuildRoles(long guildId);
   Task<Result<BotRole, AppError>> CreateGuildRole(long guildId, BotRoleRequest request);
   Task<Result<BotRole, AppError>> UpdateGuildRole(long guildId, int roleId, BotRoleRequest request);

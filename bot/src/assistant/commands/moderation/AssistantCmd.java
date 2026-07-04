@@ -17,10 +17,10 @@ package assistant.commands.moderation;
 
 import java.util.List;
 
-import assistant.app.legacy.discord.app.BotApplication;
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.discord.object.AssistantOptions;
+import assistant.app.discord.BotApplication;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.model.AssistantOptions;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;

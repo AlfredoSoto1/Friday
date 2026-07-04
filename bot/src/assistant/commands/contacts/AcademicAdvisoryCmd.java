@@ -19,10 +19,10 @@ import java.awt.Color;
 import java.util.List;
 import java.util.Optional;
 
-import assistant.app.legacy.discord.interaction.CommandI;
-import assistant.app.legacy.discord.interaction.InteractionModel;
-import assistant.app.legacy.discord.interaction.MessengerI;
-import assistant.app.legacy.embeds.contacts.ServicesEmbed;
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import assistant.app.interactions.MessengerI;
+import assistant.app.embeds.contacts.ServicesEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.ServiceDTO;
 import assistant.backend.service.GameService;

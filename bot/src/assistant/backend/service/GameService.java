@@ -1,96 +1,16 @@
-/*
- * Copyright 2024 Alfredo Soto
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package assistant.backend.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import assistant.database.SubTransactionResult;
-import assistant.backend.dao.GameDAO;
+import assistant.backend.BackendClient;
 import assistant.backend.dto.UserRankDTO;
+import assistant.backend.dto.BotXpRequest;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.*;
+import java.util.stream.StreamSupport;
 
-/**
- * @author Alfredo
- */
-@Service
-public class GameService {
-	
-	private final GameDAO gameDAO;
-	
-	@Autowired
-	public GameService(GameDAO gameDAO) {
-		this.gameDAO = gameDAO;
-	}
-	
-	public void updateCommandUserCount(String commandName, String user, long server) {
-		gameDAO.queryUpdateCommandUserCount(commandName, user, server);
-	}
-	
-	public Optional<UserRankDTO> giveXP(String user, int quantity, long server) {
-		SubTransactionResult result = gameDAO.queryUpdateXP(user, quantity, server);
-		
-		if (result.isEmpty())
-			return Optional.empty();
-		
-		UserRankDTO ranked = new UserRankDTO();
-		ranked.setHasLevelup(result.getValue("level_increased"));
-		ranked.setLevel(result.getValue("level"));
-		ranked.setUserXP(result.getValue("message_xp"));
-		ranked.setUsername(result.getValue("username"));
-		ranked.setMilestone(result.getValue("xp_milestone"));
-		ranked.setCommandsUsed(result.getValue("commands_used"));
-		
-		return Optional.of(ranked);
-	}
-	
-	public List<UserRankDTO> getLeaderboard(long server) {
-		SubTransactionResult result = gameDAO.queryLeaderboard(server);
-		
-		List<UserRankDTO> leaderboard = new ArrayList<>();
-		for (int i = 0;i < result.rowCount(); i++) {
-			UserRankDTO ranked = new UserRankDTO();
-			ranked.setRank(result.getValue("rank", i));
-			ranked.setLevel(result.getValue("level", i));
-			ranked.setUserXP(result.getValue("message_xp", i));
-			ranked.setUsername(result.getValue("username", i));
-			ranked.setMilestone(result.getValue("xp_milestone", i));
-			ranked.setCommandsUsed(result.getValue("commands_used", i));
-			leaderboard.add(ranked);
-		}
-		return leaderboard;
-	}
-	
-	public Optional<UserRankDTO> getUserLeaderboardPosition(String user, long server) {
-		SubTransactionResult result = gameDAO.queryLeaderboardUserPosition(user, server);
-		
-		if (result.isEmpty())
-			return Optional.empty();
-		
-		UserRankDTO ranked = new UserRankDTO();
-		ranked.setRank(result.getValue("rank"));
-		ranked.setLevel(result.getValue("level"));
-		ranked.setUserXP(result.getValue("message_xp"));
-		ranked.setUsername(result.getValue("username"));
-		ranked.setMilestone(result.getValue("xp_milestone"));
-		ranked.setCommandsUsed(result.getValue("commands_used"));
-		
-		return Optional.of(ranked);
-	}
+public final class GameService {
+  public void updateCommandUserCount(String command,String user,long server) { }
+  public Optional<UserRankDTO> giveXP(String user,int quantity,long server){ var r=BackendClient.addXp(server,new BotXpRequest(user)); UserRankDTO d=new UserRankDTO(); d.setUsername(user); d.setUserXP(r.xp()); d.setLevel(r.level()); d.setHasLevelup(r.leveledUp()); return Optional.of(d); }
+  public List<UserRankDTO> getLeaderboard(long server){ List<UserRankDTO> result=new ArrayList<>(); BackendClient.getData("/api/v1/bot/servers/"+server+"/members").ifPresent(n->{ int[] rank={1}; StreamSupport.stream(n.spliterator(),false).sorted(Comparator.comparingInt(x->-x.path("xp").asInt())).forEach(x->{ UserRankDTO d=map(x); d.setRank(rank[0]++); result.add(d); }); }); return result; }
+  public Optional<UserRankDTO> getUserLeaderboardPosition(String user,long server){ return getLeaderboard(server).stream().filter(x->x.getUsername().equalsIgnoreCase(user)).findFirst(); }
+  private UserRankDTO map(JsonNode n){ UserRankDTO d=new UserRankDTO(); d.setUsername(n.path("username").asText()); d.setUserXP(n.path("xp").asInt()); d.setLevel(n.path("level").asInt()); return d; }
 }
