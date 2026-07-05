@@ -22,7 +22,7 @@ public final class EightBallCmd extends GameCommand {
 
   @Override
   public String getCommandName() {
-    return "eightball";
+    return "game-eightball";
   }
 
   @Override

@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 public final class PingCmd extends GameCommand {
   @Override
   public String getCommandName() {
-    return "ping";
+    return "game-ping";
   }
 
   @Override

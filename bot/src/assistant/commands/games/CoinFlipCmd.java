@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 public final class CoinFlipCmd extends GameCommand {
   @Override
   public String getCommandName() {
-    return "coinflip";
+    return "game-coinflip";
   }
 
   @Override

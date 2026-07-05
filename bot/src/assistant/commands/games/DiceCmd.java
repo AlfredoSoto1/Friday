@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public final class DiceCmd extends GameCommand {
   @Override
   public String getCommandName() {
-    return "dice";
+    return "game-dice";
   }
 
   @Override

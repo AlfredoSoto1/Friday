@@ -12,7 +12,7 @@ public final class RockPaperScissorsCmd extends GameCommand {
 
   @Override
   public String getCommandName() {
-    return "rps";
+    return "game-rps";
   }
 
   @Override
