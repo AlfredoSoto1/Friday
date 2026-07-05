@@ -1,14 +1,26 @@
 package assistant.commands.games;
 
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public final class RockPaperScissorsCmd extends GameCommand {
+public final class RockPaperScissorsCmd extends InteractionModel implements CommandI {
   private static final List<String> MOVES = List.of("rock", "paper", "scissors");
+
+  @Override
+  public boolean isGlobal() {
+    return true;
+  }
+
+  @Override
+  public void setGlobal(boolean isGlobal) {}
 
   @Override
   public String getCommandName() {
@@ -38,23 +50,27 @@ public final class RockPaperScissorsCmd extends GameCommand {
     int color = outcome == 1 ? 0x27AE60 : outcome == 2 ? 0xEB5757 : 0x56CCF2;
     event
         .replyEmbeds(
-            embed.result(
-                "⚔️ Rock • Paper • Scissors",
-                "**You chose:** "
-                    + symbol(player)
-                    + " "
-                    + player
-                    + "\n"
-                    + "**Assistant chose:** "
-                    + symbol(bot)
-                    + " "
-                    + bot
-                    + "\n\n"
-                    + "## "
-                    + verdict,
-                color,
-                event.getUser().getEffectiveName(),
-                event.getUser().getEffectiveAvatarUrl()))
+            new EmbedBuilder()
+                .setColor(color)
+                .setAuthor(
+                    event.getUser().getEffectiveName(),
+                    null,
+                    event.getUser().getEffectiveAvatarUrl())
+                .setTitle("⚔️ Rock • Paper • Scissors")
+                .setDescription(
+                    "**You chose:** "
+                        + symbol(player)
+                        + " "
+                        + player
+                        + "\n"
+                        + "**Assistant chose:** "
+                        + symbol(bot)
+                        + " "
+                        + bot
+                        + "\n\n## "
+                        + verdict)
+                .setTimestamp(Instant.now())
+                .build())
         .queue();
   }
 

@@ -85,25 +85,17 @@ public class EOInfoCmd extends InteractionModel implements CommandI {
 
     List<MemberDTO> member =
         service.getAllMembers(page, 3, MemberRetrievement.VERIFIED_ORIENTADOR, server.getIdLong());
-    long maxPages =
-        service.memberCount(MemberRetrievement.VERIFIED_ORIENTADOR, server.getIdLong()) / 3;
+    long recordCount =
+        service.memberCount(MemberRetrievement.VERIFIED_ORIENTADOR, server.getIdLong());
+    long totalPages = (recordCount + 2) / 3;
 
     if (member.isEmpty()) {
-      event
-          .reply(
-              String.format(
-                  """
-                  Hmm no creo que hallan demasiados estudiantes ortientadores en esta página,
-                  trata con un rango de páginas de [0-%s]
-                  """,
-                  maxPages))
-          .setEphemeral(true)
-          .queue();
+      event.replyEmbeds(embed.buildEmpty(color, totalPages)).setEphemeral(true).queue();
       return;
     }
 
     event
-        .replyEmbeds(embed.buildEO(color, department, member, page, maxPages))
+        .replyEmbeds(embed.buildEO(color, department, member, page, totalPages))
         .setEphemeral(true)
         .queue();
 

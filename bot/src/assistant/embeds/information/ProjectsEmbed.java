@@ -10,26 +10,43 @@ public final class ProjectsEmbed {
     EmbedBuilder embed =
         new EmbedBuilder()
             .setColor(color)
-            .setTitle("🚀  " + safe(project.getName(), "Student Project"))
-            .setDescription(safe(project.getDescription(), "Explore this student-led project."));
+            .setTitle("🚀  " + safe(project.getName(), "Proyecto estudiantil"))
+            .setDescription(
+                safe(
+                    project.getDescription(),
+                    "Innovación creada por nuestra comunidad universitaria."))
+            .addField("Enfoque", "Investigación  •  Diseño  •  Colaboración", false);
 
-    String links = links(project.getEmail(), project.getWebsite());
-    if (!links.isBlank()) embed.addField("Connect", links, false);
+    String contact = contact(project.getEmail(), project.getWebsite());
+    if (!contact.isBlank()) embed.addField("🔗 Conecta con el proyecto", contact, false);
 
     String social = social(project.getPlatforms(), project.getUrlhandle());
-    if (!social.isBlank()) embed.addField("Social channels", social, false);
+    if (!social.isBlank()) embed.addField("📣 Canales oficiales", social, false);
     return embed.build();
   }
 
-  private String links(String email, String website) {
+  public MessageEmbed buildNotFound(int color, String query) {
+    return new EmbedBuilder()
+        .setColor(color)
+        .setTitle("🔎 Proyecto no encontrado")
+        .setDescription(
+            "No encontramos un proyecto llamado **"
+                + safe(query, "ese proyecto")
+                + "**.\n"
+                + "Verifica el nombre e inténtalo nuevamente.")
+        .build();
+  }
+
+  private String contact(String email, String website) {
     StringBuilder result = new StringBuilder();
     if (present(email)) result.append("✉️  ").append(email.trim());
-    if (present(website)) append(result, "🌐  [Visit website](" + website.trim() + ")");
+    if (present(website)) append(result, "🌐  [Visitar sitio oficial](" + website.trim() + ")");
     return result.toString();
   }
 
   private String social(List<String> platforms, List<String> handles) {
     StringBuilder result = new StringBuilder();
+    if (platforms == null || handles == null) return "";
     for (int index = 0; index < Math.min(platforms.size(), handles.size()); index++)
       append(result, "• **" + platforms.get(index) + ":** " + handles.get(index));
     return result.toString();

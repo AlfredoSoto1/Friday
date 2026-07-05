@@ -1,13 +1,25 @@
 package assistant.commands.games;
 
+import assistant.app.interactions.CommandI;
+import assistant.app.interactions.InteractionModel;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public final class DiceCmd extends GameCommand {
+public final class DiceCmd extends InteractionModel implements CommandI {
+  @Override
+  public boolean isGlobal() {
+    return true;
+  }
+
+  @Override
+  public void setGlobal(boolean isGlobal) {}
+
   @Override
   public String getCommandName() {
     return "game-dice";
@@ -32,13 +44,17 @@ public final class DiceCmd extends GameCommand {
     int roll = ThreadLocalRandom.current().nextInt(1, sides + 1);
     event
         .replyEmbeds(
-            embed.resultWithFooter(
-                "🎲 Dice Roll",
-                "You rolled\n# " + roll,
-                0x9B51E0,
-                event.getUser().getEffectiveName(),
-                event.getUser().getEffectiveAvatarUrl(),
-                "d" + sides + " • Range 1–" + sides))
+            new EmbedBuilder()
+                .setColor(0x9B51E0)
+                .setAuthor(
+                    event.getUser().getEffectiveName(),
+                    null,
+                    event.getUser().getEffectiveAvatarUrl())
+                .setTitle("🎲 Dice Roll")
+                .setDescription("You rolled\n# " + roll)
+                .setFooter("d" + sides + " • Range 1–" + sides)
+                .setTimestamp(Instant.now())
+                .build())
         .queue();
   }
 }

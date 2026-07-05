@@ -97,10 +97,7 @@ public class ProjectsCmd extends InteractionModel implements CommandI {
           .setEphemeral(event.isFromGuild())
           .queue();
     } else {
-      event
-          .reply("Hmm creo que el proyecto que me diste no existe en mi base de datos :confused:")
-          .setEphemeral(event.isFromGuild())
-          .queue();
+      event.replyEmbeds(embed.buildNotFound(color, selectedProject)).setEphemeral(true).queue();
     }
 
     // Update the user points stats when he uses the command
@@ -114,9 +111,7 @@ public class ProjectsCmd extends InteractionModel implements CommandI {
     if (project.isPresent()) {
       event.replyEmbeds(embed.buildProject(0x808080, project.get())).queue();
     } else {
-      event
-          .reply("Hmm creo que el proyecto que me diste no existe en mi base de datos :confused:")
-          .queue();
+      event.replyEmbeds(embed.buildNotFound(0x808080, selectedProject)).queue();
     }
   }
 }
