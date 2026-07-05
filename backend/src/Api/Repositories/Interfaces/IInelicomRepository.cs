@@ -48,4 +48,9 @@ public interface IInelicomRepository
   Task<Result<Organization, AppError>> UpdateOrganization(IDbConnection connection, IDbTransaction transaction, int id, OrganizationRequest request);
   Task<Result<bool, AppError>> DeleteOrganization(IDbConnection connection, IDbTransaction transaction, int id);
 
+  Task<Result<Paged<Curriculum>, AppError>> GetCurriculums(IDbConnection connection);
+  Task<Result<CurriculumFile, AppError>> GetCurriculumFile(IDbConnection connection, string program);
+  Task<Result<Curriculum, AppError>> UpsertCurriculum(IDbConnection connection, IDbTransaction transaction, string program, string fileName, string contentType, byte[] fileData);
+  Task<Result<bool, AppError>> DeleteCurriculum(IDbConnection connection, IDbTransaction transaction, string program);
+
 }

@@ -146,4 +146,21 @@ public interface IInelicomService
   // ==========================================================================
   Task<Result<bool, AppError>> DeleteOrganization(int id);
 
+
+  // ==========================================================================
+  // ==========================================================================
+  Task<Result<Paged<Curriculum>, AppError>> GetCurriculums();
+
+  // ==========================================================================
+  // ==========================================================================
+  Task<Result<CurriculumFile, AppError>> GetCurriculumFile(string program);
+
+  // ==========================================================================
+  // ==========================================================================
+  Task<Result<Curriculum, AppError>> UploadCurriculum(string program, string fileName, string contentType, byte[] fileData);
+
+  // ==========================================================================
+  // ==========================================================================
+  Task<Result<bool, AppError>> DeleteCurriculum(string program);
+
 }

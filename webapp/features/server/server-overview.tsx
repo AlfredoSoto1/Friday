@@ -28,7 +28,7 @@ import type { TeamOverview } from "@/features/server/server-types";
 import { UploadSettings } from "@/features/server/upload-settings";
 import { BotApi } from "@/server/webservices/bot-webservice";
 
-const curriculumPrograms = ["INEL", "ICOM", "INSO", "CIIC"] as const;
+const curriculumPrograms = ["INEL", "ICOM"] as const;
 const bannerTypes = ["Rules banner", "Help banner", "Welcome banner"] as const;
 
 interface ServerOverviewProps {
