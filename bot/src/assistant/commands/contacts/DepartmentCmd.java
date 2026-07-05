@@ -15,80 +15,77 @@
  */
 package assistant.commands.contacts;
 
-import java.util.List;
-
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
-import assistant.app.embeds.contacts.ServicesEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.ServiceDTO;
 import assistant.backend.service.GameService;
 import assistant.backend.service.ServicesService;
+import assistant.embeds.contacts.ServicesEmbed;
+import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
  * @author Alfredo
- *
  */
 public class DepartmentCmd extends InteractionModel implements CommandI {
 
-	private ServicesEmbed embed;
-	private ServicesService service;
-	private GameService commandEventService;
-	
-	public DepartmentCmd() {
-		this.embed = new ServicesEmbed();
-		this.service = new ServicesService();
-		this.commandEventService = new GameService();
-	}
-	
-	@Override
-	public boolean isGlobal() {
-		return false;
-	}
+  private ServicesEmbed embed;
+  private ServicesService service;
+  private GameService commandEventService;
 
-	@Override
-	@Deprecated
-	public void setGlobal(boolean isGlobal) {
-		// Server only command
-	}
-	
-	@Override
-	public String getCommandName() {
-		return "contact-department";
-	}
+  public DepartmentCmd() {
+    this.embed = new ServicesEmbed();
+    this.service = new ServicesService();
+    this.commandEventService = new GameService();
+  }
 
-	@Override
-	public String getDescription() {
-		return "Información acerca de los departamentos";
-	}
+  @Override
+  public boolean isGlobal() {
+    return false;
+  }
 
-	@Override
-	public List<OptionData> getOptions(Guild server) {
-		return List.of();
-	}
+  @Override
+  @Deprecated
+  public void setGlobal(boolean isGlobal) {
+    // Server only command
+  }
 
-	@Override
-	public void execute(SlashCommandInteractionEvent event) {
-		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-		String department = discordServer.getDepartment();
-		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
-		
-		if ("ECE".equalsIgnoreCase(department)) {
-			ServiceDTO result = service.getService("Electrical and Computer Engineering");
-			
-			event.replyEmbeds(embed.buildInfoPanel(color, result))
-				.setEphemeral(true).queue();
-		} else {
-			ServiceDTO result = service.getService("Computer Science & Engineering");
-			
-			event.replyEmbeds(embed.buildInfoPanel(color, result))
-				.setEphemeral(true).queue();
-		}
-		
-		// Update the user points stats when he uses the command
-		commandEventService.updateCommandUserCount(this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
-	}
+  @Override
+  public String getCommandName() {
+    return "contact-department";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Información acerca de los departamentos";
+  }
+
+  @Override
+  public List<OptionData> getOptions(Guild server) {
+    return List.of();
+  }
+
+  @Override
+  public void execute(SlashCommandInteractionEvent event) {
+    DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
+    String department = discordServer.getDepartment();
+    int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
+
+    if ("ECE".equalsIgnoreCase(department)) {
+      ServiceDTO result = service.getService("Electrical and Computer Engineering");
+
+      event.replyEmbeds(embed.buildInfoPanel(color, result)).setEphemeral(true).queue();
+    } else {
+      ServiceDTO result = service.getService("Computer Science & Engineering");
+
+      event.replyEmbeds(embed.buildInfoPanel(color, result)).setEphemeral(true).queue();
+    }
+
+    // Update the user points stats when he uses the command
+    commandEventService.updateCommandUserCount(
+        this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
+  }
 }

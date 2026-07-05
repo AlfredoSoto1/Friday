@@ -15,79 +15,80 @@
  */
 package assistant.commands.contacts;
 
-import java.util.List;
-
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
-import assistant.app.embeds.contacts.ServicesEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.ServiceDTO;
 import assistant.backend.service.GameService;
 import assistant.backend.service.ServicesService;
+import assistant.embeds.contacts.ServicesEmbed;
+import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
  * @author Alfredo
- *
  */
 public class DeanOfStudentsCmd extends InteractionModel implements CommandI {
-	
-	private ServicesEmbed embed;
-	private ServicesService service;
-	private GameService commandEventService;
-	
-	private boolean isGlobal;
-	
-	public DeanOfStudentsCmd() {
-		this.embed = new ServicesEmbed();
-		this.service = new ServicesService();
-		this.commandEventService = new GameService();
-	}
-	
-	@Override
-	public boolean isGlobal() {
-		return isGlobal;
-	}
 
-	@Override
-	public void setGlobal(boolean isGlobal) {
-		this.isGlobal = isGlobal;
-	}
-	
-	@Override
-	public String getCommandName() {
-		return "contact-decanato-estudiantes";
-	}
+  private ServicesEmbed embed;
+  private ServicesService service;
+  private GameService commandEventService;
 
-	@Override
-	public String getDescription() {
-		return "Información acerca del Decanato de estudiantes";
-	}
+  private boolean isGlobal;
 
-	@Override
-	public List<OptionData> getOptions(Guild server) {
-		return List.of();
-	}
+  public DeanOfStudentsCmd() {
+    this.embed = new ServicesEmbed();
+    this.service = new ServicesService();
+    this.commandEventService = new GameService();
+  }
 
-	@Override
-	public void execute(SlashCommandInteractionEvent event) {
-		// Obtain the service data related to the Dean of Students
-		ServiceDTO result = service.getService("Decanato de Estudiantes");
-		
-		// Check if the command was called from a server
-		if (event.isFromGuild()) {
-			DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-			int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
-			
-			event.replyEmbeds(embed.buildInfoPanel(color, result))
-				.setEphemeral(event.isFromGuild()).queue();
+  @Override
+  public boolean isGlobal() {
+    return isGlobal;
+  }
 
-			// Update the user points stats when he uses the command
-			commandEventService.updateCommandUserCount(this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
-		} else {
-			event.replyEmbeds(embed.buildInfoPanel(0x808080, result)).queue();
-		}
-	}
+  @Override
+  public void setGlobal(boolean isGlobal) {
+    this.isGlobal = isGlobal;
+  }
+
+  @Override
+  public String getCommandName() {
+    return "contact-decanato-estudiantes";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Información acerca del Decanato de estudiantes";
+  }
+
+  @Override
+  public List<OptionData> getOptions(Guild server) {
+    return List.of();
+  }
+
+  @Override
+  public void execute(SlashCommandInteractionEvent event) {
+    // Obtain the service data related to the Dean of Students
+    ServiceDTO result = service.getService("Decanato de Estudiantes");
+
+    // Check if the command was called from a server
+    if (event.isFromGuild()) {
+      DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
+      int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
+
+      event
+          .replyEmbeds(embed.buildInfoPanel(color, result))
+          .setEphemeral(event.isFromGuild())
+          .queue();
+
+      // Update the user points stats when he uses the command
+      commandEventService.updateCommandUserCount(
+          this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
+    } else {
+      event.replyEmbeds(embed.buildInfoPanel(0x808080, result)).queue();
+    }
+  }
 }

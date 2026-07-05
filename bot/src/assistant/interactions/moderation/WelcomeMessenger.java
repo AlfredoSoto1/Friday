@@ -15,13 +15,12 @@
  */
 package assistant.interactions.moderation;
 
-import java.io.File;
-import java.util.List;
-
 import assistant.app.interactions.InteractionModel;
 import assistant.app.interactions.MessengerI;
-import assistant.app.embeds.moderation.VerificationEmbed;
 import assistant.backend.dto.DiscordServerDTO;
+import assistant.embeds.moderation.VerificationEmbed;
+import java.io.File;
+import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
@@ -34,53 +33,61 @@ import net.dv8tion.jda.api.utils.FileUpload;
  */
 public class WelcomeMessenger extends InteractionModel implements MessengerI {
 
-	private VerificationEmbed embed;
-	
-	public WelcomeMessenger() {
-		this.embed = new VerificationEmbed();
-	}
+  private VerificationEmbed embed;
 
-	@Override
-	public List<Long> getMessageID() {
-		return List.of();
-	}
-	
-	@Override
-	public void memberJoin(GuildMemberJoinEvent event) {
-		event.getMember()
-			.getUser().openPrivateChannel().queue(privateChannel -> onPrivateChannel(event.getGuild(), privateChannel));
-	}
+  public WelcomeMessenger() {
+    this.embed = new VerificationEmbed();
+  }
 
-	@Override
-	public void messageReceived(MessageReceivedEvent event) {
-//		event.getMember()
-//			.getUser().openPrivateChannel().queue(privateChannel -> onPrivateChannel(event.getGuild(), privateChannel));
-	}
-	
-	private void onPrivateChannel(Guild server, PrivateChannel privateChannel) {
-		
-		DiscordServerDTO discordServer = super.getServerOwnerInfo(server.getIdLong());
-		String department = discordServer.getDepartment();
-		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
-		
-		String imageUrl_TeamMade = "attachment://WelcomeBanner_TEAM_MADE.png";
-		String imageUrl_InsoCiic = "attachment://WelcomeBanner_INSO_CIIC.png";
-		
-		if ("ECE".equalsIgnoreCase(department)) {
-			File teamMade = getAsset("images/WelcomeBanner_TEAM_MADE.png");
-			privateChannel.sendFiles(FileUpload.fromData(teamMade))
-				.setEmbeds(embed.buildServerBanner(imageUrl_TeamMade, color)).queue();
-		} else {
-			File insociic = getAsset("images/WelcomeBanner_INSO_CIIC.png");
-			privateChannel.sendFiles(FileUpload.fromData(insociic))
-				.setEmbeds(embed.buildServerBanner(imageUrl_InsoCiic, color)).queue();
-		}
-		
-		privateChannel.sendMessageEmbeds(embed.buildWelcomePrompt(server, department, color)).queue();
-	}
+  @Override
+  public List<Long> getMessageID() {
+    return List.of();
+  }
 
-	@Override
-	public void onMessageReaction(GenericMessageReactionEvent event) {
-		// Do Nothing
-	}
+  @Override
+  public void memberJoin(GuildMemberJoinEvent event) {
+    event
+        .getMember()
+        .getUser()
+        .openPrivateChannel()
+        .queue(privateChannel -> onPrivateChannel(event.getGuild(), privateChannel));
+  }
+
+  @Override
+  public void messageReceived(MessageReceivedEvent event) {
+    //		event.getMember()
+    //			.getUser().openPrivateChannel().queue(privateChannel -> onPrivateChannel(event.getGuild(),
+    // privateChannel));
+  }
+
+  private void onPrivateChannel(Guild server, PrivateChannel privateChannel) {
+
+    DiscordServerDTO discordServer = super.getServerOwnerInfo(server.getIdLong());
+    String department = discordServer.getDepartment();
+    int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
+
+    String imageUrl_TeamMade = "attachment://WelcomeBanner_TEAM_MADE.png";
+    String imageUrl_InsoCiic = "attachment://WelcomeBanner_INSO_CIIC.png";
+
+    if ("ECE".equalsIgnoreCase(department)) {
+      File teamMade = getAsset("images/WelcomeBanner_TEAM_MADE.png");
+      privateChannel
+          .sendFiles(FileUpload.fromData(teamMade))
+          .setEmbeds(embed.buildServerBanner(imageUrl_TeamMade, color))
+          .queue();
+    } else {
+      File insociic = getAsset("images/WelcomeBanner_INSO_CIIC.png");
+      privateChannel
+          .sendFiles(FileUpload.fromData(insociic))
+          .setEmbeds(embed.buildServerBanner(imageUrl_InsoCiic, color))
+          .queue();
+    }
+
+    privateChannel.sendMessageEmbeds(embed.buildWelcomePrompt(server, department, color)).queue();
+  }
+
+  @Override
+  public void onMessageReaction(GenericMessageReactionEvent event) {
+    // Do Nothing
+  }
 }

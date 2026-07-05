@@ -15,13 +15,13 @@
  */
 package assistant.commands.information;
 
-import assistant.app.embeds.information.OrganizationsEmbed;
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.OrganizationDTO;
 import assistant.backend.service.GameService;
 import assistant.backend.service.OrganizationsService;
+import assistant.embeds.information.OrganizationsEmbed;
 import java.util.List;
 import java.util.Optional;
 import net.dv8tion.jda.api.entities.Guild;

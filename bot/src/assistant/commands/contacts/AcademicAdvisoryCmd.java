@@ -15,16 +15,15 @@
  */
 package assistant.commands.contacts;
 
-import java.util.List;
-
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
 import assistant.app.interactions.MessengerI;
-import assistant.app.embeds.contacts.ServicesEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.ServiceDTO;
 import assistant.backend.service.GameService;
 import assistant.backend.service.ServicesService;
+import assistant.embeds.contacts.ServicesEmbed;
+import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -34,86 +33,84 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
  * @author Alfredo
- *
  */
 public class AcademicAdvisoryCmd extends InteractionModel implements CommandI, MessengerI {
 
-	private ServicesEmbed embed;
-	private ServicesService service;
-	private GameService commandEventService;
-	
-	public AcademicAdvisoryCmd() {
-		this.embed = new ServicesEmbed();
-		this.service = new ServicesService();
-		this.commandEventService = new GameService();
-	}
+  private ServicesEmbed embed;
+  private ServicesService service;
+  private GameService commandEventService;
 
-	@Override
-	public boolean isGlobal() {
-		return false;
-	}
+  public AcademicAdvisoryCmd() {
+    this.embed = new ServicesEmbed();
+    this.service = new ServicesService();
+    this.commandEventService = new GameService();
+  }
 
-	@Override
-	@Deprecated
-	public void setGlobal(boolean isGlobal) {
-		// Server only command
-	}
-	
-	@Override
-	public String getCommandName() {
-		return "contact-asesoria-academica";
-	}
+  @Override
+  public boolean isGlobal() {
+    return false;
+  }
 
-	@Override
-	public String getDescription() {
-		return "Información y contactos de consejería y asesoría academica para *INEL/ICOM/INSO/CIIC*";
-	}
+  @Override
+  @Deprecated
+  public void setGlobal(boolean isGlobal) {
+    // Server only command
+  }
 
-	@Override
-	public List<OptionData> getOptions(Guild server) {
-		return List.of();
-	}
+  @Override
+  public String getCommandName() {
+    return "contact-asesoria-academica";
+  }
 
-	@Override
-	public void execute(SlashCommandInteractionEvent event) {
-		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-		String department = discordServer.getDepartment();
-		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
-		
-		if ("ECE".equalsIgnoreCase(department)) {
-			ServiceDTO result = service.getService("Asesoría Academica del Departamento INEL/ICOM");
-			
-			event.replyEmbeds(embed.buildInfoPanel(color, result))
-				.setEphemeral(true).queue();
-		} else {
-			ServiceDTO result = service.getService("Asesoria Académica del Departamento de INSO/CIIC");
-			
-			event.replyEmbeds(embed.buildInfoPanel(color, result))
-				.setEphemeral(true).queue();
-		}
-		
-		// Update the user points stats when he uses the command
-		commandEventService.updateCommandUserCount(this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
-	}
+  @Override
+  public String getDescription() {
+    return "Información y contactos de consejería y asesoría academica para *INEL/ICOM/INSO/CIIC*";
+  }
 
-	@Override
-	public List<Long> getMessageID() {
-		return List.of();
-	}
+  @Override
+  public List<OptionData> getOptions(Guild server) {
+    return List.of();
+  }
 
-	@Override
-	public void memberJoin(GuildMemberJoinEvent event) {
-		// Do nothing
-	}
+  @Override
+  public void execute(SlashCommandInteractionEvent event) {
+    DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
+    String department = discordServer.getDepartment();
+    int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 
-	@Override
-	public void messageReceived(MessageReceivedEvent event) {
-		// TODO Auto-generated method stub
-		
-	}
+    if ("ECE".equalsIgnoreCase(department)) {
+      ServiceDTO result = service.getService("Asesoría Academica del Departamento INEL/ICOM");
 
-	@Override
-	public void onMessageReaction(GenericMessageReactionEvent event) {
-		// Do nothing
-	}
+      event.replyEmbeds(embed.buildInfoPanel(color, result)).setEphemeral(true).queue();
+    } else {
+      ServiceDTO result = service.getService("Asesoria Académica del Departamento de INSO/CIIC");
+
+      event.replyEmbeds(embed.buildInfoPanel(color, result)).setEphemeral(true).queue();
+    }
+
+    // Update the user points stats when he uses the command
+    commandEventService.updateCommandUserCount(
+        this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
+  }
+
+  @Override
+  public List<Long> getMessageID() {
+    return List.of();
+  }
+
+  @Override
+  public void memberJoin(GuildMemberJoinEvent event) {
+    // Do nothing
+  }
+
+  @Override
+  public void messageReceived(MessageReceivedEvent event) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void onMessageReaction(GenericMessageReactionEvent event) {
+    // Do nothing
+  }
 }

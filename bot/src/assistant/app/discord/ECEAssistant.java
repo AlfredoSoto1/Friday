@@ -26,8 +26,13 @@ import assistant.commands.contacts.EconomicAssistanceCmd;
 import assistant.commands.contacts.UniversityGuardCmd;
 import assistant.commands.files.CurriculumCmd;
 import assistant.commands.files.FreshmanGuideCmd;
+import assistant.commands.games.CoinFlipCmd;
+import assistant.commands.games.DiceCmd;
+import assistant.commands.games.EightBallCmd;
 import assistant.commands.games.GamesCmd;
 import assistant.commands.games.LeaderboardCmd;
+import assistant.commands.games.PingCmd;
+import assistant.commands.games.RockPaperScissorsCmd;
 import assistant.commands.information.CalendarCmd;
 import assistant.commands.information.EOInfoCmd;
 import assistant.commands.information.FAQCmd;
@@ -42,7 +47,6 @@ import assistant.commands.information.UprmMapCmd;
 import assistant.commands.links.LinksCmd;
 import assistant.commands.links.MadeWebCmd;
 import assistant.commands.moderation.AssistantCmd;
-import assistant.commands.moderation.RoleSelectionCmd;
 import assistant.commands.moderation.VerificationCmd;
 import assistant.interactions.games.ProfanityMessenger;
 import assistant.interactions.moderation.WelcomeMessenger;
@@ -54,35 +58,40 @@ public final class ECEAssistant extends BotApplication {
 
   public ECEAssistant(String botToken) {
     super(botToken);
-    interactions = List.of(
-        new FacultyCmd(),
-        global(new ProjectsCmd()),
-        global(new OrgsCmd()),
-        new EOInfoCmd(),
-        global(new FindBuildingCmd()),
-        global(new FindLabCmd()),
-        new FAQCmd(),
-        global(new HelpCmd()),
-        global(new UprmMapCmd()),
-        global(new RulesCmd()),
-        global(new CalendarCmd()),
-        new MadeWebCmd(),
-        global(new LinksCmd()),
-        global(new DCSPCmd()),
-        new DepartmentCmd(),
-        global(new DeanOfStudentsCmd()),
-        global(new UniversityGuardCmd()),
-        new AcademicAdvisoryCmd(),
-        global(new EconomicAssistanceCmd()),
-        new CurriculumCmd(),
-        global(new FreshmanGuideCmd()),
-        new AssistantCmd(this),
-        new VerificationCmd(),
-        new WelcomeMessenger(),
-        new RoleSelectionCmd(),
-        new GamesCmd(),
-        new LeaderboardCmd(),
-        new ProfanityMessenger());
+    interactions =
+        List.of(
+            new FacultyCmd(),
+            global(new ProjectsCmd()),
+            global(new OrgsCmd()),
+            new EOInfoCmd(),
+            global(new FindBuildingCmd()),
+            global(new FindLabCmd()),
+            new FAQCmd(),
+            global(new HelpCmd()),
+            global(new UprmMapCmd()),
+            global(new RulesCmd()),
+            global(new CalendarCmd()),
+            new MadeWebCmd(),
+            global(new LinksCmd()),
+            global(new DCSPCmd()),
+            new DepartmentCmd(),
+            global(new DeanOfStudentsCmd()),
+            global(new UniversityGuardCmd()),
+            new AcademicAdvisoryCmd(),
+            global(new EconomicAssistanceCmd()),
+            new CurriculumCmd(),
+            global(new FreshmanGuideCmd()),
+            new AssistantCmd(this),
+            new VerificationCmd(),
+            new WelcomeMessenger(),
+            new GamesCmd(),
+            new CoinFlipCmd(),
+            new PingCmd(),
+            new DiceCmd(),
+            new RockPaperScissorsCmd(),
+            new EightBallCmd(),
+            new LeaderboardCmd(),
+            new ProfanityMessenger());
   }
 
   @Override

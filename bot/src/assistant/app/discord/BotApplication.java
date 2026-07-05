@@ -20,6 +20,8 @@ import java.util.EnumSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -33,6 +35,9 @@ public abstract class BotApplication {
   private JDABuilder jdaBuilder;
   private ListenerAdapterManager listenerManager;
   private final ExecutorService eventExecutor;
+  private final AtomicBoolean shutdownStarted = new AtomicBoolean();
+  private final AtomicBoolean cleanupStarted = new AtomicBoolean();
+  private final Thread shutdownHook;
 
   private final CountDownLatch latch;
 
@@ -62,7 +67,15 @@ public abstract class BotApplication {
     // has one unit time to safely terminate itself and
     // clean all memory used by the application.
     latch = new CountDownLatch(1);
-    eventExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "friday-discord-events"));
+    eventExecutor =
+        Executors.newSingleThreadExecutor(
+            task -> {
+              Thread thread = new Thread(task, "friday-discord-events");
+              thread.setDaemon(true);
+              return thread;
+            });
+    shutdownHook = new Thread(this::forceShutdown, "friday-shutdown-hook");
+    Runtime.getRuntime().addShutdownHook(shutdownHook);
 
     jdaBuilder = JDABuilder.createDefault(botToken);
     jdaBuilder.setEventPool(eventExecutor, true);
@@ -115,14 +128,51 @@ public abstract class BotApplication {
     }
   }
 
-  /** Ends the bot and cleans all the data used in memory */
+  /** Ends the bot and cleans all the data used in memory. */
   public void shutdown() {
-    // Shuts down the jda constructed
-    jdaConstructed.shutdown();
+    if (!shutdownStarted.compareAndSet(false, true)) return;
 
-    // Free all allocated data related to
-    // the sub class custom bot application.
+    Thread coordinator =
+        new Thread(
+            () -> {
+              try {
+                JDA jda = jdaConstructed;
+                if (jda != null) {
+                  jda.shutdown();
+                  if (!jda.awaitShutdown(5, TimeUnit.SECONDS)) jda.shutdownNow();
+                }
+              } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+                JDA jda = jdaConstructed;
+                if (jda != null) jda.shutdownNow();
+              } finally {
+                cleanup();
+              }
+            },
+            "friday-shutdown");
+    coordinator.setDaemon(true);
+    coordinator.start();
+  }
+
+  private void forceShutdown() {
+    shutdownStarted.set(true);
+    JDA jda = jdaConstructed;
+    if (jda != null) jda.shutdownNow();
+    cleanup();
+  }
+
+  private void cleanup() {
+    if (!cleanupStarted.compareAndSet(false, true)) return;
+
+    latch.countDown();
+    eventExecutor.shutdownNow();
     dispose();
+    try {
+      if (Thread.currentThread() != shutdownHook)
+        Runtime.getRuntime().removeShutdownHook(shutdownHook);
+    } catch (IllegalStateException ignored) {
+      // JVM shutdown is already in progress.
+    }
   }
 
   public JDA getJDA() {

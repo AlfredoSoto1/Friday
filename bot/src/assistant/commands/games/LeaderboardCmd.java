@@ -15,15 +15,14 @@
  */
 package assistant.commands.games;
 
-import java.util.List;
-import java.util.Optional;
-
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
-import assistant.app.embeds.games.LevelUpEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.UserRankDTO;
 import assistant.backend.service.GameService;
+import assistant.embeds.games.LevelUpEmbed;
+import java.util.List;
+import java.util.Optional;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -34,68 +33,78 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  */
 public class LeaderboardCmd extends InteractionModel implements CommandI {
 
-	private LevelUpEmbed embed;
-	private GameService service;
-	private GameService commandEventService;
-	
-	public LeaderboardCmd() {
-		this.embed = new LevelUpEmbed();
-		this.service = new GameService();
-		this.commandEventService = new GameService();
-	}
-	
-	@Override
-	public boolean isGlobal() {
-		return false;
-	}
+  private LevelUpEmbed embed;
+  private GameService service;
+  private GameService commandEventService;
 
-	@Override
-	@Deprecated
-	public void setGlobal(boolean isGlobal) {
-		// Server only command
-	}
+  public LeaderboardCmd() {
+    this.embed = new LevelUpEmbed();
+    this.service = new GameService();
+    this.commandEventService = new GameService();
+  }
 
-	@Override
-	public String getCommandName() {
-		return "rank";
-	}
+  @Override
+  public boolean isGlobal() {
+    return false;
+  }
 
-	@Override
-	public String getDescription() {
-		return "user ranking";
-	}
+  @Override
+  @Deprecated
+  public void setGlobal(boolean isGlobal) {
+    // Server only command
+  }
 
-	@Override
-	public List<OptionData> getOptions(Guild server) {
-		return List.of(
-			new OptionData(OptionType.STRING, "insights", "insights of user data", true)
-				.addChoice("level", "level")
-				.addChoice("leaderboard", "leaderboard"));
-	}
+  @Override
+  public String getCommandName() {
+    return "rank";
+  }
 
-	@Override
-	public void execute(SlashCommandInteractionEvent event) {
-		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
-		
-		String option = event.getOption("insights").getAsString();
-		
-		if ("level".equals(option)) {
-			Optional<UserRankDTO> userData = service.getUserLeaderboardPosition(event.getUser().getName(), event.getGuild().getIdLong());
-			
-			if (userData.isPresent()) {
-				// Show the level of the user
-				event.replyEmbeds(embed.buildLeaderboardPosition(color, userData.get(), event.getUser().getAvatarUrl())).queue();
-			} else {
-				event.reply("Hmm no te en cuentro en mi base de datos para poder enceñarte tu nivel :pensive:")
-					.setEphemeral(true).queue();
-			}
-		} else if ("leaderboard".equals(option))  {
-			List<UserRankDTO> leaderboard = service.getLeaderboard(event.getGuild().getIdLong());
-			event.replyEmbeds(embed.buildLeaderboard(color, leaderboard)).queue();
-		}
-		
-		// Update the user points stats when he uses the command
-		commandEventService.updateCommandUserCount(this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
-	}
+  @Override
+  public String getDescription() {
+    return "user ranking";
+  }
+
+  @Override
+  public List<OptionData> getOptions(Guild server) {
+    return List.of(
+        new OptionData(OptionType.STRING, "insights", "insights of user data", true)
+            .addChoice("level", "level")
+            .addChoice("leaderboard", "leaderboard"));
+  }
+
+  @Override
+  public void execute(SlashCommandInteractionEvent event) {
+    DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
+    int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
+
+    String option = event.getOption("insights").getAsString();
+
+    if ("level".equals(option)) {
+      Optional<UserRankDTO> userData =
+          service.getUserLeaderboardPosition(
+              event.getUser().getName(), event.getGuild().getIdLong());
+
+      if (userData.isPresent()) {
+        // Show the level of the user
+        event
+            .replyEmbeds(
+                embed.buildLeaderboardPosition(
+                    color, userData.get(), event.getUser().getAvatarUrl()))
+            .queue();
+      } else {
+        event
+            .reply(
+                "Hmm no te en cuentro en mi base de datos para poder enceñarte tu nivel :pensive:")
+            .setEphemeral(true)
+            .queue();
+      }
+    } else if ("leaderboard".equals(option)) {
+      List<UserRankDTO> leaderboard = service.getLeaderboard(event.getGuild().getIdLong());
+      event.replyEmbeds(embed.buildLeaderboard(color, leaderboard)).queue();
+    }
+
+    // Update the user points stats when he uses the command
+    commandEventService.updateCommandUserCount(
+        this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
+  }
 }

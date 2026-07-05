@@ -15,15 +15,14 @@
  */
 package assistant.commands.information;
 
-import java.util.List;
-
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
-import assistant.app.embeds.information.LabEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.LabDTO;
 import assistant.backend.service.BuildingService;
 import assistant.backend.service.GameService;
+import assistant.embeds.information.LabEmbed;
+import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -31,84 +30,87 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
  * @author Alfredo
- *
  */
 public class FindLabCmd extends InteractionModel implements CommandI {
 
-	private static final String COMMAND_LABEL = "location";
-	
-	private LabEmbed embed;
-	private BuildingService service;
-	private GameService commandEventService;
+  private static final String COMMAND_LABEL = "location";
 
-	private boolean isGlobal;
-	
-	public FindLabCmd() {
-		this.embed = new LabEmbed();
-		this.service = new BuildingService();
-		this.commandEventService = new GameService();
-	}
-	
-	@Override
-	public boolean isGlobal() {
-		return isGlobal;
-	}
+  private LabEmbed embed;
+  private BuildingService service;
+  private GameService commandEventService;
 
-	@Override
-	public void setGlobal(boolean isGlobal) {
-		this.isGlobal = isGlobal;
-	}
-	
-	@Override
-	public String getCommandName() {
-		return "lab";
-	}
+  private boolean isGlobal;
 
-	@Override
-	public String getDescription() {
-		return "Obten información acerca de donde queda un lab de estudio";
-	}
+  public FindLabCmd() {
+    this.embed = new LabEmbed();
+    this.service = new BuildingService();
+    this.commandEventService = new GameService();
+  }
 
-	@Override
-	public List<OptionData> getOptions(Guild server) {
-		return List.of(
-			new OptionData(OptionType.STRING, COMMAND_LABEL, "Dispone la localización del lab en el que se encuentra", true));
-	}
+  @Override
+  public boolean isGlobal() {
+    return isGlobal;
+  }
 
-	@Override
-	public void execute(SlashCommandInteractionEvent event) {
-		if (event.isFromGuild()) {
-			fromServer(event);
-		} else {
-			fromDM(event);
-		}
-	}
-	
-	private void fromServer(SlashCommandInteractionEvent event) {
-		DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-		int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
-		
-		// Obtain building codification from command
-		String roomCode = event.getOption(COMMAND_LABEL).getAsString();
-		
-		// Look for the building associated to the room code provided
-		List<LabDTO> labs = service.getLabsFrom(roomCode);
-		
-		event.replyEmbeds(embed.buildLab(color, roomCode, labs))
-			.setEphemeral(true).queue();
-		
-		// Update the user points stats when he uses the command
-		commandEventService.updateCommandUserCount(this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
-	}
-	
-	private void fromDM(SlashCommandInteractionEvent event) {
-		// Obtain building codification from command
-		String roomCode = event.getOption(COMMAND_LABEL).getAsString();
-		
-		// Get the labs from given code
-		List<LabDTO> labs = service.getLabsFrom(roomCode);
-		
-		// Reply in form of embed
-		event.replyEmbeds(embed.buildLab(0x808080, roomCode, labs)).queue();
-	}
+  @Override
+  public void setGlobal(boolean isGlobal) {
+    this.isGlobal = isGlobal;
+  }
+
+  @Override
+  public String getCommandName() {
+    return "lab";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Obten información acerca de donde queda un lab de estudio";
+  }
+
+  @Override
+  public List<OptionData> getOptions(Guild server) {
+    return List.of(
+        new OptionData(
+            OptionType.STRING,
+            COMMAND_LABEL,
+            "Dispone la localización del lab en el que se encuentra",
+            true));
+  }
+
+  @Override
+  public void execute(SlashCommandInteractionEvent event) {
+    if (event.isFromGuild()) {
+      fromServer(event);
+    } else {
+      fromDM(event);
+    }
+  }
+
+  private void fromServer(SlashCommandInteractionEvent event) {
+    DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
+    int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
+
+    // Obtain building codification from command
+    String roomCode = event.getOption(COMMAND_LABEL).getAsString();
+
+    // Look for the building associated to the room code provided
+    List<LabDTO> labs = service.getLabsFrom(roomCode);
+
+    event.replyEmbeds(embed.buildLab(color, roomCode, labs)).setEphemeral(true).queue();
+
+    // Update the user points stats when he uses the command
+    commandEventService.updateCommandUserCount(
+        this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
+  }
+
+  private void fromDM(SlashCommandInteractionEvent event) {
+    // Obtain building codification from command
+    String roomCode = event.getOption(COMMAND_LABEL).getAsString();
+
+    // Get the labs from given code
+    List<LabDTO> labs = service.getLabsFrom(roomCode);
+
+    // Reply in form of embed
+    event.replyEmbeds(embed.buildLab(0x808080, roomCode, labs)).queue();
+  }
 }

@@ -15,80 +15,81 @@
  */
 package assistant.commands.contacts;
 
-import java.util.List;
-
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
-import assistant.app.embeds.contacts.ServicesEmbed;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.ServiceDTO;
 import assistant.backend.service.GameService;
 import assistant.backend.service.ServicesService;
+import assistant.embeds.contacts.ServicesEmbed;
+import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
  * @author Alfredo
- *
  */
 public class DCSPCmd extends InteractionModel implements CommandI {
-	
-	private ServicesEmbed embed;
-	private ServicesService service;
-	private GameService commandEventService;
-	
-	private boolean isGlobal;
-	
-	public DCSPCmd() {
-		this.embed = new ServicesEmbed();
-		this.service = new ServicesService();
-		this.commandEventService = new GameService();
-	}
 
-	@Override
-	public boolean isGlobal() {
-		return isGlobal;
-	}
+  private ServicesEmbed embed;
+  private ServicesService service;
+  private GameService commandEventService;
 
-	@Override
-	public void setGlobal(boolean isGlobal) {
-		this.isGlobal = isGlobal;
-	}
-	
-	@Override
-	public String getCommandName() {
-		return "contact-dcsp";
-	}
+  private boolean isGlobal;
 
-	@Override
-	public String getDescription() {
-		return "Información acerca de DCPS";
-	}
+  public DCSPCmd() {
+    this.embed = new ServicesEmbed();
+    this.service = new ServicesService();
+    this.commandEventService = new GameService();
+  }
 
-	@Override
-	public List<OptionData> getOptions(Guild server) {
-		return List.of();
-	}
+  @Override
+  public boolean isGlobal() {
+    return isGlobal;
+  }
 
-	@Override
-	public void execute(SlashCommandInteractionEvent event) {
-		
-		// Obtain the service data related to the DCSP
-		ServiceDTO result = service.getService("Departamento de Consejería y Servicios Psicológicos");
-		
-		// Check if the command was called from a server
-		if (event.isFromGuild()) {
-			DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-			int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
-			
-			event.replyEmbeds(embed.buildInfoPanel(color, result))
-				.setEphemeral(event.isFromGuild()).queue();
+  @Override
+  public void setGlobal(boolean isGlobal) {
+    this.isGlobal = isGlobal;
+  }
 
-			// Update the user points stats when he uses the command
-			commandEventService.updateCommandUserCount(this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
-		} else {
-			event.replyEmbeds(embed.buildInfoPanel(0x808080, result)).queue();
-		}
-	}
+  @Override
+  public String getCommandName() {
+    return "contact-dcsp";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Información acerca de DCPS";
+  }
+
+  @Override
+  public List<OptionData> getOptions(Guild server) {
+    return List.of();
+  }
+
+  @Override
+  public void execute(SlashCommandInteractionEvent event) {
+
+    // Obtain the service data related to the DCSP
+    ServiceDTO result = service.getService("Departamento de Consejería y Servicios Psicológicos");
+
+    // Check if the command was called from a server
+    if (event.isFromGuild()) {
+      DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
+      int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
+
+      event
+          .replyEmbeds(embed.buildInfoPanel(color, result))
+          .setEphemeral(event.isFromGuild())
+          .queue();
+
+      // Update the user points stats when he uses the command
+      commandEventService.updateCommandUserCount(
+          this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
+    } else {
+      event.replyEmbeds(embed.buildInfoPanel(0x808080, result)).queue();
+    }
+  }
 }
