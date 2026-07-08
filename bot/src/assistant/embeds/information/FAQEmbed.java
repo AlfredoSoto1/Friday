@@ -9,8 +9,8 @@ public final class FAQEmbed {
   private static final int FIELDS_PER_PAGE = 4;
 
   public MessageEmbed buildFAQ(
-      int color, String banner, String developerRole, String advisorRole, int page) {
-    return build(color, banner, developerRole, advisorRole, page);
+      int color, String developerRole, String advisorRole, int page) {
+    return build(color, null, developerRole, advisorRole, page);
   }
 
   public MessageEmbed buildFAQDM(int color, String developerRole, String advisorRole, int page) {
@@ -34,7 +34,6 @@ public final class FAQEmbed {
                     + " de "
                     + totalPages
                     + "  •  Usa /help para ver comandos");
-    if (banner != null && !banner.isBlank()) embed.setImage(banner);
 
     if (page < 0 || page >= totalPages) {
       return embed

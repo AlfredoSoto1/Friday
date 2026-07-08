@@ -8,8 +8,8 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 public final class HelpEmbed {
   private static final int FIELDS_PER_PAGE = 6;
 
-  public MessageEmbed buildHelp(int color, String banner, String advisorRole, int page) {
-    return build(color, banner, advisorRole, page);
+  public MessageEmbed buildHelp(int color, String advisorRole, int page) {
+    return build(color, null, advisorRole, page);
   }
 
   public MessageEmbed buildHelpDM(String advisorRole, int page) {
@@ -33,7 +33,6 @@ public final class HelpEmbed {
                     + " de "
                     + totalPages
                     + "  •  /faq para preguntas frecuentes");
-    if (banner != null && !banner.isBlank()) embed.setImage(banner);
 
     if (page < 0 || page >= totalPages) {
       return embed

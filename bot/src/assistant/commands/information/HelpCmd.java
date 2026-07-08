@@ -21,7 +21,6 @@ import assistant.app.model.MemberPosition;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.service.GameService;
 import assistant.embeds.information.HelpEmbed;
-import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import net.dv8tion.jda.api.entities.Guild;
@@ -29,15 +28,12 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.FileUpload;
 
 /**
  * @author Alfredo
  */
 public class HelpCmd extends InteractionModel implements CommandI {
 
-  private File teamMade;
-  private File insociic;
   private HelpEmbed embed;
 
   private GameService commandEventService;
@@ -47,12 +43,6 @@ public class HelpCmd extends InteractionModel implements CommandI {
   public HelpCmd() {
     this.embed = new HelpEmbed();
     this.commandEventService = new GameService();
-  }
-
-  @Override
-  public void onGuildInit(Guild server) {
-    this.teamMade = getAsset("images/Help_Banner_TEAM-MADE.png");
-    this.insociic = getAsset("images/Help_Banner_INSO_CIIC.png");
   }
 
   @Override
@@ -97,25 +87,10 @@ public class HelpCmd extends InteractionModel implements CommandI {
     String department = discordServer.getDepartment();
     int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 
-    String imageUrl_TeamMade = "attachment://Help_Banner_TEAM-MADE.png";
-    String imageUrl_InsoCiic = "attachment://Help_Banner_INSO_CIIC.png";
-
     if ("ECE".equalsIgnoreCase(department)) {
-      event
-          .replyFiles(FileUpload.fromData(teamMade))
-          .setEmbeds(
-              embed.buildHelp(
-                  color, imageUrl_TeamMade, roleMention(esoRole, "Estudiante Orientador"), page))
-          .setEphemeral(event.isFromGuild())
-          .queue();
+      event.replyEmbeds(embed.buildHelp(color, roleMention(esoRole, "Estudiante Orientador"), page)).queue();
     } else {
-      event
-          .replyFiles(FileUpload.fromData(insociic))
-          .setEmbeds(
-              embed.buildHelp(
-                  color, imageUrl_InsoCiic, roleMention(esoRole, "Estudiante Orientador"), page))
-          .setEphemeral(event.isFromGuild())
-          .queue();
+      event.replyEmbeds(embed.buildHelp(color, roleMention(esoRole, "Estudiante Orientador"), page)).queue();
     }
 
     // Update the user points stats when he uses the command
