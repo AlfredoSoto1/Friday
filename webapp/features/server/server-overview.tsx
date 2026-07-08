@@ -28,7 +28,6 @@ import type { TeamOverview } from "@/features/server/server-types";
 import { UploadSettings } from "@/features/server/upload-settings";
 import { BotApi } from "@/server/webservices/bot-webservice";
 
-const curriculumPrograms = ["INEL", "ICOM"] as const;
 const bannerTypes = ["Rules banner", "Help banner", "Welcome banner"] as const;
 
 interface ServerOverviewProps {
@@ -103,8 +102,7 @@ export function ServerOverview({
             ? reason.message
             : "Could not load server teams."
         );
-      })
-;
+      });
   }, [guildId]);
 
   if (!guildId) {
@@ -206,13 +204,6 @@ export function ServerOverview({
         </CardContent>
       </Card>
       <div className="grid min-w-0 gap-6 xl:grid-cols-2">
-        <UploadSettings
-          guildId={guildId}
-          kind="curriculum"
-          title="Curriculums"
-          description="PDF curriculums available to the Discord bot."
-          options={curriculumPrograms}
-        />
         <UploadSettings
           guildId={guildId}
           kind="banner"

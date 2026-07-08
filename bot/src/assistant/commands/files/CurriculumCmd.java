@@ -17,14 +17,15 @@ package assistant.commands.files;
 
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
+import assistant.backend.BackendClient;
+import assistant.backend.dto.BotGuildProfile;
 import assistant.backend.service.GameService;
-import java.io.File;
 import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 /**
  * @author Alfredo
@@ -37,6 +38,10 @@ public class CurriculumCmd extends InteractionModel implements CommandI {
   private static final String OPTION_CHOICE_ICOM = "ICOM";
   private static final String OPTION_CHOICE_INSO = "INSO";
   private static final String OPTION_CHOICE_CIIC = "CIIC";
+  private static final String ICOM_CURRICULUM_URL =
+      "https://ece.uprm.edu/wp-content/uploads/Curriculo-NUEVO-ICOM-2025-2026.pdf";
+  private static final String INEL_CURRICULUM_URL =
+      "https://ece.uprm.edu/wp-content/uploads/INEL.pdf";
 
   private GameService commandEventService;
 
@@ -67,54 +72,71 @@ public class CurriculumCmd extends InteractionModel implements CommandI {
 
   @Override
   public List<OptionData> getOptions(Guild server) {
-    return List.of(
-        new OptionData(OptionType.STRING, COMMAND_LABEL, "Escoje un programa de estudio", true)
-            .addChoice("INEL - Electrical Engineering", OPTION_CHOICE_INEL)
-            .addChoice("ICOM - Computer Engineering", OPTION_CHOICE_ICOM)
-            .addChoice("INSO - Software Engineering", OPTION_CHOICE_INSO)
-            .addChoice("CIIC - Computer Science & Engineering", OPTION_CHOICE_CIIC));
+    OptionData programOption =
+        new OptionData(OptionType.STRING, COMMAND_LABEL, "Escoje un programa de estudio", true);
+
+    for (String program : allowedPrograms(server)) {
+      programOption.addChoice(programLabel(program), program);
+    }
+
+    return List.of(programOption);
   }
 
   @Override
   public void execute(SlashCommandInteractionEvent event) {
+    String selectedProgram = event.getOption(COMMAND_LABEL).getAsString();
+    List<String> allowedPrograms = allowedPrograms(event.getGuild());
+    String curriculumUrl = allowedPrograms.contains(selectedProgram) ? curriculumUrl(selectedProgram) : "";
 
-    switch (event.getOption(COMMAND_LABEL).getAsString()) {
-      case OPTION_CHOICE_INEL:
-        File INELcurriculum = getAsset("curriculos/INEL.pdf");
-        event
-            .reply("> Here is the Electrical Engineering Curriculum")
-            .addFiles(FileUpload.fromData(INELcurriculum))
-            .setEphemeral(true)
-            .queue();
-        break;
-      case OPTION_CHOICE_ICOM:
-        File ICOMcurriculum = getAsset("curriculos/ICOM.pdf");
-        event
-            .reply("> Here is the Computer Engineering Curriculum")
-            .addFiles(FileUpload.fromData(ICOMcurriculum))
-            .setEphemeral(true)
-            .queue();
-        break;
-      case OPTION_CHOICE_INSO:
-        File INSOcurriculum = getAsset("curriculos/INSO.pdf");
-        event
-            .reply("> Here is the Software Engineering Curriculum")
-            .addFiles(FileUpload.fromData(INSOcurriculum))
-            .setEphemeral(true)
-            .queue();
-        break;
-      case OPTION_CHOICE_CIIC:
-        File CIICcurriculum = getAsset("curriculos/CIIC.pdf");
-        event
-            .reply("> Here is the Computer Science & Engineering Curriculum")
-            .addFiles(FileUpload.fromData(CIICcurriculum))
-            .setEphemeral(true)
-            .queue();
-        break;
+    if (curriculumUrl.isBlank()) {
+      event
+          .reply("No curriculum PDF is available for " + selectedProgram + " right now.")
+          .setEphemeral(true)
+          .queue();
+    } else {
+      event
+          .reply("> Here is the " + selectedProgram + " curriculum:")
+          .setActionRow(Button.link(curriculumUrl, "Open PDF"))
+          .setEphemeral(true)
+          .queue();
     }
 
     // Update the user points stats when he uses the command
     commandEventService.updateCommandUserCount(
         this.getCommandName(), event.getUser().getName(), event.getGuild().getIdLong());
+  }
+
+  private List<String> allowedPrograms(Guild server) {
+    if (server == null) {
+      return List.of();
+    }
+
+    BotGuildProfile profile = BackendClient.guildProfile(server.getIdLong());
+    String departmentProfile = profile.departmentProfile();
+    if ("INEL_ICOM".equals(departmentProfile)) {
+      return List.of(OPTION_CHOICE_INEL, OPTION_CHOICE_ICOM);
+    }
+    if ("INSO_CIIC".equals(departmentProfile)) {
+      return List.of(OPTION_CHOICE_INSO, OPTION_CHOICE_CIIC);
+    }
+    return List.of();
+  }
+
+  private String programLabel(String program) {
+    return switch (program) {
+      case OPTION_CHOICE_INEL -> "INEL - Electrical Engineering";
+      case OPTION_CHOICE_ICOM -> "ICOM - Computer Engineering";
+      case OPTION_CHOICE_INSO -> "INSO - Software Engineering";
+      case OPTION_CHOICE_CIIC -> "CIIC - Computer Science & Engineering";
+      default -> program;
+    };
+  }
+
+  private String curriculumUrl(String program) {
+    return switch (program) {
+      case OPTION_CHOICE_INEL -> INEL_CURRICULUM_URL;
+      case OPTION_CHOICE_ICOM -> ICOM_CURRICULUM_URL;
+      default -> "";
+    };
   }
 }

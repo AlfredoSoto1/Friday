@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { FileImage, FileText, Save, Upload } from "lucide-react";
+import { FileImage, Save, Upload } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,7 @@ import type { StoredUpload } from "@/features/server/server-types";
 
 interface UploadSettingsProps {
   guildId: string;
-  kind: "curriculum" | "banner";
+  kind: "banner";
   title: string;
   description: string;
   options: readonly string[];
@@ -72,25 +72,25 @@ export function UploadSettings({
     const reader = new FileReader();
 
     reader.onload = (): void => {
-    const dataUrl = reader.result;
+      const dataUrl = reader.result;
 
-    if (typeof dataUrl !== "string") {
-      setError("The selected file could not be previewed.");
-      return;
-    }
+      if (typeof dataUrl !== "string") {
+        setError("The selected file could not be previewed.");
+        return;
+      }
 
-    setFiles((current): UploadMap => ({
-      ...current,
-      [option]: {
-        name: file.name,
-        type: file.type,
-        dataUrl,
-      },
-    }));
+      setFiles((current): UploadMap => ({
+        ...current,
+        [option]: {
+          name: file.name,
+          type: file.type,
+          dataUrl,
+        },
+      }));
 
-    setError("");
-    setSaved(false);
-  };
+      setError("");
+      setSaved(false);
+    };
 
     reader.onerror = (): void => {
       setError("The selected file could not be read.");
@@ -114,8 +114,7 @@ export function UploadSettings({
     }
   }
 
-  const Icon = kind === "curriculum" ? FileText : FileImage;
-  const accept = kind === "curriculum" ? "application/pdf" : "image/*";
+  const accept = "image/*";
 
   return (
     <Card className="w-full min-w-0 overflow-hidden rounded-md border-border bg-card shadow-panel">
@@ -125,7 +124,7 @@ export function UploadSettings({
           {description}
         </CardDescription>
         <CardAction className="shrink-0">
-          <Icon className="size-5 text-muted-foreground" />
+          <FileImage className="size-5 text-muted-foreground" />
         </CardAction>
       </CardHeader>
 
@@ -160,18 +159,18 @@ export function UploadSettings({
   );
 }
 
-function UploadItems({ 
-  options, 
-  files, 
-  savedFiles, 
+function UploadItems({
+  options,
+  files,
+  savedFiles,
   kind,
   selectFile,
   accept,
-} : {
+}: {
   options: readonly string[];
   files: UploadMap;
   savedFiles: UploadMap;
-  kind: "curriculum" | "banner";
+  kind: "banner";
   selectFile: (option: string, file?: File) => void;
   accept: string;
 }) {
@@ -200,11 +199,7 @@ function UploadItems({
               variant="icon"
               className="size-10 shrink-0 rounded-md bg-muted text-muted-foreground"
             >
-              {upload?.type === "application/pdf" ? (
-                <FileText className="size-5" />
-              ) : (
-                <FileImage className="size-5" />
-              )}
+              <FileImage className="size-5" />
             </ItemMedia>
 
             <div className="min-w-0 flex-1">
@@ -239,26 +234,13 @@ function UploadItems({
 
               {upload ? (
                 <div className="relative mt-3 h-32 w-full min-w-0 overflow-hidden rounded-md border bg-muted">
-                  {upload.type === "application/pdf" ? (
-                    <object
-                      data={upload.dataUrl}
-                      type="application/pdf"
-                      aria-label={`${option} PDF preview`}
-                      className="h-full w-full"
-                    >
-                      <div className="flex h-full items-center justify-center">
-                        <FileText className="size-10 text-muted-foreground" />
-                      </div>
-                    </object>
-                  ) : (
-                    <Image
-                      src={upload.dataUrl}
-                      alt={`${option} preview`}
-                      fill
-                      unoptimized
-                      className="object-cover"
-                    />
-                  )}
+                  <Image
+                    src={upload.dataUrl}
+                    alt={`${option} preview`}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
                 </div>
               ) : null}
             </div>

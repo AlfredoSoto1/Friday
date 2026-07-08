@@ -142,8 +142,6 @@ public sealed partial class BotService : IBotService
           contact => $"{contact.Name} - {contact.Email} - {contact.Phone} - {contact.Website}",
           "Asistencia"),
 
-        "curriculo" => await GetCurriculumCommandResponse(connection, commandName),
-
         _ => Result<BotCommandResponse, AppError>.Ok(new BotCommandResponse
         {
           CommandName = commandName,
@@ -212,49 +210,6 @@ public sealed partial class BotService : IBotService
         Ephemeral = true
       };
     });
-  }
-
-  private static readonly string[] CurriculumPrograms = ["INEL", "ICOM"];
-
-  private async Task<Result<BotCommandResponse, AppError>> GetCurriculumCommandResponse(IDbConnection connection, string commandName)
-  {
-    var result = await _inelicomRepository.GetCurriculums(connection);
-    return result.Transform(page =>
-    {
-      var byProgram = page.Items.ToDictionary(item => item.Program, item => item);
-
-      var lines = CurriculumPrograms.Select(program => byProgram.TryGetValue(program, out var curriculum)
-        ? $"- **{program}**: uploaded {curriculum.UploadedAt:yyyy-MM-dd}"
-        : $"- **{program}**: not uploaded yet");
-
-      var buttons = CurriculumPrograms
-        .Where(byProgram.ContainsKey)
-        .Select(program => new BotButtonDefinition
-        {
-          Id = $"curriculum-{program.ToLowerInvariant()}",
-          Label = program,
-          Style = "link",
-          Url = $"{PublicBaseUrl}/api/v1/inelicom/curriculums/{program}/file"
-        })
-        .ToArray();
-
-      return new BotCommandResponse
-      {
-        CommandName = commandName,
-        Title = "Curriculums",
-        Description = string.Join("\n", lines),
-        Ephemeral = true,
-        Buttons = buttons
-      };
-    });
-  }
-
-  private static readonly string PublicBaseUrl = ResolvePublicBaseUrl();
-
-  private static string ResolvePublicBaseUrl()
-  {
-    var value = Environment.GetEnvironmentVariable("BACKEND_PUBLIC_URL");
-    return string.IsNullOrWhiteSpace(value) ? "http://localhost:8080" : value.TrimEnd('/');
   }
 
 }
