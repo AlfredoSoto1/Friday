@@ -24,10 +24,6 @@ public interface IInelicomRepository
   Task<Result<Paged<Organization>, AppError>> GetOrganizations(IDbConnection connection, InelicomQuery query);
   Task<Result<Organization, AppError>> GetOrganization(IDbConnection connection, int id);
 
-
-  Task<Result<int?, AppError>> GetFacultyIdByName(IDbConnection connection, IDbTransaction transaction, string name);
-  Task<Result<int?, AppError>> GetBuildingIdByNameOrCode(IDbConnection connection, IDbTransaction transaction, string value);
-
   Task<Result<CsvImportStats, AppError>> ImportCsv(
     IDbConnection connection,
     IDbTransaction transaction,

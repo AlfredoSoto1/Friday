@@ -7,100 +7,148 @@ namespace Friday.Backend.Api.Repositories;
 
 public sealed partial class InelicomRepository
 {
-
-  public async Task<Result<bool, AppError>> UpsertContact(IDbConnection connection, IDbTransaction transaction, ContactRequest request, ImportCounter counter)
+  public async Task<Result<CsvImportStats, AppError>> ImportCsv(
+    IDbConnection connection,
+    IDbTransaction transaction,
+    string kind,
+    string rowsJson)
   {
-    try
-    {
-      const string existingSql = @"
-        SELECT contact_id
-          FROM inelicom.contacts
-        WHERE email = @Email OR name = @Name
-        ORDER BY CASE WHEN email = @Email THEN 0 ELSE 1 END
-        LIMIT 1;
-      ";
-      var existingId = await connection.ExecuteScalarAsync<int?>(existingSql, request, transaction);
+    const string contactsSql = @"
+      WITH input AS (
+        SELECT
+          row_number() OVER ()::int AS source_row,
+          name,
+          email,
+          phone,
+          COALESCE(website, web) AS website
+        FROM jsonb_to_recordset(CAST(@RowsJson AS jsonb)) AS source(
+          name text,
+          email text,
+          phone text,
+          website text,
+          web text)
+      ), valid AS (
+        SELECT *
+        FROM input
+        WHERE name IS NOT NULL
+          AND email IS NOT NULL
+          AND phone IS NOT NULL
+          AND website IS NOT NULL
+      ), matched AS (
+        SELECT DISTINCT ON (valid.source_row)
+          valid.source_row,
+          contacts.contact_id,
+          valid.name,
+          valid.email,
+          valid.phone,
+          valid.website
+        FROM valid
+        INNER JOIN inelicom.contacts contacts
+          ON contacts.email = valid.email OR contacts.name = valid.name
+        ORDER BY valid.source_row,
+          (contacts.email = valid.email) DESC,
+          contacts.contact_id
+      ), updated AS (
+        UPDATE inelicom.contacts contacts
+        SET name = matched.name,
+            email = matched.email,
+            phone = matched.phone,
+            website = matched.website
+        FROM matched
+        WHERE contacts.contact_id = matched.contact_id
+        RETURNING contacts.contact_id
+      ), inserted AS (
+        INSERT INTO inelicom.contacts (name, email, phone, website)
+        SELECT valid.name, valid.email, valid.phone, valid.website
+        FROM valid
+        WHERE NOT EXISTS (
+          SELECT 1
+          FROM matched
+          WHERE matched.source_row = valid.source_row)
+        RETURNING contact_id
+      )
+      SELECT
+        (SELECT COUNT(*) FROM inserted)::int AS ""Inserted"",
+        (SELECT COUNT(*) FROM updated)::int AS ""Updated"",
+        (SELECT COUNT(*) FROM input
+          WHERE name IS NULL
+             OR email IS NULL
+             OR phone IS NULL
+             OR website IS NULL)::int AS ""Skipped"";
+    ";
 
-      if (existingId is null)
-      {
-        const string insertSql = @"
-          INSERT INTO inelicom.contacts (name, email, phone, website)
-          VALUES (@Name, @Email, @Phone, @Website)
-          RETURNING contact_id;
-        ";
-        await connection.ExecuteScalarAsync<int>(insertSql, request, transaction);
-        counter.AddInserted();
-        return Result<bool, AppError>.Ok(true);
-      }
-
-      const string updateSql = @"
-        UPDATE inelicom.contacts
-           SET name = @Name, email = @Email, phone = @Phone, website = @Website
-        WHERE contact_id = @ContactId;
-      ";
-      await connection.ExecuteAsync(updateSql, new
-      {
-        ContactId = existingId.Value,
-        request.Name,
-        request.Email,
-        request.Phone,
-        request.Website
-      }, transaction);
-      counter.AddUpdated();
-      return Result<bool, AppError>.Ok(true);
-    }
-    catch (Exception ex)
-    {
-      return Result<bool, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
-  public async Task<Result<bool, AppError>> UpsertBuilding(IDbConnection connection, IDbTransaction transaction, BuildingRequest request, ImportCounter counter)
-  {
-    try
-    {
-      const string existsSql = @"
-        SELECT EXISTS (
-          SELECT 1 FROM inelicom.buildings
-          WHERE (@Code IS NOT NULL AND code = @Code) OR name = @Name
-        );
-      ";
-      var existed = await connection.ExecuteScalarAsync<bool>(existsSql, request, transaction);
-
-      const string sql = @"
+    const string buildingsSql = @"
+      WITH input AS (
+        SELECT row_number() OVER ()::int AS source_row, code, name, gpin
+        FROM jsonb_to_recordset(CAST(@RowsJson AS jsonb)) AS source(
+          code text,
+          name text,
+          gpin text)
+      ), valid AS (
+        SELECT *
+        FROM input
+        WHERE name IS NOT NULL AND gpin IS NOT NULL
+      ), upsert AS (
         INSERT INTO inelicom.buildings (code, name, gpin)
-        VALUES (@Code, @Name, @Gpin)
+        SELECT code, name, gpin
+        FROM valid
         ON CONFLICT (code) DO UPDATE
-          SET name = EXCLUDED.name,
+          SET code = EXCLUDED.code,
+              name = EXCLUDED.name,
               gpin = EXCLUDED.gpin
-        RETURNING building_id;
-      ";
+        RETURNING xmax = 0 AS inserted
+      )
+      SELECT
+        COUNT(*) FILTER (WHERE inserted)::int AS ""Inserted"",
+        COUNT(*) FILTER (WHERE NOT inserted)::int AS ""Updated"",
+        (SELECT COUNT(*) FROM input
+          WHERE name IS NULL OR gpin IS NULL)::int AS ""Skipped""
+      FROM upsert;
+    ";
 
-      await connection.ExecuteScalarAsync<int>(sql, request, transaction);
-      if (existed) counter.AddUpdated();
-      else counter.AddInserted();
-      return Result<bool, AppError>.Ok(true);
-    }
-    catch (Exception ex)
-    {
-      return Result<bool, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
-  public async Task<Result<bool, AppError>> UpsertFaculty(IDbConnection connection, IDbTransaction transaction, FacultyRequest request, ImportCounter counter)
-  {
-    try
-    {
-      const string existsSql = "SELECT EXISTS (SELECT 1 FROM inelicom.faculties WHERE name = @Name);";
-      var existed = await connection.ExecuteScalarAsync<bool>(existsSql, request, transaction);
-
-      const string sql = @"
+    const string facultiesSql = @"
+      WITH input AS (
+        SELECT
+          row_number() OVER ()::int AS source_row,
+          name,
+          ext,
+          web,
+          phone,
+          facebook,
+          email,
+          office,
+          job_entitlement,
+          description,
+          COALESCE(abbreviation, abreviation) AS abbreviation,
+          instagram
+        FROM jsonb_to_recordset(CAST(@RowsJson AS jsonb)) AS source(
+          name text,
+          ext text,
+          web text,
+          phone text,
+          facebook text,
+          email text,
+          office text,
+          job_entitlement text,
+          description text,
+          abbreviation text,
+          abreviation text,
+          instagram text)
+      ), valid AS (
+        SELECT *
+        FROM input
+        WHERE name IS NOT NULL
+      ), upsert AS (
         INSERT INTO inelicom.faculties
-          (name, extension, web, phone, facebook, email, office, job_entitlement, description, abbreviation, instagram)
-        VALUES
-          (@Name, @Extension, @Web, @Phone, @Facebook, @Email, @Office, @JobEntitlement, @Description, @Abbreviation, @Instagram)
+          (name, extension, web, phone, facebook, email, office,
+           job_entitlement, description, abbreviation, instagram)
+        SELECT
+          name, ext, web, phone, facebook, email, office,
+          job_entitlement, description, abbreviation, instagram
+        FROM valid
         ON CONFLICT (name) DO UPDATE
-          SET extension = EXCLUDED.extension,
+          SET name = EXCLUDED.name,
+              extension = EXCLUDED.extension,
               web = EXCLUDED.web,
               phone = EXCLUDED.phone,
               facebook = EXCLUDED.facebook,
@@ -110,139 +158,195 @@ public sealed partial class InelicomRepository
               description = EXCLUDED.description,
               abbreviation = EXCLUDED.abbreviation,
               instagram = EXCLUDED.instagram
-        RETURNING faculty_id;
-      ";
+        RETURNING xmax = 0 AS inserted
+      )
+      SELECT
+        COUNT(*) FILTER (WHERE inserted)::int AS ""Inserted"",
+        COUNT(*) FILTER (WHERE NOT inserted)::int AS ""Updated"",
+        (SELECT COUNT(*) FROM input WHERE name IS NULL)::int AS ""Skipped""
+      FROM upsert;
+    ";
 
-      await connection.ExecuteScalarAsync<int>(sql, request, transaction);
-      if (existed) counter.AddUpdated();
-      else counter.AddInserted();
-      return Result<bool, AppError>.Ok(true);
-    }
-    catch (Exception ex)
-    {
-      return Result<bool, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
+    const string departmentsSql = @"
+      WITH input AS (
+        SELECT
+          row_number() OVER ()::int AS source_row,
+          name,
+          CASE
+            WHEN NULLIF(faculty_id, '') ~ '^[0-9]+$' THEN faculty_id::int
+          END AS faculty_id,
+          COALESCE(NULLIF(faculty_name, ''), NULLIF(faculty, '')) AS faculty_name,
+          CASE
+            WHEN NULLIF(building_id, '') ~ '^[0-9]+$' THEN building_id::int
+          END AS building_id,
+          COALESCE(
+            NULLIF(building_name, ''),
+            NULLIF(building, ''),
+            NULLIF(building_code, '')) AS building_name
+        FROM jsonb_to_recordset(CAST(@RowsJson AS jsonb)) AS source(
+          name text,
+          faculty_id text,
+          faculty_name text,
+          faculty text,
+          building_id text,
+          building_name text,
+          building text,
+          building_code text)
+      ), resolved AS (
+        SELECT
+          input.source_row,
+          input.name,
+          COALESCE(input.faculty_id, faculties.faculty_id) AS faculty_id,
+          COALESCE(input.building_id, buildings.building_id) AS building_id
+        FROM input
+        LEFT JOIN inelicom.faculties faculties
+          ON (input.faculty_id IS NOT NULL
+              AND faculties.faculty_id = input.faculty_id)
+          OR (input.faculty_id IS NULL
+              AND input.faculty_name IS NOT NULL
+              AND faculties.name ILIKE input.faculty_name)
+        LEFT JOIN inelicom.buildings buildings
+          ON (input.building_id IS NOT NULL
+              AND buildings.building_id = input.building_id)
+          OR (input.building_id IS NULL
+              AND input.building_name IS NOT NULL
+              AND (buildings.name ILIKE input.building_name
+                OR buildings.code ILIKE input.building_name))
+      ), valid AS (
+        SELECT *
+        FROM resolved
+        WHERE name IS NOT NULL
+          AND faculty_id IS NOT NULL
+          AND building_id IS NOT NULL
+      ), upsert AS (
+        INSERT INTO inelicom.departments (name, faculty_id, building_id)
+        SELECT name, faculty_id, building_id
+        FROM valid
+        ON CONFLICT (name) DO UPDATE
+          SET name = EXCLUDED.name,
+              faculty_id = EXCLUDED.faculty_id,
+              building_id = EXCLUDED.building_id
+        RETURNING xmax = 0 AS inserted
+      )
+      SELECT
+        COUNT(*) FILTER (WHERE inserted)::int AS ""Inserted"",
+        COUNT(*) FILTER (WHERE NOT inserted)::int AS ""Updated"",
+        ((SELECT COUNT(*) FROM input)
+          - (SELECT COUNT(*) FROM valid))::int AS ""Skipped""
+      FROM upsert;
+    ";
 
-  public async Task<Result<bool, AppError>> UpsertProject(IDbConnection connection, IDbTransaction transaction, ProjectRequest request, ImportCounter counter)
-  {
-    try
-    {
-      const string existsSql = "SELECT EXISTS (SELECT 1 FROM inelicom.projects WHERE name = @Name);";
-      var existed = await connection.ExecuteScalarAsync<bool>(existsSql, request, transaction);
-
-      const string sql = @"
-        INSERT INTO inelicom.projects (web, facebook, instagram, email, name, description)
-        VALUES (@Web, @Facebook, @Instagram, @Email, @Name, @Description)
+    const string projectsSql = @"
+      WITH input AS (
+        SELECT
+          row_number() OVER ()::int AS source_row,
+          web,
+          facebook,
+          instagram,
+          email,
+          name,
+          description
+        FROM jsonb_to_recordset(CAST(@RowsJson AS jsonb)) AS source(
+          web text,
+          facebook text,
+          instagram text,
+          email text,
+          name text,
+          description text)
+      ), valid AS (
+        SELECT *
+        FROM input
+        WHERE name IS NOT NULL AND description IS NOT NULL
+      ), upsert AS (
+        INSERT INTO inelicom.projects
+          (web, facebook, instagram, email, name, description)
+        SELECT web, facebook, instagram, email, name, description
+        FROM valid
         ON CONFLICT (name) DO UPDATE
           SET web = EXCLUDED.web,
               facebook = EXCLUDED.facebook,
               instagram = EXCLUDED.instagram,
               email = EXCLUDED.email,
+              name = EXCLUDED.name,
               description = EXCLUDED.description
-        RETURNING project_id;
-      ";
+        RETURNING xmax = 0 AS inserted
+      )
+      SELECT
+        COUNT(*) FILTER (WHERE inserted)::int AS ""Inserted"",
+        COUNT(*) FILTER (WHERE NOT inserted)::int AS ""Updated"",
+        (SELECT COUNT(*) FROM input
+          WHERE name IS NULL OR description IS NULL)::int AS ""Skipped""
+      FROM upsert;
+    ";
 
-      await connection.ExecuteScalarAsync<int>(sql, request, transaction);
-      if (existed) counter.AddUpdated();
-      else counter.AddInserted();
-      return Result<bool, AppError>.Ok(true);
-    }
-    catch (Exception ex)
-    {
-      return Result<bool, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
-  public async Task<Result<bool, AppError>> UpsertOrganization(IDbConnection connection, IDbTransaction transaction, OrganizationRequest request, ImportCounter counter)
-  {
-    try
-    {
-      const string existsSql = "SELECT EXISTS (SELECT 1 FROM inelicom.organizations WHERE name = @Name);";
-      var existed = await connection.ExecuteScalarAsync<bool>(existsSql, request, transaction);
-
-      const string sql = @"
-        INSERT INTO inelicom.organizations (email, facebook, instagram, twitter_x, web, name, description)
-        VALUES (@Email, @Facebook, @Instagram, @TwitterX, @Web, @Name, @Description)
+    const string organizationsSql = @"
+      WITH input AS (
+        SELECT
+          row_number() OVER ()::int AS source_row,
+          name,
+          description,
+          email,
+          facebook,
+          instagram,
+          twitter_x,
+          web
+        FROM jsonb_to_recordset(CAST(@RowsJson AS jsonb)) AS source(
+          name text,
+          description text,
+          email text,
+          facebook text,
+          instagram text,
+          twitter_x text,
+          web text)
+      ), valid AS (
+        SELECT *
+        FROM input
+        WHERE name IS NOT NULL AND description IS NOT NULL
+      ), upsert AS (
+        INSERT INTO inelicom.organizations
+          (email, facebook, instagram, twitter_x, web, name, description)
+        SELECT email, facebook, instagram, twitter_x, web, name, description
+        FROM valid
         ON CONFLICT (name) DO UPDATE
           SET email = EXCLUDED.email,
               facebook = EXCLUDED.facebook,
               instagram = EXCLUDED.instagram,
               twitter_x = EXCLUDED.twitter_x,
               web = EXCLUDED.web,
+              name = EXCLUDED.name,
               description = EXCLUDED.description
-        RETURNING organization_id;
-      ";
+        RETURNING xmax = 0 AS inserted
+      )
+      SELECT
+        COUNT(*) FILTER (WHERE inserted)::int AS ""Inserted"",
+        COUNT(*) FILTER (WHERE NOT inserted)::int AS ""Updated"",
+        (SELECT COUNT(*) FROM input
+          WHERE name IS NULL OR description IS NULL)::int AS ""Skipped""
+      FROM upsert;
+    ";
 
-      await connection.ExecuteScalarAsync<int>(sql, request, transaction);
-      if (existed) counter.AddUpdated();
-      else counter.AddInserted();
-      return Result<bool, AppError>.Ok(true);
-    }
-    catch (Exception ex)
-    {
-      return Result<bool, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
-  public async Task<Result<bool, AppError>> UpsertDepartment(IDbConnection connection, IDbTransaction transaction, DepartmentRequest request, ImportCounter counter)
-  {
     try
     {
-      const string existsSql = "SELECT EXISTS (SELECT 1 FROM inelicom.departments WHERE name = @Name);";
-      var existed = await connection.ExecuteScalarAsync<bool>(existsSql, request, transaction);
+      var sql = kind switch
+      {
+        "buildings" => buildingsSql,
+        "contacts" => contactsSql,
+        "faculties" => facultiesSql,
+        "departments" => departmentsSql,
+        "projects" => projectsSql,
+        "organizations" => organizationsSql,
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unsupported CSV type.")
+      };
 
-      const string sql = @"
-        INSERT INTO inelicom.departments (name, faculty_id, building_id)
-        VALUES (@Name, @FacultyId, @BuildingId)
-        ON CONFLICT (name) DO UPDATE
-          SET faculty_id = EXCLUDED.faculty_id,
-              building_id = EXCLUDED.building_id
-        RETURNING department_id;
-      ";
-
-      await connection.ExecuteScalarAsync<int>(sql, request, transaction);
-      if (existed) counter.AddUpdated();
-      else counter.AddInserted();
-      return Result<bool, AppError>.Ok(true);
+      var stats = await connection.QuerySingleAsync<CsvImportStats>(
+        sql,
+        new { RowsJson = rowsJson },
+        transaction);
+      return Result<CsvImportStats, AppError>.Ok(stats);
     }
     catch (Exception ex)
     {
-      return Result<bool, AppError>.Fail(AppError.BadRequest(ex.Message));
+      return Result<CsvImportStats, AppError>.Fail(AppError.BadRequest(ex.Message));
     }
   }
-
-  public async Task<Result<int?, AppError>> GetFacultyIdByName(IDbConnection connection, IDbTransaction transaction, string name)
-  {
-    try
-    {
-      const string sql = "SELECT faculty_id FROM inelicom.faculties WHERE name ILIKE @Name LIMIT 1;";
-      var id = await connection.ExecuteScalarAsync<int?>(sql, new { Name = name.Trim() }, transaction);
-      return Result<int?, AppError>.Ok(id);
-    }
-    catch (Exception ex)
-    {
-      return Result<int?, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
-  public async Task<Result<int?, AppError>> GetBuildingIdByNameOrCode(IDbConnection connection, IDbTransaction transaction, string value)
-  {
-    try
-    {
-      const string sql = @"
-        SELECT building_id
-          FROM inelicom.buildings
-        WHERE name ILIKE @Value OR code ILIKE @Value
-        LIMIT 1;
-      ";
-      var id = await connection.ExecuteScalarAsync<int?>(sql, new { Value = value.Trim() }, transaction);
-      return Result<int?, AppError>.Ok(id);
-    }
-    catch (Exception ex)
-    {
-      return Result<int?, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
 }

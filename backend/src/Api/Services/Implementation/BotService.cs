@@ -76,18 +76,18 @@ public sealed partial class BotService : IBotService
         "salon" => await GetInelicomCommandResponse(
           connection,
           commandName,
-          "Rooms",
-          "No room records found.",
-          (conn, query) => _inelicomRepository.GetRooms(conn, query),
-          room => $"{room.Code} - {room.Name}"),
+          "Buildings",
+          "No building records found.",
+          (conn, query) => _inelicomRepository.GetBuildings(conn, query),
+          building => $"{building.Code ?? building.Name} - {building.Name}"),
 
         "lab" => await GetInelicomCommandResponse(
           connection,
           commandName,
-          "Labs",
-          "No room records found.",
-          (conn, query) => _inelicomRepository.GetRooms(conn, query),
-          room => $"{room.Code} - {room.Name}"),
+          "Buildings",
+          "No building records found.",
+          (conn, query) => _inelicomRepository.GetBuildings(conn, query),
+          building => $"{building.Code ?? building.Name} - {building.Name}"),
 
         "contact-department" => await GetInelicomCommandResponse(
           connection,
