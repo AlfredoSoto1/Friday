@@ -45,7 +45,7 @@ export default async function DashboardPage() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href="/roster">
+              <Link href="/attendance">
                 <ClipboardList />
                 Attendance
               </Link>
