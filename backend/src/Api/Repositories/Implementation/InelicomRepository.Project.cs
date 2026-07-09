@@ -7,14 +7,18 @@ namespace Friday.Backend.Api.Repositories;
 
 public sealed partial class InelicomRepository
 {
+  private const string ProjectColumns = @"
+    project_id, web, facebook, instagram, email, name, description, created_at
+  ";
+
   public async Task<Result<Paged<Project>, AppError>> GetProjects(IDbConnection connection, InelicomQuery query)
   {
     try
     {
-      const string sql = @"
-        SELECT project_id, name, description, created_at, COUNT(*) OVER() AS total
+      var sql = $@"
+        SELECT {ProjectColumns}, COUNT(*) OVER() AS total
           FROM inelicom.projects
-        WHERE @Search IS NULL OR name ILIKE @Search OR description ILIKE @Search
+        WHERE @Search IS NULL OR name ILIKE @Search OR description ILIKE @Search OR email ILIKE @Search
         ORDER BY name
         LIMIT @Limit OFFSET @Offset;
       ";
@@ -40,8 +44,8 @@ public sealed partial class InelicomRepository
   {
     try
     {
-      const string sql = @"
-        SELECT project_id, name, description, created_at
+      var sql = $@"
+        SELECT {ProjectColumns}
           FROM inelicom.projects
         WHERE project_id = @Id;
       ";
@@ -64,10 +68,10 @@ public sealed partial class InelicomRepository
   {
     try
     {
-      const string sql = @"
-        INSERT INTO inelicom.projects (name, description)
-        VALUES (@Name, @Description)
-        RETURNING project_id, name, description, created_at;
+      var sql = $@"
+        INSERT INTO inelicom.projects (web, facebook, instagram, email, name, description)
+        VALUES (@Web, @Facebook, @Instagram, @Email, @Name, @Description)
+        RETURNING {ProjectColumns};
       ";
 
       var record = await connection.QuerySingleAsync(sql, request, transaction);
@@ -83,16 +87,25 @@ public sealed partial class InelicomRepository
   {
     try
     {
-      const string sql = @"
+      var sql = $@"
         UPDATE inelicom.projects
-           SET name = @Name, description = @Description
+           SET web = @Web,
+               facebook = @Facebook,
+               instagram = @Instagram,
+               email = @Email,
+               name = @Name,
+               description = @Description
         WHERE project_id = @Id
-        RETURNING project_id, name, description, created_at;
+        RETURNING {ProjectColumns};
       ";
 
       var record = await connection.QuerySingleOrDefaultAsync(sql, new
       {
         Id = id,
+        request.Web,
+        request.Facebook,
+        request.Instagram,
+        request.Email,
         request.Name,
         request.Description
       }, transaction);
@@ -131,6 +144,10 @@ public sealed partial class InelicomRepository
   private static Project MapToProject(dynamic record) => new()
   {
     ProjectId = (int)record.project_id,
+    Web = record.web as string,
+    Facebook = record.facebook as string,
+    Instagram = record.instagram as string,
+    Email = record.email as string,
     Name = (string)record.name,
     Description = (string)record.description,
     CreatedAt = (DateTime)record.created_at

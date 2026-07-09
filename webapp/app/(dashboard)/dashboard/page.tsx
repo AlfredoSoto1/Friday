@@ -1,5 +1,7 @@
-import { Bot } from "lucide-react";
+import Link from "next/link";
+import { Bot, ClipboardList, Upload } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { DiscordServerManager } from "@/features/dashboard/discord-server-manager";
 import { ServiceStatusGrid } from "@/features/dashboard/service-status-grid";
 import { DashboardWebservice } from "@/server/webservices/dashboard-webservice";
@@ -22,8 +24,8 @@ export default async function DashboardPage() {
   return (
     <Card className="min-h-screen rounded-none bg-transparent py-0 ring-0">
       <CardHeader className="border-b border-border bg-background/80 px-6 py-4">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-            <div className="flex min-w-0 items-center gap-4">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-4">
             <ItemMedia
               variant="icon"
               className="size-9 rounded-md bg-discord text-white"
@@ -34,6 +36,20 @@ export default async function DashboardPage() {
               <ItemTitle className="text-lg">Friday</ItemTitle>
               <CardDescription>Incoming student operations</CardDescription>
             </ItemContent>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/imports">
+                <Upload />
+                Import dataset
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/roster">
+                <ClipboardList />
+                Attendance
+              </Link>
+            </Button>
           </div>
         </div>
       </CardHeader>

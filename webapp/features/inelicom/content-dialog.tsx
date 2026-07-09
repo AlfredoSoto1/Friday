@@ -67,7 +67,7 @@ export function ContentDialog({
     setValues({
       name: current?.name ?? "",
       gpin: current && "gpin" in current ? current.gpin : "",
-      code: current && "code" in current ? current.code : "",
+      code: current && "code" in current ? current.code ?? "" : "",
       facultyId: current && "facultyId" in current
         ? current.facultyId
         : data.faculties[0]?.facultyId ?? 0,

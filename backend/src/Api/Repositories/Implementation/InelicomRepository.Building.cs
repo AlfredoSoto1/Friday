@@ -12,9 +12,9 @@ public sealed partial class InelicomRepository
     try
     {
       const string sql = @"
-        SELECT building_id, name, gpin, created_at, COUNT(*) OVER() AS total
+        SELECT building_id, code, name, gpin, created_at, COUNT(*) OVER() AS total
           FROM inelicom.buildings
-        WHERE @Search IS NULL OR name ILIKE @Search
+        WHERE @Search IS NULL OR name ILIKE @Search OR code ILIKE @Search
         ORDER BY name
         LIMIT @Limit OFFSET @Offset;
       ";
@@ -41,7 +41,7 @@ public sealed partial class InelicomRepository
     try
     {
       const string sql = @"
-        SELECT building_id, name, gpin, created_at
+        SELECT building_id, code, name, gpin, created_at
           FROM inelicom.buildings
         WHERE building_id = @Id;
       ";
@@ -65,9 +65,9 @@ public sealed partial class InelicomRepository
     try
     {
       const string sql = @"
-        INSERT INTO inelicom.buildings (name, gpin)
-        VALUES (@Name, @Gpin)
-        RETURNING building_id, name, gpin, created_at;
+        INSERT INTO inelicom.buildings (code, name, gpin)
+        VALUES (@Code, @Name, @Gpin)
+        RETURNING building_id, code, name, gpin, created_at;
       ";
 
       var record = await connection.QuerySingleAsync(sql, request, transaction);
@@ -85,14 +85,15 @@ public sealed partial class InelicomRepository
     {
       const string sql = @"
         UPDATE inelicom.buildings
-           SET name = @Name, gpin = @Gpin
+           SET code = @Code, name = @Name, gpin = @Gpin
         WHERE building_id = @Id
-        RETURNING building_id, name, gpin, created_at;
+        RETURNING building_id, code, name, gpin, created_at;
       ";
 
       var record = await connection.QuerySingleOrDefaultAsync(sql, new
       {
         Id = id,
+        request.Code,
         request.Name,
         request.Gpin
       }, transaction);
@@ -131,6 +132,7 @@ public sealed partial class InelicomRepository
   private static Building MapToBuilding(dynamic record) => new()
   {
     BuildingId = (int)record.building_id,
+    Code = record.code as string,
     Name = (string)record.name,
     Gpin = (string)record.gpin,
     CreatedAt = (DateTime)record.created_at

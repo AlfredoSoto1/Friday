@@ -4,10 +4,12 @@ import { EnvelopeResult, keysToSnake, Paged } from "@/lib/webservices";
 import type {
   BuildingDto,
   BuildingRequest,
+  CsvImportResultDto,
   DepartmentDto,
   DepartmentRequest,
   FacultyDto,
   FacultyRequest,
+  InelicomCsvImportKind,
   RoomDto,
   RoomRequest,
   SaveGuildRosterRequest,
@@ -144,6 +146,22 @@ export class InelicomApi {
     return axios.delete(`${BASE}/rooms/${roomId}`)
       .then((response) => EnvelopeResult.fromObject<boolean>(response.data))
       .catch((error: unknown) => EnvelopeResult.fromError<boolean>(error));
+  }
+
+  static async importCsv(
+    kind: InelicomCsvImportKind,
+    file: File
+  ): Promise<EnvelopeResult<CsvImportResultDto>> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return axios.post(`${BASE}/imports/${kind}`, formData)
+      .then((response) => (
+        EnvelopeResult.fromObject<CsvImportResultDto>(response.data)
+      ))
+      .catch((error: unknown) => (
+        EnvelopeResult.fromError<CsvImportResultDto>(error)
+      ));
   }
 
   static async saveGuildRoster(

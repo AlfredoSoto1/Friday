@@ -7,14 +7,18 @@ namespace Friday.Backend.Api.Repositories;
 
 public sealed partial class InelicomRepository
 {
+  private const string OrganizationColumns = @"
+    organization_id, email, facebook, instagram, twitter_x, web, name, description, created_at
+  ";
+
   public async Task<Result<Paged<Organization>, AppError>> GetOrganizations(IDbConnection connection, InelicomQuery query)
   {
     try
     {
-      const string sql = @"
-        SELECT organization_id, name, description, created_at, COUNT(*) OVER() AS total
+      var sql = $@"
+        SELECT {OrganizationColumns}, COUNT(*) OVER() AS total
           FROM inelicom.organizations
-        WHERE @Search IS NULL OR name ILIKE @Search OR description ILIKE @Search
+        WHERE @Search IS NULL OR name ILIKE @Search OR description ILIKE @Search OR email ILIKE @Search
         ORDER BY name
         LIMIT @Limit OFFSET @Offset;
       ";
@@ -40,8 +44,8 @@ public sealed partial class InelicomRepository
   {
     try
     {
-      const string sql = @"
-        SELECT organization_id, name, description, created_at
+      var sql = $@"
+        SELECT {OrganizationColumns}
           FROM inelicom.organizations
         WHERE organization_id = @Id;
       ";
@@ -64,10 +68,10 @@ public sealed partial class InelicomRepository
   {
     try
     {
-      const string sql = @"
-        INSERT INTO inelicom.organizations (name, description)
-        VALUES (@Name, @Description)
-        RETURNING organization_id, name, description, created_at;
+      var sql = $@"
+        INSERT INTO inelicom.organizations (email, facebook, instagram, twitter_x, web, name, description)
+        VALUES (@Email, @Facebook, @Instagram, @TwitterX, @Web, @Name, @Description)
+        RETURNING {OrganizationColumns};
       ";
 
       var record = await connection.QuerySingleAsync(sql, request, transaction);
@@ -83,16 +87,27 @@ public sealed partial class InelicomRepository
   {
     try
     {
-      const string sql = @"
+      var sql = $@"
         UPDATE inelicom.organizations
-           SET name = @Name, description = @Description
+           SET email = @Email,
+               facebook = @Facebook,
+               instagram = @Instagram,
+               twitter_x = @TwitterX,
+               web = @Web,
+               name = @Name,
+               description = @Description
         WHERE organization_id = @Id
-        RETURNING organization_id, name, description, created_at;
+        RETURNING {OrganizationColumns};
       ";
 
       var record = await connection.QuerySingleOrDefaultAsync(sql, new
       {
         Id = id,
+        request.Email,
+        request.Facebook,
+        request.Instagram,
+        request.TwitterX,
+        request.Web,
         request.Name,
         request.Description
       }, transaction);
@@ -131,6 +146,11 @@ public sealed partial class InelicomRepository
   private static Organization MapToOrganization(dynamic record) => new()
   {
     OrganizationId = (int)record.organization_id,
+    Email = record.email as string,
+    Facebook = record.facebook as string,
+    Instagram = record.instagram as string,
+    TwitterX = record.twitter_x as string,
+    Web = record.web as string,
     Name = (string)record.name,
     Description = (string)record.description,
     CreatedAt = (DateTime)record.created_at

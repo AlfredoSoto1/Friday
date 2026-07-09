@@ -185,9 +185,19 @@ CREATE TABLE inelicom.contacts (
 );
 
 CREATE TABLE inelicom.faculties (
-  faculty_id SERIAL       PRIMARY KEY,
-  name       VARCHAR(255) NOT NULL UNIQUE,
-  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+  faculty_id      SERIAL       PRIMARY KEY,
+  name            VARCHAR(255) NOT NULL UNIQUE,
+  extension       VARCHAR(32),
+  web             TEXT,
+  phone           VARCHAR(32),
+  facebook        TEXT,
+  email           VARCHAR(255),
+  office          VARCHAR(255),
+  job_entitlement VARCHAR(255),
+  description     TEXT,
+  abbreviation    VARCHAR(32),
+  instagram       TEXT,
+  created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE inelicom.buildings (
@@ -310,10 +320,10 @@ INSERT INTO inelicom.faculties (name) VALUES
   ('Arts and Sciences'),
   ('Business Administration');
 
-INSERT INTO inelicom.buildings (name, gpin) VALUES
-  ('Stefani Building', 'GPIN-STEFANI'),
-  ('Monzon Building', 'GPIN-MONZON'),
-  ('Business Administration Building', 'GPIN-AE');
+INSERT INTO inelicom.buildings (code, name, gpin) VALUES
+  ('s', 'Stefani Building', 'GPIN-STEFANI'),
+  ('m', 'Monzon Building', 'GPIN-MONZON'),
+  ('ae', 'Business Administration Building', 'GPIN-AE');
 
 INSERT INTO inelicom.departments (name, faculty_id, building_id) VALUES
   (

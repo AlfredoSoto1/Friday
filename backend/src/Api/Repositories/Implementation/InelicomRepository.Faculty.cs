@@ -7,14 +7,19 @@ namespace Friday.Backend.Api.Repositories;
 
 public sealed partial class InelicomRepository
 {
+  private const string FacultyColumns = @"
+    faculty_id, name, extension, web, phone, facebook, email, office,
+    job_entitlement, description, abbreviation, instagram, created_at
+  ";
+
   public async Task<Result<Paged<Faculty>, AppError>> GetFaculties(IDbConnection connection, InelicomQuery query)
   {
     try
     {
-      const string sql = @"
-        SELECT faculty_id, name, created_at, COUNT(*) OVER() AS total
+      var sql = $@"
+        SELECT {FacultyColumns}, COUNT(*) OVER() AS total
           FROM inelicom.faculties
-        WHERE @Search IS NULL OR name ILIKE @Search
+        WHERE @Search IS NULL OR name ILIKE @Search OR email ILIKE @Search OR description ILIKE @Search
         ORDER BY name
         LIMIT @Limit OFFSET @Offset;
       ";
@@ -40,8 +45,8 @@ public sealed partial class InelicomRepository
   {
     try
     {
-      const string sql = @"
-        SELECT faculty_id, name, created_at
+      var sql = $@"
+        SELECT {FacultyColumns}
           FROM inelicom.faculties
         WHERE faculty_id = @Id;
       ";
@@ -64,10 +69,12 @@ public sealed partial class InelicomRepository
   {
     try
     {
-      const string sql = @"
-        INSERT INTO inelicom.faculties (name)
-        VALUES (@Name)
-        RETURNING faculty_id, name, created_at;
+      var sql = $@"
+        INSERT INTO inelicom.faculties
+          (name, extension, web, phone, facebook, email, office, job_entitlement, description, abbreviation, instagram)
+        VALUES
+          (@Name, @Extension, @Web, @Phone, @Facebook, @Email, @Office, @JobEntitlement, @Description, @Abbreviation, @Instagram)
+        RETURNING {FacultyColumns};
       ";
 
       var record = await connection.QuerySingleAsync(sql, request, transaction);
@@ -83,17 +90,37 @@ public sealed partial class InelicomRepository
   {
     try
     {
-      const string sql = @"
+      var sql = $@"
         UPDATE inelicom.faculties
-           SET name = @Name
+           SET name = @Name,
+               extension = @Extension,
+               web = @Web,
+               phone = @Phone,
+               facebook = @Facebook,
+               email = @Email,
+               office = @Office,
+               job_entitlement = @JobEntitlement,
+               description = @Description,
+               abbreviation = @Abbreviation,
+               instagram = @Instagram
         WHERE faculty_id = @Id
-        RETURNING faculty_id, name, created_at;
+        RETURNING {FacultyColumns};
       ";
 
       var record = await connection.QuerySingleOrDefaultAsync(sql, new
       {
         Id = id,
-        request.Name
+        request.Name,
+        request.Extension,
+        request.Web,
+        request.Phone,
+        request.Facebook,
+        request.Email,
+        request.Office,
+        request.JobEntitlement,
+        request.Description,
+        request.Abbreviation,
+        request.Instagram
       }, transaction);
       if (record is null)
       {
@@ -131,6 +158,16 @@ public sealed partial class InelicomRepository
   {
     FacultyId = (int)record.faculty_id,
     Name = (string)record.name,
+    Extension = record.extension as string,
+    Web = record.web as string,
+    Phone = record.phone as string,
+    Facebook = record.facebook as string,
+    Email = record.email as string,
+    Office = record.office as string,
+    JobEntitlement = record.job_entitlement as string,
+    Description = record.description as string,
+    Abbreviation = record.abbreviation as string,
+    Instagram = record.instagram as string,
     CreatedAt = (DateTime)record.created_at
   };
 }

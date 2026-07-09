@@ -25,10 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { TeamOverview } from "@/features/server/server-types";
-import { UploadSettings } from "@/features/server/upload-settings";
 import { BotApi } from "@/server/webservices/bot-webservice";
-
-const bannerTypes = ["Rules banner", "Help banner", "Welcome banner"] as const;
 
 interface ServerOverviewProps {
   serverId: number | null;
@@ -203,15 +200,6 @@ export function ServerOverview({
           ) : null}
         </CardContent>
       </Card>
-      <div className="grid min-w-0 gap-6 xl:grid-cols-2">
-        <UploadSettings
-          guildId={guildId}
-          kind="banner"
-          title="Command banners"
-          description="Images used in rules, help, and welcome embeds."
-          options={bannerTypes}
-        />
-      </div>
     </>
   );
 }

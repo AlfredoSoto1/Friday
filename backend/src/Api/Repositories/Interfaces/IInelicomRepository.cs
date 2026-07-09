@@ -48,4 +48,9 @@ public interface IInelicomRepository
   Task<Result<Organization, AppError>> UpdateOrganization(IDbConnection connection, IDbTransaction transaction, int id, OrganizationRequest request);
   Task<Result<bool, AppError>> DeleteOrganization(IDbConnection connection, IDbTransaction transaction, int id);
 
+
+  Task<Result<bool, AppError>> UpsertBuilding(IDbConnection connection, IDbTransaction transaction, BuildingRequest request, ImportCounter counter);
+  Task<Result<bool, AppError>> UpsertFaculty(IDbConnection connection, IDbTransaction transaction, FacultyRequest request, ImportCounter counter);
+  Task<Result<bool, AppError>> UpsertProject(IDbConnection connection, IDbTransaction transaction, ProjectRequest request, ImportCounter counter);
+  Task<Result<bool, AppError>> UpsertOrganization(IDbConnection connection, IDbTransaction transaction, OrganizationRequest request, ImportCounter counter);
 }

@@ -6,9 +6,3 @@ export interface TeamOverview {
   channelName: string;
   memberCount: number;
 }
-
-export interface StoredUpload {
-  name: string;
-  type: string;
-  dataUrl: string;
-}

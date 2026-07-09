@@ -145,11 +145,6 @@ export function DiscordServerManager({
           {servers.length} {servers.length === 1 ? "server" : "servers"} registered
         </CardDescription>
         <CardAction className="flex flex-wrap justify-end gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href="/inelicom">Update INEL/ICOM Content</Link>
-          </Button>
-          <Button variant="outline" size="sm">Edit Organizations</Button>
-          <Button variant="outline" size="sm">Edit Projects</Button>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm">

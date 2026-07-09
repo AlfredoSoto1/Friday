@@ -146,4 +146,6 @@ public interface IInelicomService
   // ==========================================================================
   Task<Result<bool, AppError>> DeleteOrganization(int id);
 
+
+  Task<Result<CsvImportResult, AppError>> ImportCsv(string kind, string fileName, Stream csvStream);
 }
