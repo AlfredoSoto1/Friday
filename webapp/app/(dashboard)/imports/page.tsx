@@ -26,7 +26,7 @@ export default function ImportsPage(): React.ReactElement {
             </ItemMedia>
             <ItemContent className="min-w-0">
               <ItemTitle className="text-lg">Friday</ItemTitle>
-              <CardDescription>Dataset imports</CardDescription>
+              <CardDescription>CSV imports</CardDescription>
             </ItemContent>
           </div>
           <Button asChild variant="outline" size="sm">
@@ -40,9 +40,9 @@ export default function ImportsPage(): React.ReactElement {
       <CardContent className="mx-auto grid w-full min-w-0 max-w-7xl gap-6 px-4 py-8 sm:px-6">
         <Card className="rounded-md border-border bg-card shadow-panel">
           <CardHeader>
-            <CardTitle className="text-3xl">Import dataset</CardTitle>
+            <CardTitle className="text-3xl">Import CSV data</CardTitle>
             <CardDescription>
-              Upload content CSVs for Google pins/rooms, projects, organizations, and faculty.
+              Upload CSV files for buildings, contacts, faculties, departments, projects, and organizations.
             </CardDescription>
           </CardHeader>
         </Card>

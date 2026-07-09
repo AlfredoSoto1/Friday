@@ -42,7 +42,7 @@ export default function InelicomPage(): React.ReactElement {
           <CardHeader>
             <CardTitle className="text-3xl">Update INEL/ICOM Content</CardTitle>
             <CardDescription>
-              Manage faculties, buildings, departments, and rooms used by the bot.
+              Manage faculties, buildings, and departments used by the bot.
             </CardDescription>
           </CardHeader>
         </Card>

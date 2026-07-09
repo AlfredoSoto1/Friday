@@ -18,7 +18,6 @@ const emptyData: ContentData = {
   faculties: [],
   buildings: [],
   departments: [],
-  rooms: [],
 };
 
 export function ContentManager(): React.ReactElement {
@@ -36,7 +35,6 @@ export function ContentManager(): React.ReactElement {
       InelicomApi.getFaculties(),
       InelicomApi.getBuildings(),
       InelicomApi.getDepartments(),
-      InelicomApi.getRooms(),
     ]);
     const failed = results.find((result) => result.isFailure);
 
@@ -50,7 +48,6 @@ export function ContentManager(): React.ReactElement {
       faculties: results[0].value.items,
       buildings: results[1].value.items,
       departments: results[2].value.items,
-      rooms: results[3].value.items,
     });
     setError("");
     setLoading(false);
@@ -85,17 +82,6 @@ export function ContentManager(): React.ReactElement {
         ? await InelicomApi.updateDepartment(current.departmentId, request)
         : await InelicomApi.createDepartment(request);
       failedMessage = result.isFailure ? result.error.message : "";
-    } else {
-      const request = {
-        code: values.code.trim(),
-        name,
-        buildingId: values.buildingId,
-        departmentId: values.departmentId,
-      };
-      const result = current && "roomId" in current
-        ? await InelicomApi.updateRoom(current.roomId, request)
-        : await InelicomApi.createRoom(request);
-      failedMessage = result.isFailure ? result.error.message : "";
     }
 
     if (failedMessage) {
@@ -122,9 +108,6 @@ export function ContentManager(): React.ReactElement {
     } else if (kind === "department" && "departmentId" in current) {
       const result = await InelicomApi.deleteDepartment(current.departmentId);
       failedMessage = result.isFailure ? result.error.message : "";
-    } else if (kind === "room" && "roomId" in current) {
-      const result = await InelicomApi.deleteRoom(current.roomId);
-      failedMessage = result.isFailure ? result.error.message : "";
     }
 
     if (failedMessage) {
@@ -138,7 +121,6 @@ export function ContentManager(): React.ReactElement {
   if (loading) {
     return (
       <div className="grid gap-6 md:grid-cols-2">
-        <Skeleton className="h-64" />
         <Skeleton className="h-64" />
         <Skeleton className="h-64" />
         <Skeleton className="h-64" />
@@ -179,15 +161,6 @@ export function ContentManager(): React.ReactElement {
           title="Departments"
           description="Each department belongs to a faculty and building."
           records={data.departments}
-          data={data}
-          onSave={saveRecord}
-          onDelete={deleteRecord}
-        />
-        <ContentTableCard
-          kind="room"
-          title="Rooms"
-          description="Each room belongs to a department and building."
-          records={data.rooms}
           data={data}
           onSave={saveRecord}
           onDelete={deleteRecord}

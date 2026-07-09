@@ -7,6 +7,54 @@ namespace Friday.Backend.Api.Repositories;
 
 public sealed partial class InelicomRepository
 {
+
+  public async Task<Result<bool, AppError>> UpsertContact(IDbConnection connection, IDbTransaction transaction, ContactRequest request, ImportCounter counter)
+  {
+    try
+    {
+      const string existingSql = @"
+        SELECT contact_id
+          FROM inelicom.contacts
+        WHERE email = @Email OR name = @Name
+        ORDER BY CASE WHEN email = @Email THEN 0 ELSE 1 END
+        LIMIT 1;
+      ";
+      var existingId = await connection.ExecuteScalarAsync<int?>(existingSql, request, transaction);
+
+      if (existingId is null)
+      {
+        const string insertSql = @"
+          INSERT INTO inelicom.contacts (name, email, phone, website)
+          VALUES (@Name, @Email, @Phone, @Website)
+          RETURNING contact_id;
+        ";
+        await connection.ExecuteScalarAsync<int>(insertSql, request, transaction);
+        counter.AddInserted();
+        return Result<bool, AppError>.Ok(true);
+      }
+
+      const string updateSql = @"
+        UPDATE inelicom.contacts
+           SET name = @Name, email = @Email, phone = @Phone, website = @Website
+        WHERE contact_id = @ContactId;
+      ";
+      await connection.ExecuteAsync(updateSql, new
+      {
+        ContactId = existingId.Value,
+        request.Name,
+        request.Email,
+        request.Phone,
+        request.Website
+      }, transaction);
+      counter.AddUpdated();
+      return Result<bool, AppError>.Ok(true);
+    }
+    catch (Exception ex)
+    {
+      return Result<bool, AppError>.Fail(AppError.BadRequest(ex.Message));
+    }
+  }
+
   public async Task<Result<bool, AppError>> UpsertBuilding(IDbConnection connection, IDbTransaction transaction, BuildingRequest request, ImportCounter counter)
   {
     try
@@ -136,4 +184,65 @@ public sealed partial class InelicomRepository
       return Result<bool, AppError>.Fail(AppError.BadRequest(ex.Message));
     }
   }
+
+  public async Task<Result<bool, AppError>> UpsertDepartment(IDbConnection connection, IDbTransaction transaction, DepartmentRequest request, ImportCounter counter)
+  {
+    try
+    {
+      const string existsSql = "SELECT EXISTS (SELECT 1 FROM inelicom.departments WHERE name = @Name);";
+      var existed = await connection.ExecuteScalarAsync<bool>(existsSql, request, transaction);
+
+      const string sql = @"
+        INSERT INTO inelicom.departments (name, faculty_id, building_id)
+        VALUES (@Name, @FacultyId, @BuildingId)
+        ON CONFLICT (name) DO UPDATE
+          SET faculty_id = EXCLUDED.faculty_id,
+              building_id = EXCLUDED.building_id
+        RETURNING department_id;
+      ";
+
+      await connection.ExecuteScalarAsync<int>(sql, request, transaction);
+      if (existed) counter.AddUpdated();
+      else counter.AddInserted();
+      return Result<bool, AppError>.Ok(true);
+    }
+    catch (Exception ex)
+    {
+      return Result<bool, AppError>.Fail(AppError.BadRequest(ex.Message));
+    }
+  }
+
+  public async Task<Result<int?, AppError>> GetFacultyIdByName(IDbConnection connection, IDbTransaction transaction, string name)
+  {
+    try
+    {
+      const string sql = "SELECT faculty_id FROM inelicom.faculties WHERE name ILIKE @Name LIMIT 1;";
+      var id = await connection.ExecuteScalarAsync<int?>(sql, new { Name = name.Trim() }, transaction);
+      return Result<int?, AppError>.Ok(id);
+    }
+    catch (Exception ex)
+    {
+      return Result<int?, AppError>.Fail(AppError.BadRequest(ex.Message));
+    }
+  }
+
+  public async Task<Result<int?, AppError>> GetBuildingIdByNameOrCode(IDbConnection connection, IDbTransaction transaction, string value)
+  {
+    try
+    {
+      const string sql = @"
+        SELECT building_id
+          FROM inelicom.buildings
+        WHERE name ILIKE @Value OR code ILIKE @Value
+        LIMIT 1;
+      ";
+      var id = await connection.ExecuteScalarAsync<int?>(sql, new { Value = value.Trim() }, transaction);
+      return Result<int?, AppError>.Ok(id);
+    }
+    catch (Exception ex)
+    {
+      return Result<int?, AppError>.Fail(AppError.BadRequest(ex.Message));
+    }
+  }
+
 }

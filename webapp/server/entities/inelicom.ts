@@ -1,3 +1,19 @@
+export interface ContactDto {
+  contactId: number;
+  name: string;
+  email: string;
+  phone: string;
+  website: string;
+  createdAt: string;
+}
+
+export interface ContactRequest {
+  name: string;
+  email: string;
+  phone: string;
+  website: string;
+}
+
 export interface FacultyDto {
   facultyId: number;
   name: string;
@@ -56,21 +72,30 @@ export interface DepartmentRequest {
   buildingId: number;
 }
 
-export interface RoomDto {
-  roomId: number;
-  code: string;
+
+export interface ProjectDto {
+  projectId: number;
+  web?: string | null;
+  facebook?: string | null;
+  instagram?: string | null;
+  email?: string | null;
   name: string;
-  buildingId: number;
-  departmentId: number;
+  description: string;
   createdAt: string;
 }
 
-export interface RoomRequest {
-  code: string;
+export interface OrganizationDto {
+  organizationId: number;
+  email?: string | null;
+  facebook?: string | null;
+  instagram?: string | null;
+  twitterX?: string | null;
+  web?: string | null;
   name: string;
-  buildingId: number;
-  departmentId: number;
+  description: string;
+  createdAt: string;
 }
+
 
 export interface GuildRosterStudentRequest {
   email: string;
@@ -97,7 +122,9 @@ export interface SaveGuildRosterResult {
 
 export type InelicomCsvImportKind =
   | "buildings"
+  | "contacts"
   | "faculties"
+  | "departments"
   | "projects"
   | "organizations";
 
@@ -109,3 +136,4 @@ export interface CsvImportResultDto {
   skipped: number;
   errors: string[];
 }
+

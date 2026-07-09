@@ -23,14 +23,14 @@ public sealed class InelicomImportsController : ControllerBase
   {
     if (file is null || file.Length == 0)
     {
-      return Utils.Result<bool, AppError>
+      return Result<bool, AppError>
         .Fail(AppError.ValidationFailed("Upload a non-empty CSV file."))
         .Send();
     }
 
     if (!file.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
     {
-      return Utils.Result<bool, AppError>
+      return Result<bool, AppError>
         .Fail(AppError.ValidationFailed("Only CSV files are supported."))
         .Send();
     }

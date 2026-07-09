@@ -69,12 +69,8 @@ export function ContentTableCard({
             <TableRow>
               <TableHead>Name</TableHead>
               {kind === "building" ? <TableHead>GPIN</TableHead> : null}
-              {kind === "room" ? <TableHead>Code</TableHead> : null}
               {kind === "department" ? <TableHead>Faculty</TableHead> : null}
-              {kind === "department" || kind === "room" ? (
-                <TableHead>Building</TableHead>
-              ) : null}
-              {kind === "room" ? <TableHead>Department</TableHead> : null}
+              {kind === "department" ? <TableHead>Building</TableHead> : null}
               <TableHead className="w-20">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -85,17 +81,11 @@ export function ContentTableCard({
                 {kind === "building" ? (
                   <TableCell>{"gpin" in record ? record.gpin : ""}</TableCell>
                 ) : null}
-                {kind === "room" ? (
-                  <TableCell>{"code" in record ? record.code : ""}</TableCell>
-                ) : null}
                 {kind === "department" ? (
                   <TableCell>{relationName(data, "faculty", record)}</TableCell>
                 ) : null}
-                {kind === "department" || kind === "room" ? (
+                {kind === "department" ? (
                   <TableCell>{relationName(data, "building", record)}</TableCell>
-                ) : null}
-                {kind === "room" ? (
-                  <TableCell>{relationName(data, "department", record)}</TableCell>
                 ) : null}
                 <TableCell>
                   <div className="flex gap-1">
@@ -130,7 +120,6 @@ function recordId(kind: ContentKind, record: ContentRecord): number {
   if (kind === "faculty" && "facultyId" in record) return record.facultyId;
   if (kind === "building" && "buildingId" in record) return record.buildingId;
   if (kind === "department" && "departmentId" in record) return record.departmentId;
-  if (kind === "room" && "roomId" in record) return record.roomId;
   return 0;
 }
 

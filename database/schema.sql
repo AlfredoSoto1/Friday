@@ -169,7 +169,7 @@ CREATE TABLE discord.server_syncs (
 -- ============================================================================
 -- Inelicom Schema
 -- 
--- This schema contains tables related to buildings, departments, rooms, faculties,
+-- This schema contains tables related to buildings, departments, faculties,
 -- projects and organizations. These entities are used to manage the physical and
 -- organizational structure of the university, as well as the projects and organizations 
 -- that are part of the university community.
@@ -219,17 +219,6 @@ CREATE TABLE inelicom.departments (
   FOREIGN KEY (building_id) REFERENCES inelicom.buildings(building_id) ON DELETE CASCADE
 );
 
-CREATE TABLE inelicom.rooms (
-  room_id       SERIAL       PRIMARY KEY,
-  code          VARCHAR(255) NOT NULL UNIQUE,
-  name          VARCHAR(255) NOT NULL UNIQUE,
-  building_id   INT          NOT NULL,
-  department_id INT          NOT NULL,
-  created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (building_id) REFERENCES inelicom.buildings(building_id) ON DELETE CASCADE,
-  FOREIGN KEY (department_id) REFERENCES inelicom.departments(department_id) ON DELETE CASCADE
-);
 
 CREATE TABLE inelicom.projects (
   project_id  SERIAL       PRIMARY KEY,

@@ -43,10 +43,8 @@ interface ContentDialogProps {
 const emptyValues: ContentFormValues = {
   name: "",
   gpin: "",
-  code: "",
   facultyId: 0,
   buildingId: 0,
-  departmentId: 0,
 };
 
 export function ContentDialog({
@@ -67,16 +65,12 @@ export function ContentDialog({
     setValues({
       name: current?.name ?? "",
       gpin: current && "gpin" in current ? current.gpin : "",
-      code: current && "code" in current ? current.code ?? "" : "",
       facultyId: current && "facultyId" in current
         ? current.facultyId
         : data.faculties[0]?.facultyId ?? 0,
       buildingId: current && "buildingId" in current
         ? current.buildingId
         : data.buildings[0]?.buildingId ?? 0,
-      departmentId: current && "departmentId" in current
-        ? current.departmentId
-        : data.departments[0]?.departmentId ?? 0,
     });
   }, [current, data, open]);
 
@@ -94,9 +88,7 @@ export function ContentDialog({
   const canSave = Boolean(
     values.name.trim()
     && (kind !== "building" || values.gpin.trim())
-    && (kind !== "room" || values.code.trim())
     && (kind !== "department" || (values.facultyId && values.buildingId))
-    && (kind !== "room" || (values.departmentId && values.buildingId))
   );
 
   return (
@@ -106,8 +98,7 @@ export function ContentDialog({
           variant={current ? "ghost" : "default"}
           size={current ? "icon-sm" : "sm"}
           disabled={
-            (kind === "department" && (!data.faculties.length || !data.buildings.length))
-            || (kind === "room" && (!data.departments.length || !data.buildings.length))
+            kind === "department" && (!data.faculties.length || !data.buildings.length)
           }
         >
           {current ? <Pencil /> : <Plus />}
@@ -122,21 +113,6 @@ export function ContentDialog({
           </DialogDescription>
         </DialogHeader>
         <FieldGroup>
-          {kind === "room" ? (
-            <Field>
-              <FieldLabel htmlFor={`${kind}-code`}>Code</FieldLabel>
-              <Input
-                id={`${kind}-code`}
-                value={values.code}
-                onChange={(event): void => {
-                  setValues((currentValues) => ({
-                    ...currentValues,
-                    code: event.target.value,
-                  }));
-                }}
-              />
-            </Field>
-          ) : null}
           <Field>
             <FieldLabel htmlFor={`${kind}-name`}>Name</FieldLabel>
             <Input
@@ -178,7 +154,7 @@ export function ContentDialog({
               }}
             />
           ) : null}
-          {kind === "department" || kind === "room" ? (
+          {kind === "department" ? (
             <RelationSelect
               label="Building"
               value={values.buildingId}
@@ -188,19 +164,6 @@ export function ContentDialog({
               }))}
               onChange={(buildingId): void => {
                 setValues((currentValues) => ({ ...currentValues, buildingId }));
-              }}
-            />
-          ) : null}
-          {kind === "room" ? (
-            <RelationSelect
-              label="Department"
-              value={values.departmentId}
-              options={data.departments.map((department) => ({
-                id: department.departmentId,
-                name: department.name,
-              }))}
-              onChange={(departmentId): void => {
-                setValues((currentValues) => ({ ...currentValues, departmentId }));
               }}
             />
           ) : null}

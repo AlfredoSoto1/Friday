@@ -12,7 +12,7 @@ public sealed partial class InelicomService
     if (normalizedKind is null)
     {
       return Result<CsvImportResult, AppError>.Fail(
-        AppError.ValidationFailed("Unsupported CSV type. Use buildings, faculties, projects, or organizations."));
+        AppError.ValidationFailed("Unsupported CSV type. Use buildings, faculties, contacts, departments, projects, or organizations."));
     }
 
     List<Dictionary<string, string?>> rows;
@@ -52,7 +52,9 @@ public sealed partial class InelicomService
         var result = normalizedKind switch
         {
           "buildings" => await ImportBuilding(connection, transaction, row, rowNumber, counter),
+          "contacts" => await ImportContact(connection, transaction, row, rowNumber, counter),
           "faculties" => await ImportFaculty(connection, transaction, row, rowNumber, counter),
+          "departments" => await ImportDepartment(connection, transaction, row, rowNumber, counter),
           "projects" => await ImportProject(connection, transaction, row, rowNumber, counter),
           "organizations" => await ImportOrganization(connection, transaction, row, rowNumber, counter),
           _ => Result<bool, AppError>.Fail(AppError.ValidationFailed("Unsupported CSV type."))
@@ -105,6 +107,32 @@ public sealed partial class InelicomService
     }, counter);
   }
 
+  private async Task<Result<bool, AppError>> ImportContact(
+    NpgsqlConnection connection,
+    NpgsqlTransaction transaction,
+    Dictionary<string, string?> row,
+    int rowNumber,
+    ImportCounter counter)
+  {
+    var name = Value(row, "name");
+    var email = Value(row, "email");
+    var phone = Value(row, "phone");
+    var website = Value(row, "website") ?? Value(row, "web");
+    if (name is null || email is null || phone is null || website is null)
+    {
+      counter.AddSkipped($"Row {rowNumber}: contact name, email, phone, and website are required.");
+      return Result<bool, AppError>.Ok(false);
+    }
+
+    return await _repository.UpsertContact(connection, transaction, new ContactRequest
+    {
+      Name = name,
+      Email = email,
+      Phone = phone,
+      Website = website
+    }, counter);
+  }
+
   private async Task<Result<bool, AppError>> ImportFaculty(
     NpgsqlConnection connection,
     NpgsqlTransaction transaction,
@@ -132,6 +160,58 @@ public sealed partial class InelicomService
       Description = Value(row, "description"),
       Abbreviation = Value(row, "abreviation") ?? Value(row, "abbreviation"),
       Instagram = Value(row, "instagram")
+    }, counter);
+  }
+
+  private async Task<Result<bool, AppError>> ImportDepartment(
+    NpgsqlConnection connection,
+    NpgsqlTransaction transaction,
+    Dictionary<string, string?> row,
+    int rowNumber,
+    ImportCounter counter)
+  {
+    var name = Value(row, "name");
+    if (name is null)
+    {
+      counter.AddSkipped($"Row {rowNumber}: department name is required.");
+      return Result<bool, AppError>.Ok(false);
+    }
+
+    var facultyId = ParseInt(Value(row, "faculty_id"));
+    if (facultyId is null)
+    {
+      var facultyName = Value(row, "faculty_name") ?? Value(row, "faculty");
+      if (facultyName is not null)
+      {
+        var facultyResult = await _repository.GetFacultyIdByName(connection, transaction, facultyName);
+        if (facultyResult.IsFailure) return Result<bool, AppError>.Fail(facultyResult.Error);
+        facultyId = facultyResult.Value;
+      }
+    }
+
+    var buildingId = ParseInt(Value(row, "building_id"));
+    if (buildingId is null)
+    {
+      var buildingName = Value(row, "building_name") ?? Value(row, "building") ?? Value(row, "building_code");
+      if (buildingName is not null)
+      {
+        var buildingResult = await _repository.GetBuildingIdByNameOrCode(connection, transaction, buildingName);
+        if (buildingResult.IsFailure) return Result<bool, AppError>.Fail(buildingResult.Error);
+        buildingId = buildingResult.Value;
+      }
+    }
+
+    if (facultyId is null || buildingId is null)
+    {
+      counter.AddSkipped($"Row {rowNumber}: department faculty and building are required and must match existing records.");
+      return Result<bool, AppError>.Ok(false);
+    }
+
+    return await _repository.UpsertDepartment(connection, transaction, new DepartmentRequest
+    {
+      Name = name,
+      FacultyId = facultyId.Value,
+      BuildingId = buildingId.Value
     }, counter);
   }
 
@@ -193,7 +273,9 @@ public sealed partial class InelicomService
     return kind.Trim().ToLowerInvariant() switch
     {
       "building" or "buildings" or "googlepin" or "googlepins" or "google-pin" or "google-pins" => "buildings",
+      "contact" or "contacts" => "contacts",
       "faculty" or "faculties" => "faculties",
+      "department" or "departments" => "departments",
       "project" or "projects" => "projects",
       "organization" or "organizations" or "organisation" or "organisations" => "organizations",
       _ => null
@@ -206,7 +288,9 @@ public sealed partial class InelicomService
     var required = kind switch
     {
       "buildings" => new[] { "code", "name", "gpin" },
+      "contacts" => new[] { "name", "email", "phone", "website" },
       "faculties" => new[] { "ext", "web", "phone", "facebook", "email", "office", "name", "job_entitlement", "description", "instagram" },
+      "departments" => new[] { "name" },
       "projects" => new[] { "web", "facebook", "instagram", "email", "name", "description" },
       "organizations" => new[] { "name", "description", "email", "facebook", "instagram", "twitter_x", "web" },
       _ => Array.Empty<string>()
@@ -218,9 +302,36 @@ public sealed partial class InelicomService
       missing = missing.Append("abreviation").ToArray();
     }
 
+    if (kind == "contacts" && missing.Contains("website") && headerSet.Contains("web"))
+    {
+      missing = missing.Where(header => header != "website").ToArray();
+    }
+
+    if (kind == "departments"
+      && !headerSet.Contains("faculty_id")
+      && !headerSet.Contains("faculty_name")
+      && !headerSet.Contains("faculty"))
+    {
+      missing = missing.Append("faculty_id or faculty_name").ToArray();
+    }
+
+    if (kind == "departments"
+      && !headerSet.Contains("building_id")
+      && !headerSet.Contains("building_name")
+      && !headerSet.Contains("building")
+      && !headerSet.Contains("building_code"))
+    {
+      missing = missing.Append("building_id or building_name").ToArray();
+    }
+
     return missing.Length == 0
       ? Result<bool, AppError>.Ok(true)
       : Result<bool, AppError>.Fail(AppError.ValidationFailed($"CSV is missing required column(s): {string.Join(", ", missing)}."));
+  }
+
+  private static int? ParseInt(string? value)
+  {
+    return int.TryParse(value, out var parsed) ? parsed : null;
   }
 
   private static string? Value(Dictionary<string, string?> row, string key)
