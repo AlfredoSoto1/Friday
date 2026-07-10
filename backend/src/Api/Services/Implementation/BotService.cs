@@ -87,7 +87,7 @@ public sealed partial class BotService : IBotService
           commandName,
           "Contact Information",
           "No matching contact records found.",
-          (conn, query) => _inelicomRepository.GetContacts(conn, query),
+          (conn, query) => _inelicomRepository.GetContactsByType(conn, "dcsp", query),
           contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
           "DCSP"),
 
@@ -105,7 +105,7 @@ public sealed partial class BotService : IBotService
           commandName,
           "Contact Information",
           "No matching contact records found.",
-          (conn, query) => _inelicomRepository.GetContacts(conn, query),
+          (conn, query) => _inelicomRepository.GetContactsByType(conn, "decanato-estudiantes", query),
           contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
           "Decanato"),
 
@@ -114,7 +114,7 @@ public sealed partial class BotService : IBotService
           commandName,
           "Contact Information",
           "No matching contact records found.",
-          (conn, query) => _inelicomRepository.GetContacts(conn, query),
+          (conn, query) => _inelicomRepository.GetContactsByType(conn, "guardia-univ", query),
           contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
           "Guardia"),
 
@@ -123,7 +123,7 @@ public sealed partial class BotService : IBotService
           commandName,
           "Contact Information",
           "No matching contact records found.",
-          (conn, query) => _inelicomRepository.GetContacts(conn, query),
+          (conn, query) => _inelicomRepository.GetContactsByType(conn, "asesoria-academica", query),
           contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
           "Asesoria"),
 
@@ -132,7 +132,7 @@ public sealed partial class BotService : IBotService
           commandName,
           "Contact Information",
           "No matching contact records found.",
-          (conn, query) => _inelicomRepository.GetContacts(conn, query),
+          (conn, query) => _inelicomRepository.GetContactsByType(conn, "asistencia-economica", query),
           contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
           "Asistencia"),
 

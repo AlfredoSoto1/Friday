@@ -51,16 +51,16 @@ public sealed partial class InelicomService : IInelicomService
     return await _repository.GetFaculty(connection, id);
   }
 
-  public async Task<Result<Paged<Contact>, AppError>> GetContacts(InelicomQuery query)
+  public async Task<Result<Paged<Contact>, AppError>> GetContacts(string contactType, InelicomQuery query)
   {
     using var connection = _dbFactory.Create();
-    return await _repository.GetContacts(connection, query);
+    return await _repository.GetContactsByType(connection, contactType, query);
   }
 
-  public async Task<Result<Contact, AppError>> GetContact(int id)
+  public async Task<Result<Contact, AppError>> GetContact(string contactType, int id)
   {
     using var connection = _dbFactory.Create();
-    return await _repository.GetContact(connection, id);
+    return await _repository.GetContactOfType(connection, contactType, id);
   }
 
   public async Task<Result<Paged<Building>, AppError>> GetBuildings(InelicomQuery query)

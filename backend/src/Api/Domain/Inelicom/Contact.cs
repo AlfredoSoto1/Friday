@@ -7,6 +7,8 @@ public sealed class Contact
   public string Email { get; init; } = string.Empty;
   public string Phone { get; init; } = string.Empty;
   public string Website { get; init; } = string.Empty;
+  public string Description { get; init; } = string.Empty;
+  public string Services { get; init; } = string.Empty;
   public DateTime CreatedAt { get; init; }
 }
 
@@ -16,4 +18,6 @@ public sealed class ContactRequest
   public string Email { get; init; } = string.Empty;
   public string Phone { get; init; } = string.Empty;
   public string Website { get; init; } = string.Empty;
+  public string Description { get; init; } = string.Empty;
+  public string Services { get; init; } = string.Empty;
 }

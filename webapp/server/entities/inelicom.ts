@@ -4,6 +4,8 @@ export interface ContactDto {
   email: string;
   phone: string;
   website: string;
+  description: string;
+  services: string;
   createdAt: string;
 }
 
@@ -12,6 +14,8 @@ export interface ContactRequest {
   email: string;
   phone: string;
   website: string;
+  description?: string;
+  services?: string;
 }
 
 export interface FacultyDto {
