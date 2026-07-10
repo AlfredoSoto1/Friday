@@ -45,6 +45,13 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Item,
   ItemActions,
   ItemContent,
@@ -55,7 +62,10 @@ import {
 } from "@/components/ui/item";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
-import type { DiscordServerDto } from "@/server/entities/dashboard";
+import type {
+  DiscordServerDepartmentProfile,
+  DiscordServerDto,
+} from "@/server/entities/dashboard";
 import { DashboardWebservice } from "@/server/webservices/dashboard-webservice";
 
 interface DiscordServerManagerProps {
@@ -70,14 +80,15 @@ export function DiscordServerManager({
   const [servers, setServers] = useState(initialServers);
   const [name, setName] = useState("");
   const [serverCode, setServerCode] = useState("");
+  const [departmentProfile, setDepartmentProfile] = useState<DiscordServerDepartmentProfile | "">("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pendingServerId, setPendingServerId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState(initialError ?? "");
 
   async function createServer() {
-    if (!name.trim() || !serverCode.trim()) {
-      setError("Server name and Discord server ID are required.");
+    if (!name.trim() || !serverCode.trim() || !departmentProfile) {
+      setError("Server name, Discord server ID, and department are required.");
       return;
     }
 
@@ -86,6 +97,7 @@ export function DiscordServerManager({
     const result = await DashboardWebservice.createServer({
       name: name.trim(),
       serverCode: serverCode.trim(),
+      departmentProfile,
     });
     setCreating(false);
 
@@ -97,6 +109,7 @@ export function DiscordServerManager({
     setServers((current) => [result.value, ...current]);
     setName("");
     setServerCode("");
+    setDepartmentProfile("");
     setDialogOpen(false);
   }
 
@@ -156,7 +169,7 @@ export function DiscordServerManager({
               <DialogHeader>
                 <DialogTitle>Add Discord server</DialogTitle>
                 <DialogDescription>
-                  Register a Discord server with its name and guild ID.
+                  Register a Discord server with its name, guild ID, and owning department.
                 </DialogDescription>
               </DialogHeader>
               <FieldGroup>
@@ -178,6 +191,23 @@ export function DiscordServerManager({
                     placeholder="100000000000000001"
                     inputMode="numeric"
                   />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="server-department-profile">Department</FieldLabel>
+                  <Select
+                    value={departmentProfile}
+                    onValueChange={(value): void => {
+                      setDepartmentProfile(value as DiscordServerDepartmentProfile);
+                    }}
+                  >
+                    <SelectTrigger id="server-department-profile" className="w-full">
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="INEL_ICOM">INEL/ICOM</SelectItem>
+                      <SelectItem value="INSO_CIIC">INSO/CIIC</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </Field>
               </FieldGroup>
               <DialogFooter showCloseButton>
@@ -229,6 +259,9 @@ export function DiscordServerManager({
                       }
                     >
                       {server.enabled ? "Active" : "Inactive"}
+                    </Badge>
+                    <Badge variant="outline" className="border-discord/40 bg-discord/10 text-discord">
+                      {server.departmentProfile.replace("_", "/")}
                     </Badge>
                   </ItemTitle>
                   <ItemDescription>

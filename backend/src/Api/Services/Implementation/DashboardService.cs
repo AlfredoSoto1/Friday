@@ -28,10 +28,18 @@ public sealed class DashboardService : IDashboardService
 
   public async Task<Result<DiscordServer, AppError>> CreateDiscordServer(CreateDiscordServerRequest request)
   {
-    if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.ServerCode))
+    if (string.IsNullOrWhiteSpace(request.Name)
+      || string.IsNullOrWhiteSpace(request.ServerCode)
+      || string.IsNullOrWhiteSpace(request.DepartmentProfile))
     {
       return Result<DiscordServer, AppError>.Fail(
-        AppError.BadRequest("Server name and Discord server ID are required."));
+        AppError.BadRequest("Server name, Discord server ID, and department are required."));
+    }
+
+    if (request.DepartmentProfile is not ("INEL_ICOM" or "INSO_CIIC"))
+    {
+      return Result<DiscordServer, AppError>.Fail(
+        AppError.ValidationFailed("Department must be INEL/ICOM or INSO/CIIC."));
     }
 
     using var connection = _dbFactory.Create();

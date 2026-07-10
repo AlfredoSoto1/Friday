@@ -16,7 +16,7 @@ public sealed class DashboardRepository : IDashboardRepository
     try
     {
       const string sql = @"
-        SELECT server_id, name, guild_id, enabled, created_at
+        SELECT server_id, name, guild_id, department_profile, enabled, created_at
           FROM discord.servers
         ORDER BY created_at DESC
         LIMIT @Limit OFFSET @Offset;
@@ -39,15 +39,16 @@ public sealed class DashboardRepository : IDashboardRepository
     try
     {
       const string sql = @"
-        INSERT INTO discord.servers (name, guild_id, enabled)
-        VALUES (@Name, @ServerCode, TRUE)
-        RETURNING server_id, name, guild_id, enabled, created_at;
+        INSERT INTO discord.servers (name, guild_id, department_profile, enabled)
+        VALUES (@Name, @ServerCode, @DepartmentProfile, TRUE)
+        RETURNING server_id, name, guild_id, department_profile, enabled, created_at;
       ";
 
       var record = await connection.QuerySingleAsync(sql, new
       {
         Name = request.Name.Trim(),
-        ServerCode = request.ServerCode.Trim()
+        ServerCode = request.ServerCode.Trim(),
+        DepartmentProfile = request.DepartmentProfile
       });
 
       return Result<DiscordServer, AppError>.Ok(MapToDiscordServer(record));
@@ -69,7 +70,7 @@ public sealed class DashboardRepository : IDashboardRepository
         UPDATE discord.servers
            SET enabled = @Enabled
          WHERE server_id = @ServerId
-        RETURNING server_id, name, guild_id, enabled, created_at;
+        RETURNING server_id, name, guild_id, department_profile, enabled, created_at;
       ";
 
       var record = await connection.QuerySingleOrDefaultAsync(
@@ -181,6 +182,7 @@ public sealed class DashboardRepository : IDashboardRepository
     ServerId = (int)record.server_id,
     Name = (string)record.name,
     ServerCode = (string)record.guild_id,
+    DepartmentProfile = (string)record.department_profile,
     Enabled = (bool)record.enabled,
     CreatedAt = (DateTime)record.created_at
   };
