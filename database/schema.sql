@@ -169,19 +169,23 @@ CREATE TABLE discord.server_syncs (
 -- ============================================================================
 -- Inelicom Schema
 -- 
--- This schema contains tables related to buildings, departments, faculties,
--- projects and organizations. These entities are used to manage the physical and
+-- This schema contains tables related to buildings, faculties, projects and organizations. These entities are used to manage the physical and
 -- organizational structure of the university, as well as the projects and organizations 
 -- that are part of the university community.
 -- ============================================================================
 
 CREATE TABLE inelicom.contacts (
-  contact_id SERIAL       PRIMARY KEY,
-  name       VARCHAR(255) NOT NULL,
-  email      VARCHAR(255) NOT NULL,
-  phone      VARCHAR(20)  NOT NULL,
-  website    TEXT         NOT NULL,
-  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+  contact_id   SERIAL       PRIMARY KEY,
+  name         VARCHAR(255) NOT NULL,
+  description  TEXT         NOT NULL,
+  email        VARCHAR(255) NOT NULL,
+  phone        VARCHAR(20)  NOT NULL,
+  website      TEXT         NOT NULL,
+  services     TEXT         NOT NULL,
+  contact_type VARCHAR(32),
+  created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT chk_contact_type CHECK (contact_type IN ('department', 'dcsp', 'decanato-estudiantes', 'guardia-univ', 'asesoria-academica', 'asistencia-economica'))
 );
 
 CREATE TABLE inelicom.faculties (
@@ -207,18 +211,6 @@ CREATE TABLE inelicom.buildings (
   gpin        TEXT         NOT NULL,
   created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE TABLE inelicom.departments (
-  department_id SERIAL       PRIMARY KEY,
-  name          VARCHAR(255) NOT NULL UNIQUE,
-  faculty_id    INT          NOT NULL,
-  building_id   INT          NOT NULL,
-  created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (faculty_id) REFERENCES inelicom.faculties(faculty_id) ON DELETE CASCADE,
-  FOREIGN KEY (building_id) REFERENCES inelicom.buildings(building_id) ON DELETE CASCADE
-);
-
 
 CREATE TABLE inelicom.projects (
   project_id  SERIAL       PRIMARY KEY,

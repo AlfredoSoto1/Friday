@@ -75,15 +75,4 @@ public sealed partial class InelicomService : IInelicomService
     return await _repository.GetBuilding(connection, id);
   }
 
-  public async Task<Result<Paged<Department>, AppError>> GetDepartments(InelicomQuery query)
-  {
-    using var connection = _dbFactory.Create();
-    return await _repository.GetDepartments(connection, query);
-  }
-
-  public async Task<Result<Department, AppError>> GetDepartment(int id)
-  {
-    using var connection = _dbFactory.Create();
-    return await _repository.GetDepartment(connection, id);
-  }
 }

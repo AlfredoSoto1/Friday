@@ -7,8 +7,6 @@ import type {
   ContactDto,
   ContactRequest,
   CsvImportResultDto,
-  DepartmentDto,
-  DepartmentRequest,
   FacultyDto,
   FacultyRequest,
   InelicomCsvImportKind,
@@ -86,39 +84,6 @@ export class InelicomApi {
     buildingId: number
   ): Promise<EnvelopeResult<boolean>> {
     return axios.delete(`${BASE}/buildings/${buildingId}`)
-      .then((response) => EnvelopeResult.fromObject<boolean>(response.data))
-      .catch((error: unknown) => EnvelopeResult.fromError<boolean>(error));
-  }
-
-  static async getDepartments(): Promise<EnvelopeResult<Paged<DepartmentDto>>> {
-    return axios.get(`${BASE}/departments`)
-      .then((response) => EnvelopeResult.fromList<DepartmentDto>(response.data))
-      .catch((error: unknown) => (
-        EnvelopeResult.fromError<Paged<DepartmentDto>>(error)
-      ));
-  }
-
-  static async createDepartment(
-    data: DepartmentRequest
-  ): Promise<EnvelopeResult<DepartmentDto>> {
-    return axios.post(`${BASE}/departments`, keysToSnake(data))
-      .then((response) => EnvelopeResult.fromObject<DepartmentDto>(response.data))
-      .catch((error: unknown) => EnvelopeResult.fromError<DepartmentDto>(error));
-  }
-
-  static async updateDepartment(
-    departmentId: number,
-    data: DepartmentRequest
-  ): Promise<EnvelopeResult<DepartmentDto>> {
-    return axios.put(`${BASE}/departments/${departmentId}`, keysToSnake(data))
-      .then((response) => EnvelopeResult.fromObject<DepartmentDto>(response.data))
-      .catch((error: unknown) => EnvelopeResult.fromError<DepartmentDto>(error));
-  }
-
-  static async deleteDepartment(
-    departmentId: number
-  ): Promise<EnvelopeResult<boolean>> {
-    return axios.delete(`${BASE}/departments/${departmentId}`)
       .then((response) => EnvelopeResult.fromObject<boolean>(response.data))
       .catch((error: unknown) => EnvelopeResult.fromError<boolean>(error));
   }

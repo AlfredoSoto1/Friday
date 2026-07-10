@@ -88,7 +88,6 @@ export function ContentDialog({
   const canSave = Boolean(
     values.name.trim()
     && (kind !== "building" || values.gpin.trim())
-    && (kind !== "department" || (values.facultyId && values.buildingId))
   );
 
   return (
@@ -97,9 +96,6 @@ export function ContentDialog({
         <Button
           variant={current ? "ghost" : "default"}
           size={current ? "icon-sm" : "sm"}
-          disabled={
-            kind === "department" && (!data.faculties.length || !data.buildings.length)
-          }
         >
           {current ? <Pencil /> : <Plus />}
           {current ? <span className="sr-only">{label}</span> : label}
@@ -140,32 +136,6 @@ export function ContentDialog({
                 }}
               />
             </Field>
-          ) : null}
-          {kind === "department" ? (
-            <RelationSelect
-              label="Faculty"
-              value={values.facultyId}
-              options={data.faculties.map((faculty) => ({
-                id: faculty.facultyId,
-                name: faculty.name,
-              }))}
-              onChange={(facultyId): void => {
-                setValues((currentValues) => ({ ...currentValues, facultyId }));
-              }}
-            />
-          ) : null}
-          {kind === "department" ? (
-            <RelationSelect
-              label="Building"
-              value={values.buildingId}
-              options={data.buildings.map((building) => ({
-                id: building.buildingId,
-                name: building.name,
-              }))}
-              onChange={(buildingId): void => {
-                setValues((currentValues) => ({ ...currentValues, buildingId }));
-              }}
-            />
           ) : null}
         </FieldGroup>
         <DialogFooter showCloseButton>

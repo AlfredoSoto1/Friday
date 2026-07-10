@@ -9,16 +9,15 @@ public interface IInelicomRepository
   Task<Result<Paged<Contact>, AppError>> GetContacts(IDbConnection connection, InelicomQuery query);
   Task<Result<Contact, AppError>> GetContact(IDbConnection connection, int id);
 
+  Task<Result<Paged<Contact>, AppError>> GetContactsByType(IDbConnection connection, string contactType, InelicomQuery query);
+
   Task<Result<Paged<Faculty>, AppError>> GetFaculties(IDbConnection connection, InelicomQuery query);
   Task<Result<Faculty, AppError>> GetFaculty(IDbConnection connection, int id);
 
   Task<Result<Paged<Building>, AppError>> GetBuildings(IDbConnection connection, InelicomQuery query);
   Task<Result<Building, AppError>> GetBuilding(IDbConnection connection, int id);
 
-  Task<Result<Paged<Department>, AppError>> GetDepartments(IDbConnection connection, InelicomQuery query);
-  Task<Result<Department, AppError>> GetDepartment(IDbConnection connection, int id);
-
-  Task<Result<Paged<Project>, AppError>> GetProjects(IDbConnection connection, InelicomQuery query);
+  // blank line before projects
   Task<Result<Project, AppError>> GetProject(IDbConnection connection, int id);
 
   Task<Result<Paged<Organization>, AppError>> GetOrganizations(IDbConnection connection, InelicomQuery query);

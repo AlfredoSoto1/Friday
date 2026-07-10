@@ -119,13 +119,12 @@ export function ContentTableCard({
 function recordId(kind: ContentKind, record: ContentRecord): number {
   if (kind === "faculty" && "facultyId" in record) return record.facultyId;
   if (kind === "building" && "buildingId" in record) return record.buildingId;
-  if (kind === "department" && "departmentId" in record) return record.departmentId;
   return 0;
 }
 
 function relationName(
   data: ContentData,
-  relation: "faculty" | "building" | "department",
+  relation: "faculty" | "building",
   record: ContentRecord
 ): string {
   if (relation === "faculty" && "facultyId" in record) {
@@ -133,9 +132,6 @@ function relationName(
   }
   if (relation === "building" && "buildingId" in record) {
     return data.buildings.find((item) => item.buildingId === record.buildingId)?.name ?? "Unknown";
-  }
-  if (relation === "department" && "departmentId" in record) {
-    return data.departments.find((item) => item.departmentId === record.departmentId)?.name ?? "Unknown";
   }
   return "Unknown";
 }

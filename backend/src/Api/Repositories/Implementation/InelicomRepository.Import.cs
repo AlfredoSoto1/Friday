@@ -167,75 +167,6 @@ public sealed partial class InelicomRepository
       FROM upsert;
     ";
 
-    const string departmentsSql = @"
-      WITH input AS (
-        SELECT
-          row_number() OVER ()::int AS source_row,
-          name,
-          CASE
-            WHEN NULLIF(faculty_id, '') ~ '^[0-9]+$' THEN faculty_id::int
-          END AS faculty_id,
-          COALESCE(NULLIF(faculty_name, ''), NULLIF(faculty, '')) AS faculty_name,
-          CASE
-            WHEN NULLIF(building_id, '') ~ '^[0-9]+$' THEN building_id::int
-          END AS building_id,
-          COALESCE(
-            NULLIF(building_name, ''),
-            NULLIF(building, ''),
-            NULLIF(building_code, '')) AS building_name
-        FROM jsonb_to_recordset(CAST(@RowsJson AS jsonb)) AS source(
-          name text,
-          faculty_id text,
-          faculty_name text,
-          faculty text,
-          building_id text,
-          building_name text,
-          building text,
-          building_code text)
-      ), resolved AS (
-        SELECT
-          input.source_row,
-          input.name,
-          COALESCE(input.faculty_id, faculties.faculty_id) AS faculty_id,
-          COALESCE(input.building_id, buildings.building_id) AS building_id
-        FROM input
-        LEFT JOIN inelicom.faculties faculties
-          ON (input.faculty_id IS NOT NULL
-              AND faculties.faculty_id = input.faculty_id)
-          OR (input.faculty_id IS NULL
-              AND input.faculty_name IS NOT NULL
-              AND faculties.name ILIKE input.faculty_name)
-        LEFT JOIN inelicom.buildings buildings
-          ON (input.building_id IS NOT NULL
-              AND buildings.building_id = input.building_id)
-          OR (input.building_id IS NULL
-              AND input.building_name IS NOT NULL
-              AND (buildings.name ILIKE input.building_name
-                OR buildings.code ILIKE input.building_name))
-      ), valid AS (
-        SELECT *
-        FROM resolved
-        WHERE name IS NOT NULL
-          AND faculty_id IS NOT NULL
-          AND building_id IS NOT NULL
-      ), upsert AS (
-        INSERT INTO inelicom.departments (name, faculty_id, building_id)
-        SELECT name, faculty_id, building_id
-        FROM valid
-        ON CONFLICT (name) DO UPDATE
-          SET name = EXCLUDED.name,
-              faculty_id = EXCLUDED.faculty_id,
-              building_id = EXCLUDED.building_id
-        RETURNING xmax = 0 AS inserted
-      )
-      SELECT
-        COUNT(*) FILTER (WHERE inserted)::int AS ""Inserted"",
-        COUNT(*) FILTER (WHERE NOT inserted)::int AS ""Updated"",
-        ((SELECT COUNT(*) FROM input)
-          - (SELECT COUNT(*) FROM valid))::int AS ""Skipped""
-      FROM upsert;
-    ";
-
     const string projectsSql = @"
       WITH input AS (
         SELECT
@@ -332,7 +263,6 @@ public sealed partial class InelicomRepository
         "buildings" => buildingsSql,
         "contacts" => contactsSql,
         "faculties" => facultiesSql,
-        "departments" => departmentsSql,
         "projects" => projectsSql,
         "organizations" => organizationsSql,
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unsupported CSV type.")

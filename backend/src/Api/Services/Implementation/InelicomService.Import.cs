@@ -15,7 +15,6 @@ public sealed partial class InelicomService
       "building" or "buildings" or "googlepin" or "googlepins" or "google-pin" or "google-pins" => "buildings",
       "contact" or "contacts" => "contacts",
       "faculty" or "faculties" => "faculties",
-      "department" or "departments" => "departments",
       "project" or "projects" => "projects",
       "organization" or "organizations" or "organisation" or "organisations" => "organizations",
       _ => null
@@ -25,7 +24,7 @@ public sealed partial class InelicomService
     {
       return Result<CsvImportResult, AppError>.Fail(
         AppError.ValidationFailed(
-          "Unsupported CSV type. Use buildings, faculties, contacts, departments, projects, or organizations."));
+          "Unsupported CSV type. Use buildings, faculties, contacts, projects, or organizations."));
     }
 
     List<Dictionary<string, string?>> rows;

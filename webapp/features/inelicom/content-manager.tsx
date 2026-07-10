@@ -17,7 +17,6 @@ import { InelicomApi } from "@/server/webservices/inelicom-webservice";
 const emptyData: ContentData = {
   faculties: [],
   buildings: [],
-  departments: [],
 };
 
 export function ContentManager(): React.ReactElement {
@@ -34,7 +33,6 @@ export function ContentManager(): React.ReactElement {
     const results = await Promise.all([
       InelicomApi.getFaculties(),
       InelicomApi.getBuildings(),
-      InelicomApi.getDepartments(),
     ]);
     const failed = results.find((result) => result.isFailure);
 
@@ -47,7 +45,6 @@ export function ContentManager(): React.ReactElement {
     setData({
       faculties: results[0].value.items,
       buildings: results[1].value.items,
-      departments: results[2].value.items,
     });
     setError("");
     setLoading(false);

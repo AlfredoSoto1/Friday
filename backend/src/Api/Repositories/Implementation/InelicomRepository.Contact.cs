@@ -139,4 +139,35 @@ public sealed partial class InelicomRepository
     Website = (string)record.website,
     CreatedAt = (DateTime)record.created_at
   };
+
+  public async Task<Result<Paged<Contact>, AppError>> GetContactsByType(IDbConnection connection, string contactType, InelicomQuery query)
+  {
+    try
+    {
+      const string sql = @"
+        SELECT contact_id, name, email, phone, website, created_at, COUNT(*) OVER() AS total
+          FROM inelicom.contacts
+        WHERE contact_type = @ContactType AND (@Search IS NULL OR name ILIKE @Search OR email ILIKE @Search)
+        ORDER BY name
+        LIMIT @Limit OFFSET @Offset;
+      ";
+
+      var records = await connection.QueryAsync(sql, new
+      {
+        ContactType = contactType,
+        Search = string.IsNullOrWhiteSpace(query.Search) ? null : $"%{query.Search}%",
+        query.Limit,
+        Offset = query.PageIndex * query.Limit
+      });
+
+      var items = records.Select(MapToContact).ToArray();
+      var total = records.Select(record => (long)record.total).FirstOrDefault();
+      return Result<Paged<Contact>, AppError>.Ok(new Paged<Contact>(items, total));
+    }
+    catch (Exception ex)
+    {
+      return Result<Paged<Contact>, AppError>.Fail(AppError.BadRequest(ex.Message));
+    }
+  };
+
 }

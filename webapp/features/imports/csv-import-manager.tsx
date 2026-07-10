@@ -35,7 +35,6 @@ const importTargets: Array<{ kind: InelicomCsvImportKind; label: string }> = [
   { kind: "buildings", label: "Buildings" },
   { kind: "contacts", label: "Contacts" },
   { kind: "faculties", label: "Faculties" },
-  { kind: "departments", label: "Departments" },
   { kind: "projects", label: "Projects" },
   { kind: "organizations", label: "Organizations" },
 ];

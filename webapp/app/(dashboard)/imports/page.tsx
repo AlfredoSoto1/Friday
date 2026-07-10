@@ -42,7 +42,7 @@ export default function ImportsPage(): React.ReactElement {
           <CardHeader>
             <CardTitle className="text-3xl">Import CSV data</CardTitle>
             <CardDescription>
-              Upload CSV files for buildings, contacts, faculties, departments, projects, and organizations.
+              Upload CSV files for buildings, contacts, faculties, projects, and organizations.
             </CardDescription>
           </CardHeader>
         </Card>

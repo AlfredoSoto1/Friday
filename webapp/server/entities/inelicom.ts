@@ -124,7 +124,6 @@ export type InelicomCsvImportKind =
   | "buildings"
   | "contacts"
   | "faculties"
-  | "departments"
   | "projects"
   | "organizations";
 

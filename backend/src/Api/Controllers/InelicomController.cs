@@ -57,26 +57,6 @@ public sealed class InelicomController : ControllerBase
     return result.Send();
   }
 
-  [HttpGet("departments")]
-  public async Task<IActionResult> GetDepartments([FromQuery] InelicomQuery query)
-  {
-    var reqResult = query.Validate();
-    if (reqResult.IsFailure)
-    {
-      return reqResult.Send();
-    }
-
-    var result = await _service.GetDepartments(reqResult.Value);
-    return result.Send(query.Limit, query.PageIndex);
-  }
-
-  [HttpGet("departments/{id:int}")]
-  public async Task<IActionResult> GetDepartment([FromRoute] int id)
-  {
-    var result = await _service.GetDepartment(id);
-    return result.Send();
-  }
-
   [HttpGet("contacts")]
   public async Task<IActionResult> GetContacts([FromQuery] InelicomQuery query)
   {
