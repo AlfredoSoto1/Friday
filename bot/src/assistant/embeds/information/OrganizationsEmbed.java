@@ -1,6 +1,7 @@
 package assistant.embeds.information;
 
 import assistant.backend.dto.OrganizationDTO;
+import assistant.embeds.EmbedValues;
 import java.util.List;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -10,29 +11,30 @@ public final class OrganizationsEmbed {
     EmbedBuilder embed =
         new EmbedBuilder()
             .setColor(color)
-            .setTitle("🌐  " + safe(organization.getName(), "Student Organization"))
-            .setDescription(safe(organization.getDescription(), "Meet this campus community."));
+            .setTitle("🌐  " + EmbedValues.na(organization.getName()))
+            .setDescription(EmbedValues.na(organization.getDescription()));
 
     String links = links(organization.getEmail(), organization.getWebsite());
-    if (!links.isBlank()) embed.addField("Get involved", links, false);
+    embed.addField("Get involved", links, false);
 
     String social = social(organization.getPlatforms(), organization.getUrlhandle());
-    if (!social.isBlank()) embed.addField("Follow their work", social, false);
+    embed.addField("Follow their work", social, false);
     return embed.build();
   }
 
   private String links(String email, String website) {
-    StringBuilder result = new StringBuilder();
-    if (present(email)) result.append("✉️  ").append(email.trim());
+    StringBuilder result = new StringBuilder("✉️  ").append(EmbedValues.na(email));
     if (present(website)) append(result, "🌐  [Official website](" + website.trim() + ")");
+    else append(result, "🌐  N/A");
     return result.toString();
   }
 
   private String social(List<String> platforms, List<String> handles) {
+    if (platforms == null || handles == null || platforms.isEmpty() || handles.isEmpty()) return "N/A";
     StringBuilder result = new StringBuilder();
     for (int index = 0; index < Math.min(platforms.size(), handles.size()); index++)
-      append(result, "• **" + platforms.get(index) + ":** " + handles.get(index));
-    return result.toString();
+      append(result, "• **" + EmbedValues.na(platforms.get(index)) + ":** " + EmbedValues.na(handles.get(index)));
+    return result.isEmpty() ? "N/A" : result.toString();
   }
 
   private void append(StringBuilder builder, String line) {
@@ -44,7 +46,4 @@ public final class OrganizationsEmbed {
     return value != null && !value.isBlank();
   }
 
-  private String safe(String value, String fallback) {
-    return present(value) ? value.trim() : fallback;
-  }
 }

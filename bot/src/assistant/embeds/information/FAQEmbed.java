@@ -1,5 +1,6 @@
 package assistant.embeds.information;
 
+import assistant.embeds.EmbedValues;
 import java.util.List;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -52,7 +53,7 @@ public final class FAQEmbed {
         question(
             "01",
             "¿Cómo aprendo a usar Discord?",
-            "Consulta `/help` o comunícate con " + developerRole + "."),
+            "Consulta `/help` o comunícate con " + EmbedValues.na(developerRole) + "."),
         question(
             "02",
             "¿Por qué no veo todos los canales?",
@@ -61,7 +62,7 @@ public final class FAQEmbed {
         question(
             "03",
             "Tengo una idea para el bot",
-            "Compártela con " + developerRole + " o " + advisorRole + "."),
+            "Compártela con " + EmbedValues.na(developerRole) + " o " + EmbedValues.na(advisorRole) + "."),
         question(
             "04",
             "¿Dónde encuentro los comandos?",
@@ -70,7 +71,7 @@ public final class FAQEmbed {
             "05",
             "¿Cómo se creó Friday?",
             "Friday está desarrollado en Java con JDA. "
-                + developerRole
+                + EmbedValues.na(developerRole)
                 + " puede orientarte si deseas colaborar."),
         question(
             "06",
@@ -104,7 +105,7 @@ public final class FAQEmbed {
         question(
             "13",
             "¿A quién contacto si sigo teniendo dudas?",
-            "Comunícate con " + advisorRole + " o utiliza los comandos de contacto en `/help`."));
+            "Comunícate con " + EmbedValues.na(advisorRole) + " o utiliza los comandos de contacto en `/help`."));
   }
 
   private Field question(String number, String title, String answer) {

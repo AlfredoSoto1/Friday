@@ -38,7 +38,6 @@ import assistant.commands.information.EOInfoCmd;
 import assistant.commands.information.FAQCmd;
 import assistant.commands.information.FacultyCmd;
 import assistant.commands.information.FindBuildingCmd;
-import assistant.commands.information.FindLabCmd;
 import assistant.commands.information.HelpCmd;
 import assistant.commands.information.OrgsCmd;
 import assistant.commands.information.ProjectsCmd;
@@ -65,7 +64,6 @@ public final class ECEAssistant extends BotApplication {
             global(new OrgsCmd()),
             new EOInfoCmd(),
             global(new FindBuildingCmd()),
-            global(new FindLabCmd()),
             new FAQCmd(),
             global(new HelpCmd()),
             global(new UprmMapCmd()),

@@ -55,7 +55,7 @@ public sealed partial class BotService : IBotService
           "Faculty",
           "No faculty records found.",
           (conn, query) => _inelicomRepository.GetFaculties(conn, query),
-          faculty => faculty.Name),
+          faculty => faculty.Name ?? "N/A"),
 
         "ls_projects" => await GetInelicomCommandResponse(
           connection,
@@ -63,15 +63,15 @@ public sealed partial class BotService : IBotService
           "Projects and Research",
           "No project records found.",
           (conn, query) => _inelicomRepository.GetProjects(conn, query),
-          project => $"{project.Name} - {project.Description}"),
+          project => $"{project.Name ?? "N/A"} - {project.Description ?? "N/A"}"),
 
-        "ls_student_orgs" => await GetInelicomCommandResponse(
+        "ls_organizations" or "ls_student_orgs" => await GetInelicomCommandResponse(
           connection,
           commandName,
           "Student Organizations",
           "No student organization records found.",
           (conn, query) => _inelicomRepository.GetOrganizations(conn, query),
-          organization => $"{organization.Name} - {organization.Description}"),
+          organization => $"{organization.Name ?? "N/A"} - {organization.Description ?? "N/A"}"),
 
         "salon" => await GetInelicomCommandResponse(
           connection,
@@ -79,15 +79,7 @@ public sealed partial class BotService : IBotService
           "Buildings",
           "No building records found.",
           (conn, query) => _inelicomRepository.GetBuildings(conn, query),
-          building => $"{building.Code ?? building.Name} - {building.Name}"),
-
-        "lab" => await GetInelicomCommandResponse(
-          connection,
-          commandName,
-          "Buildings",
-          "No building records found.",
-          (conn, query) => _inelicomRepository.GetBuildings(conn, query),
-          building => $"{building.Code ?? building.Name} - {building.Name}"),
+          building => $"{building.Code ?? building.Name ?? "N/A"} - {building.Name ?? "N/A"}"),
 
         "contact-department" => await GetInelicomCommandResponse(
           connection,
@@ -95,7 +87,7 @@ public sealed partial class BotService : IBotService
           "Departments",
           "No department records found.",
           (conn, query) => _inelicomRepository.GetDepartments(conn, query),
-          department => department.Name),
+          department => department.Name ?? "N/A"),
 
         "contact-dcsp" => await GetInelicomCommandResponse(
           connection,
@@ -103,7 +95,7 @@ public sealed partial class BotService : IBotService
           "Contact Information",
           "No matching contact records found.",
           (conn, query) => _inelicomRepository.GetContacts(conn, query),
-          contact => $"{contact.Name} - {contact.Email} - {contact.Phone} - {contact.Website}",
+          contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
           "DCSP"),
 
         "contact-decanato-estudiantes" => await GetInelicomCommandResponse(
@@ -112,7 +104,7 @@ public sealed partial class BotService : IBotService
           "Contact Information",
           "No matching contact records found.",
           (conn, query) => _inelicomRepository.GetContacts(conn, query),
-          contact => $"{contact.Name} - {contact.Email} - {contact.Phone} - {contact.Website}",
+          contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
           "Decanato"),
 
         "contact-guardia-univ" => await GetInelicomCommandResponse(
@@ -121,7 +113,7 @@ public sealed partial class BotService : IBotService
           "Contact Information",
           "No matching contact records found.",
           (conn, query) => _inelicomRepository.GetContacts(conn, query),
-          contact => $"{contact.Name} - {contact.Email} - {contact.Phone} - {contact.Website}",
+          contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
           "Guardia"),
 
         "contact-asesoria-academica" => await GetInelicomCommandResponse(
@@ -130,7 +122,7 @@ public sealed partial class BotService : IBotService
           "Contact Information",
           "No matching contact records found.",
           (conn, query) => _inelicomRepository.GetContacts(conn, query),
-          contact => $"{contact.Name} - {contact.Email} - {contact.Phone} - {contact.Website}",
+          contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
           "Asesoria"),
 
         "contact-asistencia-economica" => await GetInelicomCommandResponse(
@@ -139,7 +131,7 @@ public sealed partial class BotService : IBotService
           "Contact Information",
           "No matching contact records found.",
           (conn, query) => _inelicomRepository.GetContacts(conn, query),
-          contact => $"{contact.Name} - {contact.Email} - {contact.Phone} - {contact.Website}",
+          contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
           "Asistencia"),
 
         _ => Result<BotCommandResponse, AppError>.Ok(new BotCommandResponse

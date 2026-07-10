@@ -1,6 +1,7 @@
 package assistant.embeds.games;
 
 import assistant.backend.dto.UserRankDTO;
+import assistant.embeds.EmbedValues;
 import java.util.List;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -31,7 +32,7 @@ public final class LevelUpEmbed {
     for (int index = 0; index < leaderboard.size(); index++) {
       UserRankDTO rank = leaderboard.get(index);
       embed.addField(
-          medal(index) + "  " + safe(rank.getUsername(), "Unknown member"),
+          medal(index) + "  " + EmbedValues.na(rank.getUsername()),
           "**Level "
               + rank.getLevel()
               + "**  •  Rank #"
@@ -50,7 +51,7 @@ public final class LevelUpEmbed {
 
     return new EmbedBuilder()
         .setColor(color)
-        .setAuthor(safe(userRank.getUsername(), "Your profile"), null, avatarUrl)
+        .setAuthor(EmbedValues.na(userRank.getUsername()), null, avatarUrl)
         .setTitle("📈 Rank Overview")
         .setThumbnail(avatarUrl)
         .addField("Position", "#" + userRank.getRank(), true)
@@ -74,9 +75,5 @@ public final class LevelUpEmbed {
   private String progressBar(int percent) {
     int filled = (int) Math.ceil(10 * (percent / 100.0));
     return "▰".repeat(filled) + "▱".repeat(10 - filled);
-  }
-
-  private String safe(String value, String fallback) {
-    return value == null || value.isBlank() ? fallback : value;
   }
 }

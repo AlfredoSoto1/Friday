@@ -70,8 +70,10 @@ public class ProjectsCmd extends InteractionModel implements CommandI {
 
   @Override
   public List<OptionData> getOptions(Guild server) {
-    return List.of(
-        new OptionData(OptionType.STRING, COMMAND_LABEL, "Escribe el nombre del proyecto", true));
+    OptionData projects =
+        new OptionData(OptionType.STRING, COMMAND_LABEL, "Selecciona el proyecto", true);
+    service.getProjectNames(0, 25).forEach(name -> projects.addChoice(name, name));
+    return List.of(projects);
   }
 
   @Override

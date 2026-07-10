@@ -15,9 +15,11 @@
  */
 package assistant.embeds.information;
 
-import assistant.backend.dto.ExtensionDTO;
 import assistant.backend.dto.FacultyDTO;
 import assistant.backend.dto.WebpageDTO;
+import assistant.backend.dto.ContactDTO;
+import assistant.embeds.EmbedValues;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -34,16 +36,26 @@ public class FacultyEmbed {
       int color, String department, List<FacultyDTO> faculty, long page, long maxPages) {
 
     EmbedBuilder embed =
-        new EmbedBuilder().setColor(color).setTitle(department + " faculty").setDescription("");
+        new EmbedBuilder().setColor(color).setTitle(EmbedValues.na(department) + " faculty").setDescription("");
 
     for (FacultyDTO professor : faculty) {
+      ContactDTO contact = professor.getContact();
       List<String> webPages =
-          professor.getContact().getWebpages().stream()
-              .map(WebpageDTO::getUrl)
+          contact == null || contact.getWebpages() == null
+              ? Collections.emptyList()
+              : contact.getWebpages().stream()
+              .map(webpage -> webpage == null ? "N/A" : EmbedValues.na(webpage.getUrl()))
               .collect(Collectors.toList());
+      String extensions = contact == null || contact.getExtensions() == null
+          ? "N/A"
+          : contact.getExtensions().isEmpty()
+              ? "N/A"
+              : contact.getExtensions().stream()
+                  .map(extension -> extension == null ? "N/A" : EmbedValues.na(extension.getExt()))
+                  .collect(Collectors.joining(", "));
 
       embed.addField(
-          professor.getName(),
+          EmbedValues.na(professor.getName()),
           String.format(
               """
               > %s
@@ -54,16 +66,12 @@ public class FacultyEmbed {
               > - Ext. %s
               %s
               """,
-              professor.getDescription(),
-              professor.getJobentitlement(),
-              professor.getContact().getEmail(),
-              professor.getOffice(),
-              String.join(
-                  ", ",
-                  professor.getContact().getExtensions().stream()
-                      .map(ExtensionDTO::getExt)
-                      .collect(Collectors.toList())),
-              webPages.isEmpty() ? "" : "> - Página oficial: " + String.join(", ", webPages)),
+              EmbedValues.na(professor.getDescription()),
+              EmbedValues.na(professor.getJobentitlement()),
+              contact == null ? "N/A" : EmbedValues.na(contact.getEmail()),
+              EmbedValues.na(professor.getOffice()),
+              extensions,
+              webPages.isEmpty() ? "> - Página oficial: N/A" : "> - Página oficial: " + String.join(", ", webPages)),
           false);
     }
 
@@ -77,7 +85,7 @@ public class FacultyEmbed {
             """,
             page,
             maxPages,
-            department.equalsIgnoreCase("ECE")
+            EmbedValues.na(department).equalsIgnoreCase("ECE")
                 ? "https://ece.uprm.edu/people/faculty/#cn-top"
                 : "https://www.uprm.edu/cse/faculty/"),
         false);

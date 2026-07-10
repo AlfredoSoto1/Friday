@@ -17,11 +17,20 @@ package assistant.commands.moderation;
 
 import java.util.List;
 
+import assistant.backend.BackendClient;
+import assistant.backend.dto.BotSyncChannel;
+import assistant.backend.dto.BotSyncRequest;
+import assistant.backend.dto.BotSyncResult;
+import assistant.backend.dto.BotSyncRole;
 import assistant.app.discord.BotApplication;
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
 import assistant.app.model.AssistantOptions;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.attribute.ICategorizableChannel;
+import net.dv8tion.jda.api.entities.channel.attribute.IAgeRestrictedChannel;
+import net.dv8tion.jda.api.entities.channel.attribute.IPositionableChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -65,7 +74,8 @@ public class AssistantCmd extends InteractionModel implements CommandI {
 	public List<OptionData> getOptions(Guild server) {
 		return List.of(
 			new OptionData(OptionType.STRING, COMMAND_LABEL, "Choose a command", true)
-				.addChoice("disconnect", AssistantOptions.DISCONNECT.getOption())
+				.addChoice("disable", AssistantOptions.DISABLE.getOption())
+				.addChoice("sync", AssistantOptions.SYNC.getOption())
 			);
 	}
 
@@ -77,14 +87,58 @@ public class AssistantCmd extends InteractionModel implements CommandI {
 		AssistantOptions option = AssistantOptions.asOption(event.getOption(COMMAND_LABEL).getAsString());
 		
 		switch(option) {
-		case AssistantOptions.DISCONNECT:
+		case DISABLE:
 			event.reply("Shutting down...").setEphemeral(event.isFromGuild()).queue();
 			bot.shutdown();
+			break;
+		case SYNC:
+			sync(event);
 			break;
 		default:
 			// skip this action if no reply was provided
 			event.reply("Mmhh this command does nothing, try again with another one")
 				.setEphemeral(event.isFromGuild()).queue();
 		}
+	}
+
+	private void sync(SlashCommandInteractionEvent event) {
+		Guild guild = event.getGuild();
+		List<BotSyncRole> roles = guild.getRoles().stream()
+			.map(role -> new BotSyncRole(
+				role.getId(),
+				role.getName(),
+				role.getColorRaw(),
+				role.getPosition(),
+				role.isManaged(),
+				role.isMentionable(),
+				role.isHoisted()))
+			.toList();
+		List<BotSyncChannel> channels = guild.getChannels().stream()
+			.map(channel -> new BotSyncChannel(
+				channel.getId(),
+				channel instanceof ICategorizableChannel categorizable
+					? categorizable.getParentCategoryId() : null,
+				channel.getName(),
+				channel.getType().name().toLowerCase(),
+				channel instanceof IPositionableChannel positionable
+					? positionable.getPosition() : 0,
+				channel instanceof StandardGuildMessageChannel messageChannel
+					? messageChannel.getTopic() : null,
+				channel instanceof IAgeRestrictedChannel ageRestricted
+					&& ageRestricted.isNSFW()))
+			.toList();
+
+		event.deferReply(true).queue(hook -> {
+			BotSyncResult result = BackendClient.syncGuild(new BotSyncRequest(
+				guild.getIdLong(),
+				guild.getName(),
+				event.getUser().getId(),
+				roles,
+				channels));
+			String message = result.syncedAt() == null
+				? "Unable to synchronize this server with the backend."
+				: String.format("Synchronized %d roles and %d channels.", result.roleCount(), result.channelCount());
+			hook.editOriginal(message).queue();
+		});
 	}
 }

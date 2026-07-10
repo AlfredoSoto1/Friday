@@ -1,6 +1,9 @@
 package assistant.embeds.contacts;
 
 import assistant.backend.dto.ServiceDTO;
+import assistant.embeds.EmbedValues;
+import java.util.List;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
@@ -9,60 +12,70 @@ public final class ServicesEmbed {
     EmbedBuilder embed =
         new EmbedBuilder()
             .setColor(color)
-            .setTitle("🏛️  " + safe(service.getName(), "University Service"))
-            .setDescription(
-                safe(service.getDescription(), "Contact information and available resources."));
+            .setTitle("🏛️  " + EmbedValues.na(service.getName()))
+            .setDescription(EmbedValues.na(service.getDescription()));
 
     String location = location(service);
-    if (!location.isBlank()) embed.addField("📍 Location", location, true);
+    embed.addField("📍 Location", location, true);
 
-    String availability = clean(service.getAvailability());
-    if (!availability.isBlank()) embed.addField("🕒 Availability", availability, true);
+    embed.addField("🕒 Availability", EmbedValues.na(service.getAvailability()), true);
 
-    String contact = contact(service);
-    if (!contact.isBlank()) embed.addField("🔗 Contact", contact, false);
+    embed.addField("🔗 Contact", contact(service), false);
 
-    if (!service.getOffering().isEmpty())
-      embed.addField("What they offer", "• " + String.join("\n• ", service.getOffering()), false);
+    embed.addField("What they offer", list(service.getOffering()), false);
 
-    service
-        .getAdditional()
-        .forEach((name, values) -> embed.addField(name, "• " + String.join("\n• ", values), false));
+    if (service.getAdditional() != null) {
+      service.getAdditional().forEach((name, values) -> embed.addField(
+          EmbedValues.na(name), list(values), false));
+    }
     return embed.build();
   }
 
   private String location(ServiceDTO service) {
-    String department = clean(service.getDepartmentAbbreviation());
-    String building = clean(service.getBuildingName());
-    String code = clean(service.getBuildingCode());
+    String department = EmbedValues.na(service.getDepartmentAbbreviation());
+    String building = EmbedValues.na(service.getBuildingName());
+    String code = EmbedValues.na(service.getBuildingCode());
     StringBuilder value = new StringBuilder();
-    if (!department.isBlank()) value.append("**Department:** ").append(department);
-    if (!building.isBlank()) {
-      if (!value.isEmpty()) value.append("\n");
-      value.append("**Building:** ").append(building);
-      if (!code.isBlank()) value.append(" (`").append(code.toUpperCase()).append("`)");
-    }
+    value.append("**Department:** ").append(department).append("\n");
+    value.append("**Building:** ").append(building);
+    value.append(" (`").append(code.toUpperCase()).append("`)");
     return value.toString();
   }
 
   private String contact(ServiceDTO service) {
-    if (service.getContact() == null) return "";
-    StringBuilder value = new StringBuilder();
-    String email = clean(service.getContact().getEmail());
-    if (!email.isBlank()) value.append("✉️  ").append(email);
-    service
-        .getContact()
-        .getWebpages()
-        .forEach(
-            page ->
-                append(
-                    value,
-                    "🌐  [" + safe(page.getDescription(), "Website") + "](" + page.getUrl() + ")"));
-    service
-        .getContact()
-        .getSocialmedias()
-        .forEach(social -> append(value, "• **" + social.getPlatform() + ":** " + social.getUrl()));
+    if (service.getContact() == null) return "N/A";
+    StringBuilder value = new StringBuilder("✉️  ").append(EmbedValues.na(service.getContact().getEmail()));
+    List<?> webpages = service.getContact().getWebpages();
+    if (webpages == null || webpages.isEmpty()) append(value, "🌐  N/A");
+    else service.getContact().getWebpages().forEach(page -> {
+      if (page == null) {
+        append(value, "🌐  N/A");
+        return;
+      }
+      String url = EmbedValues.na(page == null ? null : page.getUrl());
+      append(value, "N/A".equals(url)
+          ? "🌐  N/A"
+          : "🌐  [" + EmbedValues.na(page.getDescription()) + "](" + url + ")");
+    });
+    if (service.getContact().getSocialmedias() != null) {
+      service.getContact().getSocialmedias().forEach(social -> append(
+          value,
+          "• **" + EmbedValues.na(social == null ? null : social.getPlatform())
+              + ":** " + EmbedValues.na(social == null ? null : social.getUrl())));
+    }
     return value.toString();
+  }
+
+  private String list(List<String> values) {
+    if (values == null || values.isEmpty()) return "N/A";
+    return values.stream().map(EmbedValues::na).collect(Collectors.joining("\n• ", "• ", ""));
+  }
+
+  private String list(String[] values) {
+    if (values == null || values.length == 0) return "N/A";
+    return java.util.Arrays.stream(values)
+        .map(EmbedValues::na)
+        .collect(Collectors.joining("\n• ", "• ", ""));
   }
 
   private void append(StringBuilder value, String line) {
@@ -70,11 +83,4 @@ public final class ServicesEmbed {
     value.append(line);
   }
 
-  private String clean(String value) {
-    return value == null ? "" : value.trim();
-  }
-
-  private String safe(String value, String fallback) {
-    return clean(value).isBlank() ? fallback : value.trim();
-  }
 }

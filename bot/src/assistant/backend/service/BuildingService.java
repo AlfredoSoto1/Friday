@@ -15,12 +15,6 @@ public final class BuildingService {
         .toList();
   }
 
-  public List<LabDTO> getLabsFrom(String code) {
-    return nodes("/api/v1/inelicom/buildings?limit=100&search=" + enc(code)).stream()
-        .map(this::buildingAsLab)
-        .toList();
-  }
-
   public Optional<BuildingDTO> findBuilding(String roomCode) {
     return getAllBuilding(0, 100).stream()
         .filter(
@@ -44,10 +38,6 @@ public final class BuildingService {
     return Optional.empty();
   }
 
-  public boolean insertLab(LabDTO l) {
-    return false;
-  }
-
   private List<JsonNode> nodes(String p) {
     return BackendClient.getData(p).map(n -> n).stream()
         .flatMap(n -> StreamSupport.stream(n.spliterator(), false))
@@ -60,16 +50,6 @@ public final class BuildingService {
     d.setName(n.path("name").asText());
     d.setCode(n.path("code").asText());
     d.setGpin(n.path("gpin").asText());
-    return d;
-  }
-
-  private LabDTO buildingAsLab(JsonNode n) {
-    LabDTO d = new LabDTO();
-    d.setId(n.path("building_id").asInt());
-    d.setCode(n.path("code").asText());
-    d.setName(n.path("name").asText());
-    d.setBuildingCode(n.path("code").asText());
-    d.setBuildingName(n.path("name").asText());
     return d;
   }
 

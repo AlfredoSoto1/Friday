@@ -15,6 +15,8 @@
  */
 package assistant.embeds.information;
 
+import assistant.embeds.EmbedValues;
+
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
@@ -40,7 +42,7 @@ public class RulesEmbed {
                 Estas reglas se tienen que seguir para evitar sansiones y ser baneado o expulsado
                 del servidor. Para reportar algun problema por favor comunicarse con algun %s.
                 """,
-                esoRole))
+                EmbedValues.na(esoRole)))
         .addField(
             "1. :grinning: Trata a todos con respeto",
             """
@@ -54,7 +56,7 @@ public class RulesEmbed {
                 Palabras soeces están __**PROHIBIDAS**__. Los %s censuran cualquier palabra soez
                 detectada así que mucho juicio con su vocabulario.
                 """,
-                botRole),
+                EmbedValues.na(botRole)),
             false)
         .addField(
             "3. :loudspeaker: No self-promotion or advertisements",
@@ -63,7 +65,7 @@ public class RulesEmbed {
                 No se permite autopromoción (invitaciones al servidor, anuncios, etc.)
                 sin el permiso de los %s o %s.
                 """,
-                modRole, staRole),
+                EmbedValues.na(modRole), EmbedValues.na(staRole)),
             false)
         .addField(
             "4. :incoming_envelope: No spam",
@@ -85,7 +87,7 @@ public class RulesEmbed {
                 Si ves algo que va en contra de las reglas o algo que te hace sentir inseguro, díselo
                 a un %s, %s o %s. ¡Queremos que este servidor sea un espacio acogedor!
                 """,
-                staRole, admRole, conRole),
+                EmbedValues.na(staRole), EmbedValues.na(admRole), EmbedValues.na(conRole)),
             false)
         .build();
   }
@@ -110,7 +112,7 @@ public class RulesEmbed {
                 se muestran, pueden acercarse a un %s o %s y presentar su idea para así crear un
                 nuevo channel para atender esos nuevos temas de conversación.
                 """,
-                modRole, staRole),
+                EmbedValues.na(modRole), EmbedValues.na(staRole)),
             false)
         .addField(
             "3. :bulb: Problemas con el Bot",
@@ -118,7 +120,7 @@ public class RulesEmbed {
                 """
                 Si tienes algún problema con el Bot, habla directamente con uno de los %s.
                 """,
-                bdeRole),
+                EmbedValues.na(bdeRole)),
             false)
         .addField(
             "4. :frame_photo: Problemas con el perfil",
@@ -126,7 +128,7 @@ public class RulesEmbed {
                 """
                 Si tienes algún problema con tu perfil o con algo en el servidor de Discord, hable directamente con %s o %s.
                 """,
-                modRole, bdeRole),
+                EmbedValues.na(modRole), EmbedValues.na(bdeRole)),
             false)
         .build();
   }
@@ -151,7 +153,7 @@ public class RulesEmbed {
 
                 - Cualquier duda con un comando le pueden preguntar a los %s directamente.
                 """,
-                bdeRole),
+                EmbedValues.na(bdeRole)),
             false)
         .addField(
             "3. :question: Ayuda directa",
@@ -159,7 +161,7 @@ public class RulesEmbed {
                 """
                 En caso de que el Bot no pueda ayudarlo, contacte a su líder de grupo o a un %s.
                 """,
-                esoRole),
+                EmbedValues.na(esoRole)),
             false)
         .addField(
             "4. :question: Conoce a nuestros estudiantes orientadores",

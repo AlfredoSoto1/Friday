@@ -20,8 +20,8 @@ package assistant.app.model;
  */
 public enum AssistantOptions {
 	NONE         ("none"),
-	DISCONNECT   ("disconnect"),
-	REGISTRATION ("register");
+	DISABLE      ("disable"),
+	SYNC         ("sync");
 	
 	private final String option;
 	

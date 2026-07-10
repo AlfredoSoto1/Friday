@@ -60,7 +60,7 @@ public class OrgsCmd extends InteractionModel implements CommandI {
 
   @Override
   public String getCommandName() {
-    return "ls_student_orgs";
+    return "ls_organizations";
   }
 
   @Override
@@ -70,9 +70,10 @@ public class OrgsCmd extends InteractionModel implements CommandI {
 
   @Override
   public List<OptionData> getOptions(Guild server) {
-    return List.of(
-        new OptionData(
-            OptionType.STRING, COMMAND_LABEL, "Escribe el nombre de la organización", true));
+    OptionData organizations =
+        new OptionData(OptionType.STRING, COMMAND_LABEL, "Selecciona la organización", true);
+    service.getOrganizationNames(0, 25).forEach(name -> organizations.addChoice(name, name));
+    return List.of(organizations);
   }
 
   @Override

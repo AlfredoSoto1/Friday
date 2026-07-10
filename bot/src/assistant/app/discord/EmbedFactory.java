@@ -2,6 +2,7 @@ package assistant.app.discord;
 
 import assistant.backend.dto.BotCommandResponse;
 import assistant.backend.dto.BotGuildProfile;
+import assistant.embeds.EmbedValues;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
@@ -10,8 +11,8 @@ import java.time.Instant;
 public final class EmbedFactory {
   public MessageEmbed commandEmbed(BotGuildProfile profile, BotCommandResponse response) {
     EmbedBuilder builder = base(profile, response.color())
-        .setTitle(response.title())
-        .setDescription(response.description());
+        .setTitle(EmbedValues.na(response.title()))
+        .setDescription(EmbedValues.na(response.description()));
 
     if (response.imageUrl() != null && !response.imageUrl().isBlank()) {
       builder.setImage(response.imageUrl());
@@ -24,8 +25,8 @@ public final class EmbedFactory {
 
   public MessageEmbed verificationEmbed(BotGuildProfile profile) {
     EmbedBuilder builder = base(profile, null)
-        .setTitle(profile.verification().title())
-        .setDescription(profile.verification().description())
+        .setTitle(EmbedValues.na(profile.verification().title()))
+        .setDescription(EmbedValues.na(profile.verification().description()))
         .addField("Pasos",
             "1. Presiona el boton de verificacion.\n2. Escribe tu correo institucional.\n3. Espera que Friday asigne tus roles.",
             false);
@@ -38,8 +39,8 @@ public final class EmbedFactory {
 
   public MessageEmbed welcomeEmbed(BotGuildProfile profile) {
     EmbedBuilder builder = base(profile, null)
-        .setTitle(profile.welcome().title())
-        .setDescription(profile.welcome().description());
+        .setTitle(EmbedValues.na(profile.welcome().title()))
+        .setDescription(EmbedValues.na(profile.welcome().description()));
 
     if (profile.welcome().bannerUrl() != null && !profile.welcome().bannerUrl().isBlank()) {
       builder.setImage(profile.welcome().bannerUrl());
@@ -50,14 +51,14 @@ public final class EmbedFactory {
   public MessageEmbed levelUpEmbed(BotGuildProfile profile, String mention, int level) {
     return base(profile, null)
         .setTitle("Level up")
-        .setDescription(mention + " reached level **" + level + "**.")
+        .setDescription(EmbedValues.na(mention) + " reached level **" + level + "**.")
         .build();
   }
 
   public MessageEmbed gameEmbed(BotGuildProfile profile, String title, String description) {
     return base(profile, null)
-        .setTitle(title)
-        .setDescription(description)
+        .setTitle(EmbedValues.na(title))
+        .setDescription(EmbedValues.na(description))
         .build();
   }
 

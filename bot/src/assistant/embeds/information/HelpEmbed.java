@@ -1,5 +1,6 @@
 package assistant.embeds.information;
 
+import assistant.embeds.EmbedValues;
 import java.util.List;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -57,10 +58,9 @@ public final class HelpEmbed {
         command("🔗", "/links", "Enlaces académicos importantes.", false),
         command("📅", "/calendario", "Calendario académico oficial.", false),
         command("🏫", "/salon", "Localiza el edificio de un salón.", false),
-        command("🖥️", "/lab", "Busca laboratorios y espacios de estudio.", false),
         command("📄", "/curriculo", "Descarga el currículo de tu programa.", true),
         command("🚀", "/ls_projects", "Explora proyectos estudiantiles y de investigación.", false),
-        command("🌐", "/ls_student_orgs", "Descubre organizaciones estudiantiles.", false),
+        command("🌐", "/ls_organizations", "Descubre organizaciones estudiantiles.", false),
         command("🧑‍🤝‍🧑", "/estudiantes-orientadores", "Conoce a " + advisorRole + ".", true),
         command("🏆", "/rank", "Consulta tu nivel o el leaderboard.", true),
         command("🪙", "/game-coinflip", "Lanza una moneda.", false),
@@ -77,6 +77,7 @@ public final class HelpEmbed {
 
   private Field command(String icon, String name, String description, boolean serverOnly) {
     String scope = serverOnly ? "\n`Servidor`" : "";
-    return new Field(icon + "  **" + name + "**", description + scope, true);
+    return new Field(EmbedValues.na(icon) + "  **" + EmbedValues.na(name) + "**",
+        EmbedValues.na(description) + scope, true);
   }
 }
