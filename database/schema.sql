@@ -137,23 +137,6 @@ CREATE TABLE discord.user_teams (
   FOREIGN KEY (team_id) REFERENCES discord.teams(team_id) ON DELETE CASCADE
 );
 
-CREATE TABLE discord.channels (
-  channel_id         SERIAL       PRIMARY KEY,
-  server_id          INT          NOT NULL,
-  discord_channel_id VARCHAR(32)  NOT NULL,
-  parent_channel_id  VARCHAR(32),
-  name               VARCHAR(255) NOT NULL,
-  type               VARCHAR(50)  NOT NULL,
-  position           INT,
-  topic              TEXT,
-  nsfw               BOOLEAN      NOT NULL DEFAULT FALSE,
-  created_at         TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-  updated_at         TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-
-  UNIQUE (server_id, discord_channel_id),
-  FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE
-);
-
 CREATE TABLE discord.server_syncs (
   sync_id             SERIAL    PRIMARY KEY,
   server_id           INT       NOT NULL,

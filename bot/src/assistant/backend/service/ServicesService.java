@@ -9,17 +9,17 @@ import java.util.*;
 import java.util.stream.StreamSupport;
 
 public final class ServicesService {
-  public List<String> getServiceNames() {
-    return contacts(null).stream().map(ServiceDTO::getName).toList();
+  public List<String> getServiceNames(String contactType) {
+    return contacts(null, contactType).stream().map(ServiceDTO::getName).toList();
   }
 
-  public List<ServiceDTO> getAllServices(int p, int s) {
-    return contacts(null);
+  public List<ServiceDTO> getAllServices(int p, int s, String contactType) {
+    return contacts(null, contactType);
   }
 
-  public ServiceDTO getService(String name) {
+  public ServiceDTO getService(String name, String contactType) {
     String lookup = lookupName(name);
-    return contacts(lookup).stream().findFirst().orElseGet(() -> unavailable(name));
+    return contacts(lookup, contactType).stream().findFirst().orElseGet(() -> unavailable(name, contactType));
   }
 
   private String lookupName(String name) {
@@ -33,23 +33,28 @@ public final class ServicesService {
   }
 
   private ServiceDTO unavailable(String name) {
+    return unavailable(name, null);
+  }
+
+  private ServiceDTO unavailable(String name, String contactType) {
     ServiceDTO d = new ServiceDTO();
     d.setName(name);
     d.setDescription("La información de este contacto no está configurada en el backend.");
     d.setAvailability("");
-    d.setDepartmentAbbreviation("");
+    d.setDepartmentAbbreviation(contactType != null ? contactType : "");
     d.setBuildingName("");
     d.setBuildingCode("");
-    d.setContact(new ContactDTO());
+    ContactDTO c = new ContactDTO();
+    c.setEmail("");
+    d.setContact(c);
     return d;
   }
 
-  private List<ServiceDTO> contacts(String search) {
+  private List<ServiceDTO> contacts(String search, String contactType) {
     String p =
         "/api/v1/inelicom/contacts?limit=25"
-            + (search == null
-                ? ""
-                : "&search=" + URLEncoder.encode(search, StandardCharsets.UTF_8));
+            + (search == null ? "" : "&search=" + URLEncoder.encode(search, StandardCharsets.UTF_8))
+            + (contactType == null ? "" : "&contactType=" + contactType);
     return BackendClient.getData(p).map(n -> n).stream()
         .flatMap(n -> StreamSupport.stream(n.spliterator(), false))
         .map(this::map)

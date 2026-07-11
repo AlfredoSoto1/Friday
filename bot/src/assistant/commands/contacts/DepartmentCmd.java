@@ -75,11 +75,11 @@ public class DepartmentCmd extends InteractionModel implements CommandI {
     int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 
     if ("ECE".equalsIgnoreCase(department)) {
-      ServiceDTO result = service.getService("Electrical and Computer Engineering");
+      ServiceDTO result = service.getService("Electrical and Computer Engineering", null);
 
       event.replyEmbeds(embed.buildInfoPanel(color, result)).setEphemeral(true).queue();
     } else {
-      ServiceDTO result = service.getService("Computer Science & Engineering");
+      ServiceDTO result = service.getService("Computer Science & Engineering", null);
 
       event.replyEmbeds(embed.buildInfoPanel(color, result)).setEphemeral(true).queue();
     }

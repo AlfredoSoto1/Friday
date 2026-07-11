@@ -72,7 +72,7 @@ public class EconomicAssistanceCmd extends InteractionModel implements CommandI 
   @Override
   public void execute(SlashCommandInteractionEvent event) {
     // Obtain the service data related to the Asistencia Económica
-    ServiceDTO result = service.getService("Asistencia Económica");
+    ServiceDTO result = service.getService("Asistencia Económica", null);
 
     // Check if the command was called from a server
     if (event.isFromGuild()) {

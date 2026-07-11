@@ -66,32 +66,29 @@ public class VerificationCmd extends InteractionModel implements CommandI {
     this.service = new MemberService();
 
     // Create an Email field to be displayed inside the modal
-    TextInput email =
-        TextInput.create("email-id", "Email", TextInputStyle.SHORT)
-            .setMinLength(9)
-            .setMaxLength(100)
-            .setRequired(true)
-            .setPlaceholder("your.email@upr.edu")
-            .build();
+    TextInput email = TextInput.create("email-id", "Email", TextInputStyle.SHORT)
+        .setMinLength(9)
+        .setMaxLength(100)
+        .setRequired(true)
+        .setPlaceholder("your.email@upr.edu")
+        .build();
 
     // Create a FunFacts field to be displayed inside the modal
-    TextInput funfacts =
-        TextInput.create("funfact-id", "Fun facts about you :)", TextInputStyle.PARAGRAPH)
-            .setMinLength(1)
-            .setMaxLength(255)
-            .setRequired(false)
-            .setPlaceholder("Tell us more about you!")
-            .build();
+    TextInput funfacts = TextInput.create("funfact-id", "Fun facts about you :)", TextInputStyle.PARAGRAPH)
+        .setMinLength(1)
+        .setMaxLength(255)
+        .setRequired(false)
+        .setPlaceholder("Tell us more about you!")
+        .build();
 
     // Create a simple modal containing two text fields
     // in which the user will enter his email to log-in and
     // a fun fact about them
     super.registerModal(
         this::onModalVerificationRespond,
-        verifyPrompt =
-            Modal.create("mem-verification", "Member Verification")
-                .addComponents(ActionRow.of(email), ActionRow.of(funfacts))
-                .build());
+        verifyPrompt = Modal.create("mem-verification", "Member Verification")
+            .addComponents(ActionRow.of(email), ActionRow.of(funfacts))
+            .build());
 
     super.registerButton(
         this::onVerificationEvent, verifyButton = Button.success("verification-button", "verify"));
@@ -133,7 +130,8 @@ public class VerificationCmd extends InteractionModel implements CommandI {
   @Override
   public void execute(SlashCommandInteractionEvent event) {
 
-    if (!super.validateCommandUse(event)) return;
+    if (!super.validateCommandUse(event))
+      return;
 
     String logChannel = event.getOption(COMMAND_LABEL).getAsString();
 
@@ -148,8 +146,7 @@ public class VerificationCmd extends InteractionModel implements CommandI {
     }
 
     // Check if input was given successfully
-    Optional<TextChannel> textChannel =
-        Optional.ofNullable(event.getGuild().getTextChannelById(logChannel));
+    Optional<TextChannel> textChannel = Optional.ofNullable(event.getGuild().getTextChannelById(logChannel));
 
     // Check if the channel is in server
     if (textChannel.isPresent()) {
@@ -159,10 +156,8 @@ public class VerificationCmd extends InteractionModel implements CommandI {
           .queue();
 
       // Mentioned Roles in embedded message
-      Optional<Role> modRole =
-          super.getEffectiveRole(MemberPosition.MODERATOR, textChannel.get().getGuild());
-      Optional<Role> bdeRole =
-          super.getEffectiveRole(MemberPosition.BOT_DEVELOPER, textChannel.get().getGuild());
+      Optional<Role> modRole = super.getEffectiveRole(MemberPosition.MODERATOR, textChannel.get().getGuild());
+      Optional<Role> bdeRole = super.getEffectiveRole(MemberPosition.BOT_DEVELOPER, textChannel.get().getGuild());
       if (modRole.isEmpty() || bdeRole.isEmpty()) {
         event
             .reply("Configure the MODERATOR and BOT_DEVELOPER role mappings first.")
@@ -180,7 +175,8 @@ public class VerificationCmd extends InteractionModel implements CommandI {
               verificationEmbed.buildVerificationPrompt(modRole.get(), bdeRole.get(), color))
           .setActionRow(verifyButton)
           .queue();
-    } else event.reply("Channel not found").setEphemeral(true).queue();
+    } else
+      event.reply("Channel not found").setEphemeral(true).queue();
   }
 
   private void onVerificationEvent(ButtonInteractionEvent event) {
@@ -225,8 +221,7 @@ public class VerificationCmd extends InteractionModel implements CommandI {
 
     // Safety check if the member doesn't exist in database
     if (!memberDTO.isPresent()) {
-      String hookMessage =
-          """
+      String hookMessage = """
           Hmm parece que el email que entraste *__%s__* no está en nuestra base de datos :confused:
           Por favor trata de nuevo. Si no puedo encontrar tu información, contacta a %s or %s.
 
@@ -278,8 +273,7 @@ public class VerificationCmd extends InteractionModel implements CommandI {
           .getUser()
           .openPrivateChannel()
           .queue(
-              privateMessage ->
-                  showWelcomeMessage(privateMessage, memberDTO.get(), event.getGuild()));
+              privateMessage -> showWelcomeMessage(privateMessage, memberDTO.get(), event.getGuild()));
     }
 
     delayInteractions(2000); // two seconds
@@ -299,7 +293,8 @@ public class VerificationCmd extends InteractionModel implements CommandI {
 
     // If team not found, no need to print or display any message
     // since its handled when the team is applied to the member
-    if (team.isEmpty()) return;
+    if (team.isEmpty())
+      return;
 
     // Send welcome message to member if its a prepa
     sendWelcomeMessageToPrepa(privateChannel, server, member, team.get());
@@ -319,58 +314,56 @@ public class VerificationCmd extends InteractionModel implements CommandI {
 
     // Obtain a list of all the orientadores that form part of
     // the same group as the prepa member who is joining
-    List<PrepaOrientadorDTO> prepaOrientadors =
-        service.getPrepaOrientadores(member.getEmail(), server.getIdLong());
+    List<PrepaOrientadorDTO> prepaOrientadors = service.getPrepaOrientadores(member.getEmail(), server.getIdLong());
 
     // Obtain the names of the orientadores assuming
     // that the member joining is a prepa and is already a verified member
-    String orientadorNames =
-        prepaOrientadors.stream()
-            .map(PrepaOrientadorDTO::getFirstname)
-            .collect(Collectors.joining(", "));
+    String orientadorNames = prepaOrientadors.stream()
+        .map(PrepaOrientadorDTO::getFirstname)
+        .collect(Collectors.joining(", "));
 
     privateChannel
         .sendMessage(
             String.format(
                 """
-                ¡Increíble **%s**! Ahora eres un %s **COLEGIAL** %s :tada::tada::raised_hands_tone3::raised_hands_tone3:
+                    ¡Increíble **%s**! Ahora eres un %s **COLEGIAL** %s :tada::tada::raised_hands_tone3::raised_hands_tone3:
 
-                ¿Fácil, no?
-                Bueno, ahora sí me presento formalmente.
+                    ¿Fácil, no?
+                    Bueno, ahora sí me presento formalmente.
 
-                Hola %s **%s** %s,
+                    Hola %s **%s** %s,
 
-                Me alegra mucho que estés aquí en el Colegio.
-                Yo soy el **Smart Assistant** del servidor y formo parte del equipo de **%s**,
-                donde estamos organizados en sub-equipos para ayudarte mejor.
+                    Me alegra mucho que estés aquí en el Colegio.
+                    Yo soy el **Smart Assistant** del servidor y formo parte del equipo de **%s**,
+                    donde estamos organizados en sub-equipos para ayudarte mejor.
 
-                Permíteme presentarte al equipo **_%s_**, uno de nuestros sub-equipos más destacados durante esta semana de orientación!.
-                Juntos, nos esforzamos para ofrecerte el mejor soporte y resolver cualquier duda que tengas.
-                Tus estudiantes orientadores de tu equipo son: %s
+                    Permíteme presentarte al equipo **_%s_**, uno de nuestros sub-equipos más destacados durante esta semana de orientación!.
+                    Juntos, nos esforzamos para ofrecerte el mejor soporte y resolver cualquier duda que tengas.
+                    Tus estudiantes orientadores de tu equipo son: %s
 
-                Para que tengas una idea, te puedo ayudar a:
+                    Para que tengas una idea, te puedo ayudar a:
 
-                > ### :mag_right:Búsqueda de lugares y edificios
-                > - Encontrar edificios
-                > - Encontrar sitios de comer
-                > - Salones de estudio
+                    > ### :mag_right:Búsqueda de lugares y edificios
+                    > - Encontrar edificios
+                    > - Encontrar sitios de comer
+                    > - Salones de estudio
 
-                > ### :bulb:Información de contactos
-                > - Oficinas importantes
-                > - Departamentos y facultades
-                > - Administración y servicios
+                    > ### :bulb:Información de contactos
+                    > - Oficinas importantes
+                    > - Departamentos y facultades
+                    > - Administración y servicios
 
-                > ### :link:Links
-                > - Guía prepística
-                > - Proyectos y organizaciones
-                > - Enlaces para complementar información
+                    > ### :link:Links
+                    > - Guía prepística
+                    > - Proyectos y organizaciones
+                    > - Enlaces para complementar información
 
-                Espero ser de gran ayuda para tí, recuerda aquí siempre a la orden!!
+                    Espero ser de gran ayuda para tí, recuerda aquí siempre a la orden!!
 
-                Si quieres, puedes empezar por utilizando los *slash commands*.
-                Para empezar, puedes intentar ``/help`` y veras como te sale un menú donde
-                podrás ver varios de mis comandos que tengo.
-                """,
+                    Si quieres, puedes empezar por utilizando los *slash commands*.
+                    Para empezar, puedes intentar ``/help`` y veras como te sale un menú donde
+                    podrás ver varios de mis comandos que tengo.
+                    """,
                 member.getFirstname(),
                 emojiMention(server, "Huella", "🐾"),
                 emojiMention(server, "Huella", "🐾"),
@@ -392,11 +385,11 @@ public class VerificationCmd extends InteractionModel implements CommandI {
         .sendMessage(
             String.format(
                 """
-                Bienvenido %s **%s** %s al **%s** Discord Server.
-                Recuerda, avisar a los Bot Developers de cualquier problema con el bot.
-                De tener alguna idea respecto al bot o del server como tal, puedes decirle
-                a los Administradores o a los Bot Developers!!
-                """,
+                    Bienvenido %s **%s** %s al **%s** Discord Server.
+                    Recuerda, avisar a los Bot Developers de cualquier problema con el bot.
+                    De tener alguna idea respecto al bot o del server como tal, puedes decirle
+                    a los Administradores o a los Bot Developers!!
+                    """,
                 emojiMention(server, "Huella", "🐾"),
                 member.getFirstname(),
                 emojiMention(server, "Huella", "🐾"),
@@ -424,20 +417,18 @@ public class VerificationCmd extends InteractionModel implements CommandI {
         server
             .addRoleToMember(member, role)
             .queue(
-                success ->
-                    Logger.instance()
-                        .logFile(
-                            LogFeedback.SUCCESS,
-                            "Given Role [%s] to [%s]",
-                            role.getName(),
-                            member.getEffectiveName()),
-                error ->
-                    Logger.instance()
-                        .logFile(
-                            LogFeedback.ERROR,
-                            "Failed giving Role [%s] to [%s]",
-                            role.getName(),
-                            member.getEffectiveName()));
+                success -> Logger.instance()
+                    .logFile(
+                        LogFeedback.SUCCESS,
+                        "Given Role [%s] to [%s]",
+                        role.getName(),
+                        member.getEffectiveName()),
+                error -> Logger.instance()
+                    .logFile(
+                        LogFeedback.ERROR,
+                        "Failed giving Role [%s] to [%s]",
+                        role.getName(),
+                        member.getEffectiveName()));
 
         delayInteractions(2000); // two seconds
       } catch (HierarchyException he) {
@@ -473,20 +464,18 @@ public class VerificationCmd extends InteractionModel implements CommandI {
       server
           .addRoleToMember(member, role)
           .queue(
-              success ->
-                  Logger.instance()
-                      .logFile(
-                          LogFeedback.SUCCESS,
-                          "Given Role [%s] to [%s]",
-                          role.getName(),
-                          member.getEffectiveName()),
-              error ->
-                  Logger.instance()
-                      .logFile(
-                          LogFeedback.ERROR,
-                          "Failed giving Role [%s] to [%s]",
-                          role.getName(),
-                          member.getEffectiveName()));
+              success -> Logger.instance()
+                  .logFile(
+                      LogFeedback.SUCCESS,
+                      "Given Role [%s] to [%s]",
+                      role.getName(),
+                      member.getEffectiveName()),
+              error -> Logger.instance()
+                  .logFile(
+                      LogFeedback.ERROR,
+                      "Failed giving Role [%s] to [%s]",
+                      role.getName(),
+                      member.getEffectiveName()));
 
       delayInteractions(2000); // two seconds
     } catch (HierarchyException he) {
@@ -504,27 +493,24 @@ public class VerificationCmd extends InteractionModel implements CommandI {
 
   private void applyNickname(
       InteractionHook hook, Guild server, Member member, MemberDTO memberDTO) {
-    String nickname =
-        memberDTO.getFirstname() + " " + memberDTO.getInitial() + " " + memberDTO.getLastname();
+    String nickname = memberDTO.getFirstname() + " " + memberDTO.getInitial() + " " + memberDTO.getLastname();
 
     try {
       server
           .modifyNickname(member, nickname)
           .queue(
-              success ->
-                  Logger.instance()
-                      .logFile(
-                          LogFeedback.SUCCESS,
-                          "Successfully changed nickname from [%s] to [%s]",
-                          member.getEffectiveName(),
-                          nickname),
-              error ->
-                  Logger.instance()
-                      .logFile(
-                          LogFeedback.ERROR,
-                          "Failed changing nickname from [%s] to [%s]",
-                          member.getEffectiveName(),
-                          nickname));
+              success -> Logger.instance()
+                  .logFile(
+                      LogFeedback.SUCCESS,
+                      "Successfully changed nickname from [%s] to [%s]",
+                      member.getEffectiveName(),
+                      nickname),
+              error -> Logger.instance()
+                  .logFile(
+                      LogFeedback.ERROR,
+                      "Failed changing nickname from [%s] to [%s]",
+                      member.getEffectiveName(),
+                      nickname));
 
       delayInteractions(2000); // two seconds
     } catch (HierarchyException he) {

@@ -72,7 +72,7 @@ public class DeanOfStudentsCmd extends InteractionModel implements CommandI {
   @Override
   public void execute(SlashCommandInteractionEvent event) {
     // Obtain the service data related to the Dean of Students
-    ServiceDTO result = service.getService("Decanato de Estudiantes");
+    ServiceDTO result = service.getService("Decanato de Estudiantes", null);
 
     // Check if the command was called from a server
     if (event.isFromGuild()) {
