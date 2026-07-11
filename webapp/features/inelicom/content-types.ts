@@ -11,6 +11,6 @@ export interface ContentData {
 export interface ContentFormValues {
   name: string;
   gpin: string;
-  facultyId: number;
-  buildingId: number;
+
+
 }

@@ -2,9 +2,9 @@ import { EnvelopeResult, keysToSnake, Paged } from "@/lib/webservices";
 import axios from "axios";
 
 import type {
-  BotChannelDto,
   BotMemberDto,
   BotRoleDto,
+  BotTeamDto,
 } from "@/server/entities/bot";
 
 const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL ??
@@ -37,24 +37,6 @@ export class BotApi {
       .catch((error) => EnvelopeResult.fromError<any>(error));
   }
 
-  static async createUser(data: any) {
-    return axios.post(`${BASE}/users`, keysToSnake(data))
-      .then((response) => EnvelopeResult.fromObject<any>(response.data))
-      .catch((error) => EnvelopeResult.fromError<any>(error));
-  }
-
-  static async updateUser(userId: number, data: any) {
-    return axios.put(`${BASE}/users/${userId}`, keysToSnake(data))
-      .then((response) => EnvelopeResult.fromObject<any>(response.data))
-      .catch((error) => EnvelopeResult.fromError<any>(error));
-  }
-
-  static async deleteUser(userId: number) {
-    return axios.delete(`${BASE}/users/${userId}`)
-      .then((response) => EnvelopeResult.fromObject<any>(response.data))
-      .catch((error) => EnvelopeResult.fromError<any>(error));
-  }
-
   static async getGuildMembers(
     guildId: number
   ): Promise<EnvelopeResult<Paged<BotMemberDto>>> {
@@ -67,18 +49,6 @@ export class BotApi {
       ));
   }
 
-  static async registerUserToGuild(guildId: number, data: any) {
-    return axios.post(`${BASE}/servers/${guildId}/members`, data)
-      .then((response) => EnvelopeResult.fromObject<any>(response.data))
-      .catch((error) => EnvelopeResult.fromError<any>(error));
-  }
-
-  static async registerUsersToGuild(guildId: number, data: any) {
-    return axios.post(`${BASE}/servers/${guildId}/members/bulk`, data)
-      .then((response) => EnvelopeResult.fromList<any>(response.data))
-      .catch((error) => EnvelopeResult.fromError<any>(error));
-  }
-
   static async getGuildRoles(
     guildId: number
   ): Promise<EnvelopeResult<Paged<BotRoleDto>>> {
@@ -88,6 +58,18 @@ export class BotApi {
       ))
       .catch((error: unknown) => (
         EnvelopeResult.fromError<Paged<BotRoleDto>>(error)
+      ));
+  }
+
+  static async getGuildTeams(
+    guildId: number
+  ): Promise<EnvelopeResult<Paged<BotTeamDto>>> {
+    return axios.get(`${BASE}/servers/${guildId}/teams`)
+      .then((response) => (
+        EnvelopeResult.fromList<BotTeamDto>(response.data)
+      ))
+      .catch((error: unknown) => (
+        EnvelopeResult.fromError<Paged<BotTeamDto>>(error)
       ));
   }
 
@@ -107,18 +89,6 @@ export class BotApi {
     return axios.delete(`${BASE}/servers/${guildId}/roles/${roleId}`)
       .then((response) => EnvelopeResult.fromObject<any>(response.data))
       .catch((error) => EnvelopeResult.fromError<any>(error));
-  }
-
-  static async getGuildChannels(
-    guildId: number
-  ): Promise<EnvelopeResult<Paged<BotChannelDto>>> {
-    return axios.get(`${BASE}/servers/${guildId}/channels`)
-      .then((response) => (
-        EnvelopeResult.fromList<BotChannelDto>(response.data)
-      ))
-      .catch((error: unknown) => (
-        EnvelopeResult.fromError<Paged<BotChannelDto>>(error)
-      ));
   }
 
   static async getCommandResponse(guildId: number, commandName: string) {

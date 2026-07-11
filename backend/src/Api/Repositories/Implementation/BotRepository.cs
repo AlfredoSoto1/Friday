@@ -69,105 +69,6 @@ public sealed partial class BotRepository : IBotRepository
     }
   }
 
-  public async Task<Result<int, AppError>> InsertUser(IDbConnection conn, IDbTransaction tx, string email, string fullname, string username)
-  {
-    try
-    {
-      const string sql = @"
-        INSERT INTO discord.users (email, first_name)
-        VALUES (@Email, @Fullname)
-        ON CONFLICT (email)
-        DO UPDATE SET first_name = EXCLUDED.first_name
-        RETURNING user_id;
-      ";
-
-      var userId = await conn.QuerySingleAsync<int>(sql, new
-      {
-        Email = email,
-        Fullname = fullname,
-        Username = username
-      }, tx);
-
-      return Result<int, AppError>.Ok(userId);
-    }
-    catch (Exception ex)
-    {
-      return Result<int, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
-  public async Task<Result<MemberVerification, AppError>> RegisterUserToGuild(
-    IDbConnection conn,
-    IDbTransaction tx,
-    long guildId,
-    RegisterGuildMemberRequest request)
-  {
-    try
-    {
-      const string sql = @"
-        WITH target_server AS (
-          SELECT server_id
-            FROM discord.servers
-          WHERE guild_id = @GuildId
-        ),
-        target_user AS (
-          SELECT user_id
-            FROM discord.users
-          WHERE email = @Email
-        ),
-        target_server_user AS (
-          INSERT INTO discord.servers_users (server_id, user_id, discord_user_id, funfact, updated_at)
-          SELECT target_server.server_id, target_user.user_id, @DiscordUserId, @FunFact, CURRENT_TIMESTAMP
-            FROM target_server CROSS JOIN target_user
-          ON CONFLICT (server_id, user_id)
-          DO UPDATE SET discord_user_id = EXCLUDED.discord_user_id,
-                        funfact = COALESCE(EXCLUDED.funfact, discord.servers_users.funfact),
-                        updated_at = CURRENT_TIMESTAMP
-          RETURNING su_id
-        ), deleted_roles AS (
-          DELETE FROM discord.user_roles
-            USING target_server_user
-          WHERE discord.user_roles.su_id = target_server_user.su_id
-        ), selected_roles AS (
-          SELECT roles.role_id, roles.discord_role_id
-            FROM discord.roles
-              INNER JOIN target_server USING (server_id)
-          WHERE roles.discord_role_id = ANY(CAST(@DiscordRoleIds AS VARCHAR(32)[]))
-        ), inserted_roles AS (
-          INSERT INTO discord.user_roles (su_id, role_id)
-          SELECT target_server_user.su_id, selected_roles.role_id
-            FROM target_server_user, selected_roles
-          ON CONFLICT DO NOTHING
-          RETURNING role_id
-        )
-        SELECT FALSE AS verified,
-               'Member registered successfully.' AS message,
-               COALESCE(
-                ARRAY_AGG(selected_roles.discord_role_id ORDER BY selected_roles.discord_role_id)
-                  FILTER (WHERE selected_roles.discord_role_id IS NOT NULL), ARRAY[]::VARCHAR[]) AS role_ids
-          FROM target_server_user
-            LEFT JOIN selected_roles ON TRUE;
-      ";
-
-      var record = await conn.QueryFirstOrDefaultAsync(sql, new
-      {
-        GuildId = guildId.ToString(),
-        request.Email,
-        DiscordUserId = string.IsNullOrWhiteSpace(request.DiscordUserId) ? "-" : request.DiscordUserId,
-        request.FunFact,
-        DiscordRoleIds = request.DiscordRoleIds.ToArray()
-      }, tx);
-
-      return record is null
-        ? Result<MemberVerification, AppError>.Fail(AppError.NotFound($"Guild or user not found for guild ID {guildId}."))
-        : Result<MemberVerification, AppError>.Ok(MapToVerifyMemberResult(record));
-    }
-    catch (Exception ex)
-    {
-      return Result<MemberVerification, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
   public async Task<Result<MemberVerification, AppError>> VerifyMember(IDbConnection connection, long guildId, VerifyMemberRequest request)
   {
     try
@@ -263,108 +164,88 @@ public sealed partial class BotRepository : IBotRepository
   {
     try
     {
-      const string sql = @"
-        WITH target_server AS (
-          INSERT INTO discord.servers (name, guild_id, enabled)
-          VALUES (@GuildName, @GuildId, TRUE)
-          ON CONFLICT (guild_id)
-          DO UPDATE SET name = EXCLUDED.name,
-                        enabled = TRUE
-          RETURNING server_id
-        ), synced_roles AS (
-          INSERT INTO discord.roles
-            (server_id, discord_role_id, name, color, position, managed, mentionable, hoisted, updated_at)
-          SELECT target_server.server_id,
-                 synced.discord_role_id,
-                 synced.name,
-                 synced.color,
-                 synced.position,
-                 synced.managed,
-                 synced.mentionable,
-                 synced.hoisted,
-                 CURRENT_TIMESTAMP
-            FROM target_server,
-                 UNNEST(CAST(@DiscordRoleIds AS VARCHAR(32)[]), CAST(@RoleNames AS VARCHAR(255)[]), CAST(@RoleColors AS INT[]), CAST(@RolePositions AS INT[]), CAST(@RoleManaged AS BOOLEAN[]), CAST(@RoleMentionable AS BOOLEAN[]), CAST(@RoleHoisted AS BOOLEAN[]))
-                   AS synced(discord_role_id, name, color, position, managed, mentionable, hoisted)
-          ON CONFLICT (server_id, discord_role_id)
-          DO UPDATE SET name = EXCLUDED.name,
-                        color = EXCLUDED.color,
-                        position = EXCLUDED.position,
-                        managed = EXCLUDED.managed,
-                        mentionable = EXCLUDED.mentionable,
-                        hoisted = EXCLUDED.hoisted,
-                        updated_at = CURRENT_TIMESTAMP
-          RETURNING role_id
-        ), synced_channels AS (
-          INSERT INTO discord.channels
-            (server_id, discord_channel_id, parent_channel_id, name, type, position, topic, nsfw, updated_at)
-          SELECT target_server.server_id,
-                 synced.discord_channel_id,
-                 synced.parent_channel_id,
-                 synced.name,
-                 synced.type,
-                 synced.position,
-                 synced.topic,
-                 synced.nsfw,
-                 CURRENT_TIMESTAMP
-            FROM target_server,
-                 UNNEST(CAST(@DiscordChannelIds AS VARCHAR(32)[]), CAST(@ParentChannelIds AS VARCHAR(32)[]), CAST(@ChannelNames AS VARCHAR(255)[]), CAST(@ChannelTypes AS VARCHAR(50)[]), CAST(@ChannelPositions AS INT[]), CAST(@ChannelTopics AS TEXT[]), CAST(@ChannelNsfw AS BOOLEAN[]))
-                   AS synced(discord_channel_id, parent_channel_id, name, type, position, topic, nsfw)
-          ON CONFLICT (server_id, discord_channel_id)
-          DO UPDATE SET parent_channel_id = EXCLUDED.parent_channel_id,
-                        name = EXCLUDED.name,
-                        type = EXCLUDED.type,
-                        position = EXCLUDED.position,
-                        topic = EXCLUDED.topic,
-                        nsfw = EXCLUDED.nsfw,
-                        updated_at = CURRENT_TIMESTAMP
-          RETURNING channel_id
-        ), sync_audit AS (
-          INSERT INTO discord.server_syncs
-            (server_id, role_count, channel_count, category_count, synced_by_discord_id)
-          SELECT target_server.server_id, @RoleCount, @ChannelCount, @CategoryCount, @SyncedByDiscordId
-            FROM target_server
-          RETURNING synced_at
-        )
-        SELECT CAST(@GuildId AS BIGINT) AS guild_id,
-               CAST(@RoleCount AS INT) AS role_count,
-               CAST(@ChannelCount AS INT) AS channel_count,
-               CAST(@CategoryCount AS INT) AS category_count,
-               sync_audit.synced_at
-          FROM sync_audit;
+      const string serverSql = @"
+        SELECT server_id
+          FROM discord.servers
+         WHERE guild_id = @GuildId;
       ";
 
-      var record = await connection.QuerySingleAsync(sql, new
+      var serverId = await connection.QuerySingleOrDefaultAsync<int>(serverSql, new
       {
-        GuildId = request.GuildId.ToString(),
-        request.GuildName,
-        RoleCount = request.Roles.Count,
-        ChannelCount = request.Channels.Count,
-        CategoryCount = request.Channels.Count(channel => string.Equals(channel.Type, "category", StringComparison.OrdinalIgnoreCase)),
-        request.SyncedByDiscordId,
+        GuildId = request.GuildId.ToString()
+      }, transaction);
+
+      if (serverId == 0)
+      {
+        return Result<BotSyncResult, AppError>.Ok(new BotSyncResult
+        {
+          GuildId = request.GuildId,
+          ServerRegistered = false
+        });
+      }
+
+      const string upsertRolesSql = @"
+        INSERT INTO discord.roles
+          (server_id, discord_role_id, name, color, position, managed, mentionable, hoisted, updated_at)
+        SELECT @ServerId,
+               synced.discord_role_id,
+               synced.name,
+               synced.color,
+               synced.position,
+               synced.managed,
+               synced.mentionable,
+               synced.hoisted,
+               CURRENT_TIMESTAMP
+          FROM UNNEST(
+            CAST(@DiscordRoleIds AS VARCHAR(32)[]),
+            CAST(@RoleNames AS VARCHAR(255)[]),
+            CAST(@RoleColors AS INT[]),
+            CAST(@RolePositions AS INT[]),
+            CAST(@RoleManaged AS BOOLEAN[]),
+            CAST(@RoleMentionable AS BOOLEAN[]),
+            CAST(@RoleHoisted AS BOOLEAN[]))
+            AS synced(discord_role_id, name, color, position, managed, mentionable, hoisted)
+        ON CONFLICT (server_id, discord_role_id)
+        DO UPDATE SET name = EXCLUDED.name,
+                      color = EXCLUDED.color,
+                      position = EXCLUDED.position,
+                      managed = EXCLUDED.managed,
+                      mentionable = EXCLUDED.mentionable,
+                      hoisted = EXCLUDED.hoisted,
+                      updated_at = CURRENT_TIMESTAMP;
+      ";
+
+      var roleParameters = new
+      {
+        ServerId = serverId,
         DiscordRoleIds = request.Roles.Select(role => role.DiscordRoleId).ToArray(),
         RoleNames = request.Roles.Select(role => role.Name).ToArray(),
         RoleColors = request.Roles.Select(role => role.Color).ToArray(),
         RolePositions = request.Roles.Select(role => role.Position).ToArray(),
         RoleManaged = request.Roles.Select(role => role.Managed).ToArray(),
         RoleMentionable = request.Roles.Select(role => role.Mentionable).ToArray(),
-        RoleHoisted = request.Roles.Select(role => role.Hoisted).ToArray(),
-        DiscordChannelIds = request.Channels.Select(channel => channel.DiscordChannelId).ToArray(),
-        ParentChannelIds = request.Channels.Select(channel => channel.ParentChannelId).ToArray(),
-        ChannelNames = request.Channels.Select(channel => channel.Name).ToArray(),
-        ChannelTypes = request.Channels.Select(channel => channel.Type).ToArray(),
-        ChannelPositions = request.Channels.Select(channel => channel.Position).ToArray(),
-        ChannelTopics = request.Channels.Select(channel => channel.Topic).ToArray(),
-        ChannelNsfw = request.Channels.Select(channel => channel.Nsfw).ToArray()
-      }, transaction);
+        RoleHoisted = request.Roles.Select(role => role.Hoisted).ToArray()
+      };
+
+      await connection.ExecuteAsync(upsertRolesSql, roleParameters, transaction);
+
+      const string deleteMissingRolesSql = @"
+        DELETE FROM discord.roles
+         WHERE server_id = @ServerId
+           AND (discord_role_id IS NULL
+                OR discord_role_id <> ALL(CAST(@DiscordRoleIds AS VARCHAR(32)[])));
+      ";
+
+      await connection.ExecuteAsync(deleteMissingRolesSql, roleParameters, transaction);
+      var syncedAt = await connection.QuerySingleAsync<DateTime>(
+        "SELECT CURRENT_TIMESTAMP;", transaction: transaction);
 
       return Result<BotSyncResult, AppError>.Ok(new BotSyncResult
       {
         GuildId = request.GuildId,
-        RoleCount = (int)record.role_count,
-        ChannelCount = (int)record.channel_count,
-        CategoryCount = (int)record.category_count,
-        SyncedAt = (DateTime)record.synced_at
+        RoleCount = request.Roles.Count,
+        ServerRegistered = true,
+        SyncedAt = syncedAt
       });
     }
     catch (Exception ex)

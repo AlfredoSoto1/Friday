@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { sortStudents } from "@/features/roster/roster-distribution";
 import { TeamCard } from "@/features/roster/team-card";
+import type { BotRoleDto } from "@/server/entities/bot";
 import type {
   SortDirection,
   SortField,
@@ -30,6 +31,8 @@ import type {
 
 interface TeamGroupsGridProps {
   teams: TeamGroup[];
+  roles: BotRoleDto[];
+  existingTeamNames: string[];
   unassigned: Student[];
   studentsById: Map<number, Student>;
   editMode: boolean;
@@ -39,11 +42,14 @@ interface TeamGroupsGridProps {
   onRegenerate: () => void;
   onRename: (teamId: number, name: string) => void;
   onRecolor: (teamId: number, color: string) => void;
+  onRoleChange: (teamId: number, roleId: number) => void;
   onMoveStudent: (studentId: number, toTeamId: number | null) => void;
 }
 
 export function TeamGroupsGrid({
   teams,
+  roles,
+  existingTeamNames,
   unassigned,
   studentsById,
   editMode,
@@ -53,6 +59,7 @@ export function TeamGroupsGrid({
   onRegenerate,
   onRename,
   onRecolor,
+  onRoleChange,
   onMoveStudent,
 }: TeamGroupsGridProps): React.ReactElement {
   return (
@@ -129,6 +136,9 @@ export function TeamGroupsGrid({
               editMode={editMode}
               onRename={onRename}
               onRecolor={onRecolor}
+              roles={roles}
+              existingTeamNames={existingTeamNames}
+              onRoleChange={onRoleChange}
               onMoveStudent={onMoveStudent}
             />
           ))}

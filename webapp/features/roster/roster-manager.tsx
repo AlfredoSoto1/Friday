@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TriangleAlert } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { distributeStudents, type Distribution } from "@/features/roster/roster-distribution";
@@ -16,6 +16,8 @@ import type {
   Student,
 } from "@/features/roster/roster-types";
 import { saveGuildDistribution } from "@/features/roster/roster-persistence";
+import { BotApi } from "@/server/webservices/bot-webservice";
+import type { BotRoleDto, BotTeamDto } from "@/server/entities/bot";
 export function RosterManager({
   guildId,
 }: {
@@ -23,6 +25,8 @@ export function RosterManager({
 }): React.ReactElement {
   const [file, setFile] = useState<RosterFile | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
+  const [roles, setRoles] = useState<BotRoleDto[]>([]);
+  const [existingTeams, setExistingTeams] = useState<BotTeamDto[]>([]);
   const [loadingFile, setLoadingFile] = useState(false);
   const [error, setError] = useState("");
   const [sortField, setSortField] = useState<SortField>("firstName");
@@ -33,6 +37,25 @@ export function RosterManager({
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  useEffect((): void => {
+    const numericGuildId = Number(guildId);
+    if (!Number.isSafeInteger(numericGuildId)) return;
+
+    void Promise.all([
+      BotApi.getGuildRoles(numericGuildId),
+      BotApi.getGuildTeams(numericGuildId),
+    ]).then(([rolesResult, teamsResult]): void => {
+      const failed = [rolesResult, teamsResult].find((result) => result.isFailure);
+      if (failed?.isFailure) {
+        setError(failed.error.message);
+        return;
+      }
+
+      setRoles(rolesResult.value.items.filter((role) => Boolean(role.discordRoleId)));
+      setExistingTeams(teamsResult.value.items);
+    });
+  }, [guildId]);
+
   const studentsById = useMemo(
     (): Map<number, Student> => new Map(
       students.map((student) => [student.id, student])
@@ -100,6 +123,16 @@ export function RosterManager({
     setSaved(false);
   }
 
+  function selectRole(teamId: number, roleId: number): void {
+    setDistribution((current) => current && ({
+      ...current,
+      teams: current.teams.map((team) => (
+        team.id === teamId ? { ...team, roleId } : team
+      )),
+    }));
+    setSaved(false);
+  }
+
   function moveStudent(studentId: number, teamId: number | null): void {
     setDistribution((current) => {
       if (!current) return current;
@@ -118,7 +151,10 @@ export function RosterManager({
   }
 
   async function save(): Promise<void> {
-    if (!distribution || distribution.unassignedIds.length || !guildId) return;
+    if (!distribution || distribution.unassignedIds.length || !guildId || distribution.teams.some((team) => team.roleId === null)) {
+      setError("Select a Discord role for every team.");
+      return;
+    }
     setSaving(true);
     const result = await saveGuildDistribution(
       guildId, distribution, studentsById
@@ -175,6 +211,9 @@ export function RosterManager({
           onRegenerate={generate}
           onRename={rename}
           onRecolor={recolor}
+          roles={roles}
+          existingTeamNames={existingTeams.map((team) => team.name)}
+          onRoleChange={selectRole}
           onMoveStudent={moveStudent}
         />
       ) : null}
@@ -185,7 +224,7 @@ export function RosterManager({
         saving={saving}
         saved={saved}
         disabled={
-          !guildId || !distribution || Boolean(distribution.unassignedIds.length)
+          !guildId || !distribution || Boolean(distribution.unassignedIds.length) || distribution.teams.some((team) => team.roleId === null)
         }
         onSave={(): void => { void save(); }}
       />

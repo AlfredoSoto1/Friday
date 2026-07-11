@@ -35,6 +35,7 @@ function createEmptyTeams(teamCount: number): TeamGroup[] {
     id: index + 1,
     name: `Team ${index + 1}`,
     color: TEAM_COLOR_SWATCHES[index % TEAM_COLOR_SWATCHES.length],
+    roleId: null,
     studentIds: [],
   }));
 }

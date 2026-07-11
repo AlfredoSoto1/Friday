@@ -137,17 +137,6 @@ CREATE TABLE discord.user_teams (
   FOREIGN KEY (team_id) REFERENCES discord.teams(team_id) ON DELETE CASCADE
 );
 
-CREATE TABLE discord.server_syncs (
-  sync_id             SERIAL    PRIMARY KEY,
-  server_id           INT       NOT NULL,
-  role_count          INT       NOT NULL DEFAULT 0,
-  channel_count       INT       NOT NULL DEFAULT 0,
-  category_count      INT       NOT NULL DEFAULT 0,
-  synced_by_discord_id VARCHAR(32),
-  synced_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE
-);
 
 -- ============================================================================
 -- Inelicom Schema

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Hash, Shield, TriangleAlert, Users } from "lucide-react";
+import { Shield, TriangleAlert, Users } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -52,13 +52,11 @@ export function ServerOverview({
 
     Promise.all([
       BotApi.getGuildRoles(numericGuildId),
-      BotApi.getGuildChannels(numericGuildId),
       BotApi.getGuildMembers(numericGuildId),
     ])
-      .then(([rolesResult, channelsResult, membersResult]): void => {
+      .then(([rolesResult, membersResult]): void => {
         const failedResult = [
           rolesResult,
-          channelsResult,
           membersResult,
         ].find((result) => result.isFailure);
 
@@ -67,13 +65,9 @@ export function ServerOverview({
           return;
         }
 
-        const channels = channelsResult.value.items;
         const members = membersResult.value.items;
         const nextTeams = rolesResult.value.items.map((role): TeamOverview => {
           const discordRoleId = role.discordRoleId ?? "";
-          const channel = channels.find((item): boolean => (
-            item.name.toLowerCase() === role.name.toLowerCase()
-          ));
           const memberCount = members.filter((member): boolean => (
             member.roleIds.includes(discordRoleId)
           )).length;
@@ -85,7 +79,6 @@ export function ServerOverview({
             color: `#${(role.color ?? 0x5865f2)
               .toString(16)
               .padStart(6, "0")}`,
-            channelName: channel?.name ?? "Not linked",
             memberCount,
           };
         });
@@ -121,7 +114,7 @@ export function ServerOverview({
         <CardHeader>
           <CardTitle>Teams and groups</CardTitle>
           <CardDescription>
-            Discord roles, linked channels, and assigned members.
+            Discord roles and assigned members.
           </CardDescription>
           <CardAction>
             {teams.length ? (
@@ -159,7 +152,6 @@ export function ServerOverview({
                 <TableRow>
                   <TableHead>Role</TableHead>
                   <TableHead>Discord role ID</TableHead>
-                  <TableHead>Linked channel</TableHead>
                   <TableHead className="text-right">Members</TableHead>
                 </TableRow>
               </TableHeader>
@@ -180,12 +172,6 @@ export function ServerOverview({
                     </TableCell>
                     <TableCell className="max-w-48 truncate text-muted-foreground">
                       {team.discordRoleId || "Not synced"}
-                    </TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-1.5">
-                        <Hash className="size-4 text-muted-foreground" />
-                        {team.channelName}
-                      </span>
                     </TableCell>
                     <TableCell className="text-right">
                       <Badge variant="secondary">

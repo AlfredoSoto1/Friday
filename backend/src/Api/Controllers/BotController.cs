@@ -52,45 +52,10 @@ public sealed class BotController : ControllerBase
     return result.Send();
   }
 
-  [HttpPost("users")]
-  public async Task<IActionResult> CreateUser([FromBody] BotUserRequest request)
-  {
-    var result = await _service.CreateUser(request);
-    return result.Send();
-  }
-
-  [HttpPut("users/{userId:int}")]
-  public async Task<IActionResult> UpdateUser([FromRoute] int userId, [FromBody] BotUserRequest request)
-  {
-    var result = await _service.UpdateUser(userId, request);
-    return result.Send();
-  }
-
-  [HttpDelete("users/{userId:int}")]
-  public async Task<IActionResult> DeleteUser([FromRoute] int userId)
-  {
-    var result = await _service.DeleteUser(userId);
-    return result.Send();
-  }
-
   [HttpGet("servers/{guildId:long}/members")]
   public async Task<IActionResult> GetGuildMembers([FromRoute] long guildId)
   {
     var result = await _service.GetGuildMembers(guildId);
-    return result.Send();
-  }
-
-  [HttpPost("servers/{guildId:long}/members")]
-  public async Task<IActionResult> RegisterUserToGuild([FromRoute] long guildId, [FromBody] RegisterGuildMemberRequest request)
-  {
-    var result = await _service.RegisterUserToGuild(guildId, request);
-    return result.Send();
-  }
-
-  [HttpPost("servers/{guildId:long}/members/bulk")]
-  public async Task<IActionResult> RegisterUsersToGuild([FromRoute] long guildId, [FromBody] BulkRegisterGuildMembersRequest request)
-  {
-    var result = await _service.RegisterUsersToGuild(guildId, request);
     return result.Send();
   }
 
@@ -122,12 +87,6 @@ public sealed class BotController : ControllerBase
     return result.Send();
   }
 
-  [HttpGet("servers/{guildId:long}/channels")]
-  public async Task<IActionResult> GetGuildChannels([FromRoute] long guildId)
-  {
-    var result = await _service.GetGuildChannels(guildId);
-    return result.Send();
-  }
 
   [HttpGet("servers/{guildId:long}/commands/{commandName}")]
   public async Task<IActionResult> GetCommandResponse([FromRoute] long guildId, [FromRoute] string commandName)
@@ -140,22 +99,6 @@ public sealed class BotController : ControllerBase
   public async Task<IActionResult> GetGuildTeams([FromRoute] long guildId)
   {
     var result = await _service.GetGuildTeams(guildId);
-    return result.Send();
-  }
-
-  [HttpPut("servers/{guildId:long}/teams/{teamId:int}")]
-  public async Task<IActionResult> UpdateGuildTeam(
-    [FromRoute] long guildId, [FromRoute] int teamId,
-    [FromBody] UpdateGuildTeamRequest request)
-  {
-    var result = await _service.UpdateGuildTeam(guildId, teamId, request);
-    return result.Send();
-  }
-
-  [HttpDelete("servers/{guildId:long}/teams")]
-  public async Task<IActionResult> ResetGuildTeams([FromRoute] long guildId)
-  {
-    var result = await _service.ResetGuildTeams(guildId);
     return result.Send();
   }
 
@@ -189,9 +132,7 @@ public sealed class BotController : ControllerBase
     {
       GuildId = guildId,
       GuildName = request.GuildName,
-      SyncedByDiscordId = request.SyncedByDiscordId,
-      Roles = request.Roles,
-      Channels = request.Channels
+      Roles = request.Roles
     };
 
     var result = await _service.SyncGuild(normalized);

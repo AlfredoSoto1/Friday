@@ -18,17 +18,21 @@ type ColumnMap = Partial<Record<RosterColumn, number>>;
 const HEADER_ALIASES: Record<string, RosterColumn> = {
   firstname: "firstName",
   "first name": "firstName",
+  name: "firstName",
   firstlastname: "firstLastName",
   "first lastname": "firstLastName",
   "first last name": "firstLastName",
+  "father last name": "firstLastName",
   secondlastname: "secondLastName",
   "second lastname": "secondLastName",
   "second last name": "secondLastName",
+  "mother last name": "secondLastName",
   initial: "initial",
   "personal email": "personalEmail",
   personalemail: "personalEmail",
   "institutional email": "institutionalEmail",
   institutionalemail: "institutionalEmail",
+  "institutional account": "institutionalEmail",
   program: "program",
 };
 
@@ -68,7 +72,8 @@ function parseProgram(value: string): Student["program"] | null {
 function buildStudent(
   id: number,
   row: string[],
-  columns: Required<ColumnMap>
+  columns: Required<ColumnMap>,
+  programFallback: Student["program"] | null
 ): Student | null {
   const firstName = row[columns.firstName]?.trim();
   const firstLastName = row[columns.firstLastName]?.trim();
@@ -76,7 +81,7 @@ function buildStudent(
   const initial = row[columns.initial]?.trim();
   const personalEmail = row[columns.personalEmail]?.trim();
   const institutionalEmail = row[columns.institutionalEmail]?.trim();
-  const program = parseProgram(row[columns.program] ?? "");
+  const program = parseProgram(row[columns.program] ?? "") ?? programFallback;
 
   if (!firstName || !firstLastName ||
       (!personalEmail && !institutionalEmail) || !program) {
@@ -134,7 +139,13 @@ export async function parseRosterFile(file: File): Promise<Student[]> {
         program: 6,
       }
     : detectedColumns;
-  const missing = REQUIRED_COLUMNS.filter((column) => columns[column] === undefined);
+  const fileName = file.name.toUpperCase();
+  const programFallback: Student["program"] | null = fileName.includes("ICOM")
+    ? "ICOM"
+    : fileName.includes("INEL") ? "INEL" : null;
+  const missing = REQUIRED_COLUMNS.filter((column) => (
+    columns[column] === undefined && (column !== "program" || !programFallback)
+  ));
 
   if (missing.length ||
       (columns.personalEmail === undefined &&
@@ -148,7 +159,8 @@ export async function parseRosterFile(file: File): Promise<Student[]> {
     .map((row, index) => buildStudent(
       index + 1,
       row,
-      columns as Required<ColumnMap>
+      columns as Required<ColumnMap>,
+      programFallback
     ))
     .filter((student): student is Student => student !== null);
 

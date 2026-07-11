@@ -1,3 +1,4 @@
+import type { BotRoleDto } from "@/server/entities/bot";
 export interface Student {
   id: number;
   name: string;
@@ -24,6 +25,7 @@ export interface TeamGroup {
   id: number;
   name: string;
   color: string;
+  roleId: number | null;
   studentIds: number[];
 }
 
@@ -42,8 +44,11 @@ export interface TeamCardProps {
   team: TeamGroup;
   members: Student[];
   otherTeams: TeamGroup[];
+  roles: BotRoleDto[];
+  existingTeamNames: string[];
   editMode: boolean;
   onRename: (teamId: number, name: string) => void;
   onRecolor: (teamId: number, color: string) => void;
+  onRoleChange: (teamId: number, roleId: number) => void;
   onMoveStudent: (studentId: number, toTeamId: number | null) => void;
 }

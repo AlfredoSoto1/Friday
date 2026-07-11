@@ -62,21 +62,6 @@ export interface BuildingRequest {
   gpin: string;
 }
 
-export interface DepartmentDto {
-  departmentId: number;
-  name: string;
-  facultyId: number;
-  buildingId: number;
-  createdAt: string;
-}
-
-export interface DepartmentRequest {
-  name: string;
-  facultyId: number;
-  buildingId: number;
-}
-
-
 export interface ProjectDto {
   projectId: number;
   web?: string | null;
@@ -112,6 +97,7 @@ export interface GuildRosterStudentRequest {
 
 export interface GuildRosterTeamRequest {
   name: string;
+  roleId: number;
   students: GuildRosterStudentRequest[];
 }
 

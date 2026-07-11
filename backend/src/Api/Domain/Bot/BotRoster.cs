@@ -12,7 +12,10 @@ public sealed class RosterStudentRequest
 
 public sealed class RosterTeamRequest
 {
+  public int? TeamId { get; init; }
   public string Name { get; init; } = string.Empty;
+  public int? RoleId { get; init; }
+  public bool AppendMembers { get; init; }
   public IReadOnlyCollection<RosterStudentRequest> Students { get; init; } = [];
 }
 
@@ -54,6 +57,7 @@ public sealed class RosterTeamReference
 {
   public int TeamId { get; init; }
   public string Name { get; init; } = string.Empty;
+  public bool AppendMembers { get; init; }
 }
 
 public sealed class GuildTeam
@@ -64,12 +68,6 @@ public sealed class GuildTeam
   public int? RoleId { get; init; }
   public string? RoleName { get; init; }
   public int MemberCount { get; init; }
-}
-
-public sealed class UpdateGuildTeamRequest
-{
-  public string Name { get; init; } = string.Empty;
-  public int? RoleId { get; init; }
 }
 
 public sealed class SaveGuildRosterResult

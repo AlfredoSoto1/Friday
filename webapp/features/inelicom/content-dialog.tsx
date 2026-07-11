@@ -15,13 +15,6 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type {
   ContentData,
   ContentFormValues,
@@ -43,8 +36,6 @@ interface ContentDialogProps {
 const emptyValues: ContentFormValues = {
   name: "",
   gpin: "",
-  facultyId: 0,
-  buildingId: 0,
 };
 
 export function ContentDialog({
@@ -65,12 +56,6 @@ export function ContentDialog({
     setValues({
       name: current?.name ?? "",
       gpin: current && "gpin" in current ? current.gpin : "",
-      facultyId: current && "facultyId" in current
-        ? current.facultyId
-        : data.faculties[0]?.facultyId ?? 0,
-      buildingId: current && "buildingId" in current
-        ? current.buildingId
-        : data.buildings[0]?.buildingId ?? 0,
     });
   }, [current, data, open]);
 
@@ -149,42 +134,5 @@ export function ContentDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-interface RelationSelectProps {
-  label: string;
-  value: number;
-  options: Array<{ id: number; name: string }>;
-  onChange: (value: number) => void;
-}
-
-function RelationSelect({
-  label,
-  value,
-  options,
-  onChange,
-}: RelationSelectProps): React.ReactElement {
-  return (
-    <Field>
-      <FieldLabel>{label}</FieldLabel>
-      <Select
-        value={value ? value.toString() : ""}
-        onValueChange={(nextValue): void => {
-          onChange(Number(nextValue));
-        }}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.id} value={option.id.toString()}>
-              {option.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </Field>
   );
 }

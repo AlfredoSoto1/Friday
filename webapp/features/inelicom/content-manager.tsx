@@ -69,16 +69,6 @@ export function ContentManager(): React.ReactElement {
         ? await InelicomApi.updateBuilding(current.buildingId, request)
         : await InelicomApi.createBuilding(request);
       failedMessage = result.isFailure ? result.error.message : "";
-    } else if (kind === "department") {
-      const request = {
-        name,
-        facultyId: values.facultyId,
-        buildingId: values.buildingId,
-      };
-      const result = current && "departmentId" in current
-        ? await InelicomApi.updateDepartment(current.departmentId, request)
-        : await InelicomApi.createDepartment(request);
-      failedMessage = result.isFailure ? result.error.message : "";
     }
 
     if (failedMessage) {
@@ -102,9 +92,6 @@ export function ContentManager(): React.ReactElement {
     } else if (kind === "building" && "buildingId" in current) {
       const result = await InelicomApi.deleteBuilding(current.buildingId);
       failedMessage = result.isFailure ? result.error.message : "";
-    } else if (kind === "department" && "departmentId" in current) {
-      const result = await InelicomApi.deleteDepartment(current.departmentId);
-      failedMessage = result.isFailure ? result.error.message : "";
     }
 
     if (failedMessage) {
@@ -112,7 +99,6 @@ export function ContentManager(): React.ReactElement {
       return;
     }
 
-    await loadContent();
   }
 
   if (loading) {
@@ -149,15 +135,6 @@ export function ContentManager(): React.ReactElement {
           title="Buildings"
           description={`${data.buildings.length} building records`}
           records={data.buildings}
-          data={data}
-          onSave={saveRecord}
-          onDelete={deleteRecord}
-        />
-        <ContentTableCard
-          kind="department"
-          title="Departments"
-          description="Each department belongs to a faculty and building."
-          records={data.departments}
           data={data}
           onSave={saveRecord}
           onDelete={deleteRecord}

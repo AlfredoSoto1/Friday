@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import {
   Item,
   ItemActions,
@@ -46,6 +47,9 @@ export function TeamCard({
   team,
   members,
   otherTeams,
+  roles,
+  existingTeamNames,
+  onRoleChange,
   editMode,
   onRename,
   onRecolor,
@@ -99,6 +103,7 @@ export function TeamCard({
                 <FieldLabel htmlFor={`team-name-${team.id}`}>Team name</FieldLabel>
                 <Input
                   id={`team-name-${team.id}`}
+                  list={`team-names-${team.id}`}
                   value={draftName}
                   onChange={(event): void => setDraftName(event.target.value)}
                   onBlur={commitName}
@@ -108,6 +113,25 @@ export function TeamCard({
                     }
                   }}
                 />
+              </Field>
+              <datalist id={`team-names-${team.id}`}>
+                {existingTeamNames.map((name) => <option key={name} value={name} />)}
+              </datalist>
+              <Field>
+                <FieldLabel htmlFor={`team-role-${team.id}`}>Discord role</FieldLabel>
+                <NativeSelect
+                  id={`team-role-${team.id}`}
+                  value={team.roleId?.toString() ?? ""}
+                  onChange={(event): void => onRoleChange(team.id, Number(event.target.value))}
+                  className="w-full"
+                >
+                  <NativeSelectOption value="" disabled>Select role</NativeSelectOption>
+                  {roles.map((role) => (
+                    <NativeSelectOption key={role.roleId} value={role.roleId.toString()}>
+                      {role.name}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
               </Field>
               <Field>
                 <FieldLabel>Team color</FieldLabel>

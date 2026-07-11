@@ -17,16 +17,7 @@ public interface IBotRepository
   // Users and guild membership
   // ==========================================================================
   Task<Result<IReadOnlyCollection<BotUser>, AppError>> GetUsers(IDbConnection connection);
-  Task<Result<BotUser, AppError>> CreateUser(IDbConnection connection, IDbTransaction transaction, BotUserRequest request);
-  Task<Result<BotUser, AppError>> UpdateUser(IDbConnection connection, IDbTransaction transaction, int userId, BotUserRequest request);
-  Task<Result<bool, AppError>> DeleteUser(IDbConnection connection, IDbTransaction transaction, int userId);
   Task<Result<IReadOnlyCollection<BotServerMember>, AppError>> GetGuildMembers(IDbConnection connection, long guildId);
-  Task<Result<int, AppError>> InsertUser(IDbConnection connection, IDbTransaction transaction, string email, string fullname, string username);
-  Task<Result<MemberVerification, AppError>> RegisterUserToGuild(
-    IDbConnection connection,
-    IDbTransaction transaction,
-    long guildId,
-    RegisterGuildMemberRequest request);
   Task<Result<MemberVerification, AppError>> VerifyMember(IDbConnection connection, long guildId, VerifyMemberRequest request);
   Task<Result<IReadOnlyCollection<RosterUserReference>, AppError>> UpsertRosterUsers(
     IDbConnection connection,
@@ -41,7 +32,7 @@ public interface IBotRepository
     IDbConnection connection,
     IDbTransaction transaction,
     long guildId,
-    IReadOnlyCollection<string> teamNames);
+    IReadOnlyCollection<RosterTeamRequest> teams);
   Task<Result<RosterMembersContextResult, AppError>> AssignProgramRoles(
     IDbConnection connection, IDbTransaction transaction, long guildId,
     IReadOnlyCollection<RosterStudentAssignment> students,
@@ -49,11 +40,6 @@ public interface IBotRepository
     IReadOnlyCollection<RosterMemberReference> members);
   Task<Result<IReadOnlyCollection<GuildTeam>, AppError>> GetGuildTeams(
     IDbConnection connection, long guildId);
-  Task<Result<GuildTeam, AppError>> UpdateGuildTeam(
-    IDbConnection connection, IDbTransaction transaction, long guildId,
-    int teamId, UpdateGuildTeamRequest request);
-  Task<Result<bool, AppError>> ResetGuildTeams(
-    IDbConnection connection, IDbTransaction transaction, long guildId);
   Task<Result<int, AppError>> ReplaceRosterAssignments(
     IDbConnection connection,
     IDbTransaction transaction,
@@ -64,13 +50,12 @@ public interface IBotRepository
   Task<Result<MemberXp, AppError>> AddXp(IDbConnection connection, long guildId, XpRequest request);
 
   // ==========================================================================
-  // Roles and channels
+  // Roles
   // ==========================================================================
   Task<Result<IReadOnlyCollection<BotRole>, AppError>> GetGuildRoles(IDbConnection connection, long guildId);
   Task<Result<BotRole, AppError>> CreateGuildRole(IDbConnection connection, IDbTransaction transaction, long guildId, BotRoleRequest request);
   Task<Result<BotRole, AppError>> UpdateGuildRole(IDbConnection connection, IDbTransaction transaction, long guildId, int roleId, BotRoleRequest request);
   Task<Result<bool, AppError>> DeleteGuildRole(IDbConnection connection, IDbTransaction transaction, long guildId, int roleId);
-  Task<Result<IReadOnlyCollection<BotChannel>, AppError>> GetGuildChannels(IDbConnection connection, long guildId);
 
   // ==========================================================================
   // Sync

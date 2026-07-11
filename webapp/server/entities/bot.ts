@@ -12,18 +12,12 @@ export interface BotRoleDto {
   updatedAt: string;
 }
 
-export interface BotChannelDto {
-  channelId: number;
-  guildId: number;
-  discordChannelId: string;
-  parentChannelId?: string | null;
+export interface BotTeamDto {
+  teamId: number;
   name: string;
-  type: string;
-  position?: number | null;
-  topic?: string | null;
-  nsfw: boolean;
-  createdAt: string;
-  updatedAt: string;
+  roleId?: number | null;
+  roleName?: string | null;
+  memberCount: number;
 }
 
 export interface BotMemberDto {

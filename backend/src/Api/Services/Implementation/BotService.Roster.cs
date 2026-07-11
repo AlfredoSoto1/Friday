@@ -20,7 +20,7 @@ public sealed partial class BotService
         SecondLastName = student.SecondLastName,
         Initial = student.Initial,
         Program = student.Program,
-        TeamName = team.Name
+        TeamName = team.Name.Trim()
       })).ToArray();
 
     if (request.Teams.Count == 0 || students.Length == 0)
@@ -36,11 +36,20 @@ public sealed partial class BotService
       string.IsNullOrWhiteSpace(student.FirstLastName) ||
       !new[] { "INEL", "ICOM", "INSO", "CIIC" }.Contains(student.Program) ||
       !teamNames.Contains(student.TeamName));
+    var teamRoleIds = request.Teams.Select(team => team.RoleId).ToArray();
+    var selectedTeamIds = request.Teams
+      .Where(team => team.TeamId is not null)
+      .Select(team => team.TeamId!.Value)
+      .ToArray();
     var uniqueStudents =
       students.Select(student => student.Email).Distinct().Count();
     if (invalidStudents ||
+        teamNames.Any(string.IsNullOrWhiteSpace) ||
         teamNames.Distinct().Count() != teamNames.Length ||
-        uniqueStudents != students.Length)
+        selectedTeamIds.Distinct().Count() != selectedTeamIds.Length ||
+        uniqueStudents != students.Length ||
+        teamRoleIds.Any(roleId => roleId is null) ||
+        teamRoleIds.Distinct().Count() != teamRoleIds.Length)
     {
       return Result<SaveGuildRosterResult, AppError>.Fail(
         AppError.BadRequest(
@@ -58,7 +67,7 @@ public sealed partial class BotService
       .AndThen((conn, transaction, roster) =>
         AssignProgramRoles(conn, transaction, guildId, students, roster))
       .AndThen((conn, transaction, roster) =>
-        ReplaceRosterTeams(conn, transaction, guildId, teamNames, roster))
+        ReplaceRosterTeams(conn, transaction, guildId, request.Teams, roster))
       .AndThen((conn, transaction, roster) =>
         ReplaceRosterAssignments(conn, transaction, students, roster))
       .Complete();
@@ -116,18 +125,18 @@ public sealed partial class BotService
     IDbConnection connection,
     IDbTransaction transaction,
     long guildId,
-    IReadOnlyCollection<string> teamNames,
+    IReadOnlyCollection<RosterTeamRequest> teams,
     RosterMembersContext roster)
   {
     var result = await _repository.ReplaceRosterTeams(
-      connection, transaction, guildId, teamNames);
+      connection, transaction, guildId, teams);
 
     if (result.IsFailure)
     {
       return Result<RosterTeamsContext, AppError>.Fail(result.Error);
     }
 
-    return result.Value.Count == teamNames.Count
+    return result.Value.Count == teams.Count
       ? Result<RosterTeamsContext, AppError>.Ok(
         new RosterTeamsContext(roster.Users, roster.Members, result.Value))
       : Result<RosterTeamsContext, AppError>.Fail(

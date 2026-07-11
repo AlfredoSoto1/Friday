@@ -542,32 +542,6 @@
           ]
         },
         {
-          "name": "Channels",
-          "item": [
-            {
-              "name": "List channels",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/api/v1/bot/servers/{{guild_id}}/channels",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "bot",
-                    "servers",
-                    "{{guild_id}}",
-                    "channels"
-                  ]
-                }
-              }
-            }
-          ]
-        },
-        {
           "name": "Sync server",
           "request": {
             "method": "POST",
@@ -593,7 +567,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"guild_name\": \"Friday Test Server 1\",\n  \"synced_by_discord_id\": \"1234\",\n  \"roles\": [\n    {\n      \"discord_role_id\": \"111\",\n      \"name\": \"Verified\",\n      \"color\": 5793266,\n      \"position\": 1,\n      \"managed\": false,\n      \"mentionable\": true,\n      \"hoisted\": false\n    }\n  ],\n  \"channels\": [\n    {\n      \"discord_channel_id\": \"333\",\n      \"parent_channel_id\": null,\n      \"name\": \"verify\",\n      \"type\": \"text\",\n      \"position\": 1,\n      \"topic\": \"Verification\",\n      \"nsfw\": false\n    }\n  ]\n}"
+              "raw": "{\n  \"guild_name\": \"Friday Test Server 1\",\n  \"roles\": [\n    {\n      \"discord_role_id\": \"111\",\n      \"name\": \"Verified\",\n      \"color\": 5793266,\n      \"position\": 1,\n      \"managed\": false,\n      \"mentionable\": true,\n      \"hoisted\": false\n    }\n  ]\n}"
             }
           }
         }

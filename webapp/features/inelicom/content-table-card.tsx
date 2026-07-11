@@ -69,8 +69,6 @@ export function ContentTableCard({
             <TableRow>
               <TableHead>Name</TableHead>
               {kind === "building" ? <TableHead>GPIN</TableHead> : null}
-              {kind === "department" ? <TableHead>Faculty</TableHead> : null}
-              {kind === "department" ? <TableHead>Building</TableHead> : null}
               <TableHead className="w-20">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -80,12 +78,6 @@ export function ContentTableCard({
                 <TableCell className="font-medium">{record.name}</TableCell>
                 {kind === "building" ? (
                   <TableCell>{"gpin" in record ? record.gpin : ""}</TableCell>
-                ) : null}
-                {kind === "department" ? (
-                  <TableCell>{relationName(data, "faculty", record)}</TableCell>
-                ) : null}
-                {kind === "department" ? (
-                  <TableCell>{relationName(data, "building", record)}</TableCell>
                 ) : null}
                 <TableCell>
                   <div className="flex gap-1">
@@ -120,18 +112,4 @@ function recordId(kind: ContentKind, record: ContentRecord): number {
   if (kind === "faculty" && "facultyId" in record) return record.facultyId;
   if (kind === "building" && "buildingId" in record) return record.buildingId;
   return 0;
-}
-
-function relationName(
-  data: ContentData,
-  relation: "faculty" | "building",
-  record: ContentRecord
-): string {
-  if (relation === "faculty" && "facultyId" in record) {
-    return data.faculties.find((item) => item.facultyId === record.facultyId)?.name ?? "Unknown";
-  }
-  if (relation === "building" && "buildingId" in record) {
-    return data.buildings.find((item) => item.buildingId === record.buildingId)?.name ?? "Unknown";
-  }
-  return "Unknown";
 }

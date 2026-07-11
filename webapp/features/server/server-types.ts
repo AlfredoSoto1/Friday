@@ -3,6 +3,5 @@ export interface TeamOverview {
   name: string;
   discordRoleId: string;
   color: string;
-  channelName: string;
   memberCount: number;
 }

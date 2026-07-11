@@ -119,7 +119,7 @@ export function CsvImportManager(): React.ReactElement {
         <CardHeader>
           <CardTitle>Import CSV</CardTitle>
           <CardDescription>
-            Upload a CSV for buildings, contacts, faculties, departments, projects, or organizations.
+            Upload a CSV for buildings, contacts, faculties, projects, or organizations.
           </CardDescription>
           <CardAction>
             <FileSpreadsheet className="size-5 text-muted-foreground" />

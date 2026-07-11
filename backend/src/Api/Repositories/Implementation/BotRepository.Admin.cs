@@ -27,76 +27,6 @@ public sealed partial class BotRepository
     }
   }
 
-  public async Task<Result<BotUser, AppError>> CreateUser(IDbConnection connection, IDbTransaction transaction, BotUserRequest request)
-  {
-    try
-    {
-      const string sql = @"
-        INSERT INTO discord.users (email, first_name)
-        VALUES (@Email, @Fullname)
-        RETURNING user_id, email,
-                  first_name AS fullname,
-                  SPLIT_PART(email, '@', 1) AS username,
-                  created_at;
-      ";
-
-      var record = await connection.QuerySingleAsync(sql, request, transaction);
-      return Result<BotUser, AppError>.Ok(MapToBotUser(record));
-    }
-    catch (Exception ex)
-    {
-      return Result<BotUser, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
-  public async Task<Result<BotUser, AppError>> UpdateUser(IDbConnection connection, IDbTransaction transaction, int userId, BotUserRequest request)
-  {
-    try
-    {
-      const string sql = @"
-        UPDATE discord.users
-           SET email = @Email,
-               first_name = @Fullname
-        WHERE user_id = @UserId
-        RETURNING user_id, email,
-                  CONCAT_WS(' ', first_name, initial, first_last_name, second_last_name) AS fullname,
-                  SPLIT_PART(email, '@', 1) AS username,
-                  created_at;
-      ";
-
-      var record = await connection.QuerySingleOrDefaultAsync(sql, new
-      {
-        UserId = userId,
-        request.Email,
-        request.Fullname,
-        request.Username
-      }, transaction);
-
-      return record is null
-        ? Result<BotUser, AppError>.Fail(AppError.NotFound("User not found."))
-        : Result<BotUser, AppError>.Ok(MapToBotUser(record));
-    }
-    catch (Exception ex)
-    {
-      return Result<BotUser, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
-  public async Task<Result<bool, AppError>> DeleteUser(IDbConnection connection, IDbTransaction transaction, int userId)
-  {
-    try
-    {
-      var affected = await connection.ExecuteAsync("DELETE FROM discord.users WHERE user_id = @UserId;", new { UserId = userId }, transaction);
-      return affected == 0
-        ? Result<bool, AppError>.Fail(AppError.NotFound("User not found."))
-        : Result<bool, AppError>.Ok(true);
-    }
-    catch (Exception ex)
-    {
-      return Result<bool, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
   public async Task<Result<IReadOnlyCollection<BotServerMember>, AppError>> GetGuildMembers(IDbConnection connection, long guildId)
   {
     try
@@ -323,29 +253,6 @@ public sealed partial class BotRepository
     }
   }
 
-  public async Task<Result<IReadOnlyCollection<BotChannel>, AppError>> GetGuildChannels(IDbConnection connection, long guildId)
-  {
-    try
-    {
-      const string sql = @"
-        SELECT channels.channel_id, servers.guild_id, channels.discord_channel_id, channels.parent_channel_id,
-               channels.name, channels.type, channels.position, channels.topic, channels.nsfw,
-               channels.created_at, channels.updated_at
-          FROM discord.channels
-            INNER JOIN discord.servers USING (server_id)
-        WHERE servers.guild_id = @GuildId
-        ORDER BY channels.position NULLS LAST, channels.name;
-      ";
-
-      var records = await connection.QueryAsync(sql, new { GuildId = guildId.ToString() });
-      return Result<IReadOnlyCollection<BotChannel>, AppError>.Ok(records.Select(MapToBotChannel).ToArray());
-    }
-    catch (Exception ex)
-    {
-      return Result<IReadOnlyCollection<BotChannel>, AppError>.Fail(AppError.BadRequest(ex.Message));
-    }
-  }
-
 
 
   private static BotUser MapToBotUser(dynamic record) => new()
@@ -385,21 +292,6 @@ public sealed partial class BotRepository
     Managed = (bool)record.managed,
     Mentionable = (bool)record.mentionable,
     Hoisted = (bool)record.hoisted,
-    CreatedAt = (DateTime)record.created_at,
-    UpdatedAt = (DateTime)record.updated_at
-  };
-
-  private static BotChannel MapToBotChannel(dynamic record) => new()
-  {
-    ChannelId = (int)record.channel_id,
-    GuildId = long.Parse((string)record.guild_id),
-    DiscordChannelId = (string)record.discord_channel_id,
-    ParentChannelId = (string?)record.parent_channel_id,
-    Name = (string)record.name,
-    Type = (string)record.type,
-    Position = (int?)record.position,
-    Topic = (string?)record.topic,
-    Nsfw = (bool)record.nsfw,
     CreatedAt = (DateTime)record.created_at,
     UpdatedAt = (DateTime)record.updated_at
   };

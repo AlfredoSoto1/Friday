@@ -99,47 +99,104 @@ public sealed partial class BotRepository
     IDbConnection connection,
     IDbTransaction transaction,
     long guildId,
-    IReadOnlyCollection<string> teamNames)
+    IReadOnlyCollection<RosterTeamRequest> teams)
   {
     try
     {
-      const string deleteSql = @"
-        DELETE FROM discord.teams
-         USING discord.servers
-         WHERE teams.server_id = servers.server_id
-           AND servers.guild_id = @GuildId
-           AND teams.position > @TeamCount;
-      ";
-      await connection.ExecuteAsync(deleteSql, new
-      {
-        GuildId = guildId.ToString(),
-        TeamCount = teamNames.Count
-      }, transaction);
+      var selectedTeamIds = teams
+        .Where(team => team.TeamId is not null)
+        .Select(team => team.TeamId!.Value)
+        .ToArray();
 
-      const string upsertSql = @"
-        INSERT INTO discord.teams (server_id, position, name)
-        SELECT servers.server_id, roster.position, roster.name
-          FROM discord.servers
-          CROSS JOIN UNNEST(@TeamNames) WITH ORDINALITY
-            AS roster(name, position)
-         WHERE servers.guild_id = @GuildId
-        ON CONFLICT (server_id, position)
-        DO UPDATE SET name = EXCLUDED.name,
-                      updated_at = CURRENT_TIMESTAMP
-        RETURNING team_id, name;
-      ";
-      var records = await connection.QueryAsync(upsertSql, new
+      if (selectedTeamIds.Length > 0)
       {
-        GuildId = guildId.ToString(),
-        TeamNames = teamNames.ToArray()
-      }, transaction);
-      var teams = records.Select(record => new RosterTeamReference
-      {
-        TeamId = (int)record.team_id,
-        Name = (string)record.name
-      }).ToArray();
+        const string selectedTeamsSql = @"
+          SELECT teams.team_id
+            FROM discord.teams
+            JOIN discord.servers USING (server_id)
+           WHERE servers.guild_id = @GuildId
+             AND teams.team_id = ANY(@TeamIds);
+        ";
+        var storedTeamIds = (await connection.QueryAsync<int>(selectedTeamsSql, new
+        {
+          GuildId = guildId.ToString(),
+          TeamIds = selectedTeamIds
+        }, transaction)).ToHashSet();
 
-      return Result<IReadOnlyCollection<RosterTeamReference>, AppError>.Ok(teams);
+        if (storedTeamIds.Count != selectedTeamIds.Length)
+        {
+          return Result<IReadOnlyCollection<RosterTeamReference>, AppError>.Fail(
+            AppError.NotFound("One or more selected teams do not belong to this server."));
+        }
+      }
+
+      const string nextPositionSql = @"
+        SELECT COALESCE(MAX(teams.position), 0)
+          FROM discord.teams
+          JOIN discord.servers USING (server_id)
+         WHERE servers.guild_id = @GuildId;
+      ";
+      var nextPosition = await connection.QuerySingleAsync<int>(nextPositionSql, new
+      {
+        GuildId = guildId.ToString()
+      }, transaction);
+      var teamReferences = new List<RosterTeamReference>();
+
+      foreach (var team in teams)
+      {
+        const string updateSql = @"
+          UPDATE discord.teams
+             SET name = @Name,
+                 role_id = @RoleId,
+                 updated_at = CURRENT_TIMESTAMP
+            FROM discord.servers
+            JOIN discord.roles ON roles.server_id = servers.server_id
+           WHERE teams.team_id = @TeamId
+             AND teams.server_id = servers.server_id
+             AND servers.guild_id = @GuildId
+             AND roles.role_id = @RoleId
+          RETURNING teams.team_id, teams.name;
+        ";
+        const string insertSql = @"
+          INSERT INTO discord.teams (server_id, position, name, role_id)
+          SELECT servers.server_id, @Position, @Name, @RoleId
+            FROM discord.servers
+            JOIN discord.roles ON roles.server_id = servers.server_id
+           WHERE servers.guild_id = @GuildId
+             AND roles.role_id = @RoleId
+          RETURNING team_id, name;
+        ";
+        var record = team.TeamId is null
+          ? await connection.QuerySingleOrDefaultAsync(insertSql, new
+          {
+            GuildId = guildId.ToString(),
+            Position = ++nextPosition,
+            Name = team.Name.Trim(),
+            RoleId = team.RoleId!.Value
+          }, transaction)
+          : await connection.QuerySingleOrDefaultAsync(updateSql, new
+          {
+            GuildId = guildId.ToString(),
+            TeamId = team.TeamId.Value,
+            Name = team.Name.Trim(),
+            RoleId = team.RoleId!.Value
+          }, transaction);
+
+        if (record is null)
+        {
+          return Result<IReadOnlyCollection<RosterTeamReference>, AppError>.Fail(
+            AppError.BadRequest("Each team must use a role from this server."));
+        }
+
+        teamReferences.Add(new RosterTeamReference
+        {
+          TeamId = (int)record.team_id,
+          Name = (string)record.name,
+          AppendMembers = team.AppendMembers
+        });
+      }
+
+      return Result<IReadOnlyCollection<RosterTeamReference>, AppError>.Ok(teamReferences);
     }
     catch (Exception ex)
     {
@@ -166,28 +223,34 @@ public sealed partial class BotRepository
         .Join(teams, item => item.TeamName, team => team.Name,
           (item, team) => new { item.ServerUserId, team.TeamId })
         .ToArray();
-      const string deleteSql = @"
-        DELETE FROM discord.user_teams
-         WHERE team_id = ANY(@TeamIds);
-      ";
-      await connection.ExecuteAsync(deleteSql, new
+      var teamsToReplace = teams
+        .Where(team => !team.AppendMembers)
+        .Select(team => team.TeamId)
+        .ToArray();
+      if (teamsToReplace.Length > 0)
       {
-        TeamIds = teams.Select(team => team.TeamId).ToArray()
-      }, transaction);
-
-      const string sql = @"
+        const string deleteSql = @"
+          DELETE FROM discord.user_teams
+           WHERE team_id = ANY(@TeamIds);
+        ";
+        await connection.ExecuteAsync(deleteSql, new
+        {
+          TeamIds = teamsToReplace
+        }, transaction);
+      }
+      const string insertSql = @"
         INSERT INTO discord.user_teams (su_id, team_id)
         SELECT su_id, team_id
           FROM UNNEST(@ServerUserIds, @TeamIds) AS roster(su_id, team_id)
         ON CONFLICT (su_id, team_id) DO NOTHING;
       ";
-      var inserted = await connection.ExecuteAsync(sql, new
+      await connection.ExecuteAsync(insertSql, new
       {
         ServerUserIds = assignments.Select(item => item.ServerUserId).ToArray(),
         TeamIds = assignments.Select(item => item.TeamId).ToArray()
       }, transaction);
 
-      return Result<int, AppError>.Ok(inserted);
+      return Result<int, AppError>.Ok(assignments.Length);
     }
     catch (Exception ex)
     {
