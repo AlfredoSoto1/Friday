@@ -16,12 +16,18 @@ public sealed partial class BotRepository
     try
     {
       const string sql = @"
-        WITH program_roles AS (
-          SELECT role_id, UPPER(name) AS program
+        WITH roster_assignments AS (
+          SELECT email, UPPER(program) AS program
+            FROM UNNEST(@Emails, @Programs) AS roster(email, program)
+          UNION ALL
+          SELECT email, 'PREPA' AS program
+            FROM UNNEST(@Emails) AS roster(email)
+        ), program_roles AS (
+          SELECT roles.role_id, UPPER(roles.name) AS program
             FROM discord.roles
             JOIN discord.servers USING (server_id)
            WHERE servers.guild_id = @GuildId
-             AND UPPER(name) = ANY(@Programs)
+             AND UPPER(roles.name) = ANY(@RoleNames)
         ), removed AS (
           DELETE FROM discord.user_roles
            USING program_roles
@@ -30,10 +36,11 @@ public sealed partial class BotRepository
         ), assigned AS (
           INSERT INTO discord.user_roles (su_id, role_id)
           SELECT members.su_id, program_roles.role_id
-            FROM UNNEST(@Emails, @Programs) AS roster(email, program)
-            JOIN discord.users ON users.email = roster.email
+            FROM roster_assignments
+            JOIN discord.users ON users.email = roster_assignments.email
             JOIN discord.servers_users AS members USING (user_id)
-            JOIN program_roles USING (program)
+            JOIN program_roles
+              ON program_roles.program = roster_assignments.program
            WHERE members.su_id = ANY(@ServerUserIds)
           ON CONFLICT DO NOTHING
           RETURNING su_id
@@ -45,17 +52,18 @@ public sealed partial class BotRepository
         GuildId = guildId.ToString(),
         Emails = students.Select(student => student.Email).ToArray(),
         Programs = students.Select(student => student.Program).ToArray(),
+        RoleNames = students.Select(student => student.Program).Append("PREPA").Distinct().ToArray(),
         ServerUserIds = members.Select(member => member.ServerUserId).ToArray()
       }, transaction);
 
-      return count == students.Count
+      return count == students.Count * 2
         ? Result<RosterMembersContextResult, AppError>.Ok(new()
         {
           Users = users,
           Members = members
         })
         : Result<RosterMembersContextResult, AppError>.Fail(
-          AppError.BadRequest("INEL, ICOM, INSO, and CIIC roles must exist."));
+          AppError.BadRequest("Every roster program role and the Prepa role must exist."));
     }
     catch (Exception ex)
     {

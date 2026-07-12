@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Shuffle, UserRoundCheck } from "lucide-react";
+import { Pencil, UserRoundCheck } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { sortStudents } from "@/features/roster/roster-distribution";
 import { TeamCard } from "@/features/roster/team-card";
-import type { BotRoleDto } from "@/server/entities/bot";
+import type { BotRoleDto, BotTeamDto } from "@/server/entities/bot";
 import type {
   SortDirection,
   SortField,
@@ -32,34 +32,38 @@ import type {
 interface TeamGroupsGridProps {
   teams: TeamGroup[];
   roles: BotRoleDto[];
-  existingTeamNames: string[];
+  existingTeams: BotTeamDto[];
   unassigned: Student[];
   studentsById: Map<number, Student>;
   editMode: boolean;
   sortField: SortField;
   sortDirection: SortDirection;
   onToggleEditMode: () => void;
-  onRegenerate: () => void;
   onRename: (teamId: number, name: string) => void;
-  onRecolor: (teamId: number, color: string) => void;
   onRoleChange: (teamId: number, roleId: number) => void;
+  onExistingTeamChange: (teamId: number, existingTeamId: number | null) => void;
+  onCreateNewTeamChange: (teamId: number, createNewTeam: boolean) => void;
+  onAppendMembersChange: (teamId: number, appendMembers: boolean) => void;
+  onConfigurationOpen: () => void;
   onMoveStudent: (studentId: number, toTeamId: number | null) => void;
 }
 
 export function TeamGroupsGrid({
   teams,
   roles,
-  existingTeamNames,
+  existingTeams,
   unassigned,
   studentsById,
   editMode,
   sortField,
   sortDirection,
   onToggleEditMode,
-  onRegenerate,
   onRename,
-  onRecolor,
   onRoleChange,
+  onExistingTeamChange,
+  onCreateNewTeamChange,
+  onAppendMembersChange,
+  onConfigurationOpen,
   onMoveStudent,
 }: TeamGroupsGridProps): React.ReactElement {
   return (
@@ -67,13 +71,9 @@ export function TeamGroupsGrid({
       <CardHeader>
         <CardTitle>Teams</CardTitle>
         <CardDescription>
-          Select a team to rename it or change its color. Turn on editing to move students between teams.
+          Configure each team’s server role, then turn on editing to move students between teams.
         </CardDescription>
         <CardAction className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={onRegenerate}>
-            <Shuffle />
-            Regenerate
-          </Button>
           <Button
             variant={editMode ? "default" : "outline"}
             size="sm"
@@ -135,10 +135,13 @@ export function TeamGroupsGrid({
               otherTeams={teams.filter((other) => other.id !== team.id)}
               editMode={editMode}
               onRename={onRename}
-              onRecolor={onRecolor}
               roles={roles}
-              existingTeamNames={existingTeamNames}
+              existingTeams={existingTeams}
               onRoleChange={onRoleChange}
+              onExistingTeamChange={onExistingTeamChange}
+              onCreateNewTeamChange={onCreateNewTeamChange}
+              onAppendMembersChange={onAppendMembersChange}
+              onConfigurationOpen={onConfigurationOpen}
               onMoveStudent={onMoveStudent}
             />
           ))}

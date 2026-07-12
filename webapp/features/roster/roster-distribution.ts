@@ -1,5 +1,4 @@
 import {
-  TEAM_COLOR_SWATCHES,
   type DistributionMode,
   type SortDirection,
   type SortField,
@@ -34,10 +33,46 @@ function createEmptyTeams(teamCount: number): TeamGroup[] {
   return Array.from({ length: teamCount }, (_, index) => ({
     id: index + 1,
     name: `Team ${index + 1}`,
-    color: TEAM_COLOR_SWATCHES[index % TEAM_COLOR_SWATCHES.length],
+    color: "#5865f2",
     roleId: null,
+    existingTeamId: null,
+    appendMembers: false,
+    createNewTeam: true,
     studentIds: [],
   }));
+}
+
+function addStudent(teams: TeamGroup[], teamIndex: number, student: Student): void {
+  teams[teamIndex] = {
+    ...teams[teamIndex],
+    studentIds: [...teams[teamIndex].studentIds, student.id],
+  };
+}
+
+function leastPopulatedTeam(teams: TeamGroup[]): number {
+  return teams.reduce((smallest, team, index) => (
+    team.studentIds.length < teams[smallest].studentIds.length ? index : smallest
+  ), 0);
+}
+
+function distributeBalanced(students: Student[], teams: TeamGroup[]): TeamGroup[] {
+  const inel = students.filter((student) => student.program === "INEL");
+  const icom = students.filter((student) => student.program === "ICOM");
+  const otherPrograms = students.filter((student) => (
+    student.program !== "INEL" && student.program !== "ICOM"
+  ));
+  const pairCount = Math.min(inel.length, icom.length);
+
+  for (let index = 0; index < pairCount; index += 1) {
+    const teamIndex = index % teams.length;
+    addStudent(teams, teamIndex, inel[index]);
+    addStudent(teams, teamIndex, icom[index]);
+  }
+
+  [...inel.slice(pairCount), ...icom.slice(pairCount), ...otherPrograms]
+    .forEach((student) => addStudent(teams, leastPopulatedTeam(teams), student));
+
+  return teams;
 }
 
 export interface Distribution {
@@ -52,20 +87,12 @@ export function distributeStudents(
 ): Distribution {
   const teams = createEmptyTeams(teamCount);
 
-  if (mode === "manual") {
-    return { teams, unassignedIds: students.map((student) => student.id) };
+  if (mode === "balanced") {
+    return { teams: distributeBalanced(students, teams), unassignedIds: [] };
   }
 
-  const ordered = mode === "randomized"
-    ? shuffle(students)
-    : students;
-
-  const distributedTeams = ordered.reduce<TeamGroup[]>((current, student, index) => {
-    const teamIndex = index % teamCount;
-    current[teamIndex] = {
-      ...current[teamIndex],
-      studentIds: [...current[teamIndex].studentIds, student.id],
-    };
+  const distributedTeams = shuffle(students).reduce<TeamGroup[]>((current, student, index) => {
+    addStudent(current, index % teamCount, student);
     return current;
   }, teams);
 

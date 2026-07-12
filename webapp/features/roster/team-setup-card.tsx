@@ -137,9 +137,6 @@ export function TeamSetupCard({
                 <TabsTrigger value="randomized" disabled={disabled}>
                   <Dices /> Randomized
                 </TabsTrigger>
-                <TabsTrigger value="manual" disabled={disabled}>
-                  <Users /> Manual
-                </TabsTrigger>
               </TabsList>
             </Tabs>
           </Field>
@@ -148,7 +145,7 @@ export function TeamSetupCard({
       <CardFooter className="justify-end border-t pt-4">
         <Button onClick={onGenerate} disabled={disabled}>
           <Sparkles />
-          {hasTeams ? "Regenerate teams" : "Generate teams"}
+          {hasTeams ? "Generate teams again" : "Generate teams"}
         </Button>
       </CardFooter>
     </Card>

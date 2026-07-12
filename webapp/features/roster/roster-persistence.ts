@@ -10,8 +10,10 @@ export function saveGuildDistribution(
   studentsById: Map<number, Student>
 ): Promise<EnvelopeResult<SaveGuildRosterResult>> {
   const teams = distribution.teams.map((team) => ({
+    teamId: team.existingTeamId ?? undefined,
     name: team.name,
     roleId: team.roleId ?? 0,
+    appendMembers: team.appendMembers,
     students: team.studentIds.flatMap((studentId) => {
       const student = studentsById.get(studentId);
       return student ? [{

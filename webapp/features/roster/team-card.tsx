@@ -1,6 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
-import { ArrowRightLeft, Check, Pencil, Users, X } from "lucide-react";
+
+import { useState } from "react";
+import { ArrowRightLeft, Pencil, Users, X } from "lucide-react";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -19,9 +30,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import {
   Item,
   ItemActions,
@@ -31,43 +41,66 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import {
-  Popover,
-  PopoverContent,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  TEAM_COLOR_SWATCHES,
-  type TeamCardProps,
-} from "@/features/roster/roster-types";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { type TeamCardProps } from "@/features/roster/roster-types";
 import { studentInitials } from "@/features/roster/student-initials";
 import { cn } from "@/lib/utils";
+
 export function TeamCard({
   team,
   members,
   otherTeams,
   roles,
-  existingTeamNames,
+  existingTeams,
   onRoleChange,
+  onExistingTeamChange,
+  onCreateNewTeamChange,
+  onAppendMembersChange,
+  onConfigurationOpen,
   editMode,
   onRename,
-  onRecolor,
   onMoveStudent,
 }: TeamCardProps): React.ReactElement {
   const [open, setOpen] = useState(false);
   const [draftName, setDraftName] = useState(team.name);
-  useEffect((): void => {
-    if (open) {
-      setDraftName(team.name);
-    }
-  }, [open, team.name]);
-  function commitName(): void {
-    const trimmed = draftName.trim();
-    if (trimmed) {
-      onRename(team.id, trimmed);
-    }
+  const [draftCreateNewTeam, setDraftCreateNewTeam] = useState(team.createNewTeam);
+  const [draftExistingTeamId, setDraftExistingTeamId] = useState<number | null>(team.existingTeamId);
+  const [draftRoleId, setDraftRoleId] = useState<number | null>(team.roleId);
+  const [draftAppendMembers, setDraftAppendMembers] = useState(team.appendMembers);
+
+  function resetDraft(): void {
+    setDraftName(team.name);
+    setDraftCreateNewTeam(team.createNewTeam);
+    setDraftExistingTeamId(team.existingTeamId);
+    setDraftRoleId(team.roleId);
+    setDraftAppendMembers(team.appendMembers);
   }
+
+  function confirm(): void {
+    if (draftCreateNewTeam && draftName.trim()) onRename(team.id, draftName.trim());
+    if (draftCreateNewTeam !== team.createNewTeam) {
+      onCreateNewTeamChange(team.id, draftCreateNewTeam);
+    }
+    if (!draftCreateNewTeam && draftExistingTeamId !== null) {
+      onExistingTeamChange(team.id, draftExistingTeamId);
+    }
+    if (draftRoleId !== null) onRoleChange(team.id, draftRoleId);
+    if (!draftCreateNewTeam && draftExistingTeamId !== null) {
+      onAppendMembersChange(team.id, draftAppendMembers);
+    }
+    setOpen(false);
+  }
+
+  const canConfirm = draftRoleId !== null && (
+    draftCreateNewTeam ? Boolean(draftName.trim()) : draftExistingTeamId !== null
+  );
+
   return (
     <Card
       className={cn(
@@ -88,79 +121,120 @@ export function TeamCard({
             <Users />
             {members.length}
           </Badge>
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
+          <Dialog
+            open={open}
+            onOpenChange={(nextOpen): void => {
+              if (nextOpen) {
+                resetDraft();
+                onConfigurationOpen();
+              }
+              setOpen(nextOpen);
+            }}
+          >
+            <DialogTrigger asChild>
               <Button variant="ghost" size="icon-sm">
                 <Pencil />
-                <span className="sr-only">Customize {team.name}</span>
+                <span className="sr-only">Edit {team.name}</span>
               </Button>
-            </PopoverTrigger>
-            <PopoverContent>
-              <PopoverHeader>
-                <PopoverTitle>Customize team</PopoverTitle>
-              </PopoverHeader>
-              <Field>
-                <FieldLabel htmlFor={`team-name-${team.id}`}>Team name</FieldLabel>
-                <Input
-                  id={`team-name-${team.id}`}
-                  list={`team-names-${team.id}`}
-                  value={draftName}
-                  onChange={(event): void => setDraftName(event.target.value)}
-                  onBlur={commitName}
-                  onKeyDown={(event): void => {
-                    if (event.key === "Enter") {
-                      commitName();
-                    }
-                  }}
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Configure team</DialogTitle>
+                <DialogDescription>
+                  Select the server role. Its Discord color is applied to this team automatically.
+                </DialogDescription>
+              </DialogHeader>
+              <Field orientation="horizontal" className="items-center justify-between gap-3 rounded-md border p-3">
+                <div className="space-y-1">
+                  <FieldLabel htmlFor={`team-create-${team.id}`}>Create a new team</FieldLabel>
+                  <FieldDescription>Turn this off to select an existing backend team.</FieldDescription>
+                </div>
+                <Switch
+                  id={`team-create-${team.id}`}
+                  checked={draftCreateNewTeam}
+                  onCheckedChange={setDraftCreateNewTeam}
                 />
               </Field>
-              <datalist id={`team-names-${team.id}`}>
-                {existingTeamNames.map((name) => <option key={name} value={name} />)}
-              </datalist>
-              <Field>
-                <FieldLabel htmlFor={`team-role-${team.id}`}>Discord role</FieldLabel>
-                <NativeSelect
-                  id={`team-role-${team.id}`}
-                  value={team.roleId?.toString() ?? ""}
-                  onChange={(event): void => onRoleChange(team.id, Number(event.target.value))}
-                  className="w-full"
-                >
-                  <NativeSelectOption value="" disabled>Select role</NativeSelectOption>
-                  {roles.map((role) => (
-                    <NativeSelectOption key={role.roleId} value={role.roleId.toString()}>
-                      {role.name}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
-              </Field>
-              <Field>
-                <FieldLabel>Team color</FieldLabel>
-                <div className="flex flex-wrap gap-2">
-                  {TEAM_COLOR_SWATCHES.map((swatch) => (
-                    <button
-                      key={swatch}
-                      type="button"
-                      aria-label={`Use color ${swatch}`}
-                      onClick={(): void => onRecolor(team.id, swatch)}
-                      className="flex size-6 items-center justify-center rounded-full ring-1 ring-foreground/10"
-                      style={{ backgroundColor: swatch }}
-                    >
-                      {team.color === swatch ? (
-                        <Check className="size-3.5 text-white" />
-                      ) : null}
-                    </button>
-                  ))}
+              {draftCreateNewTeam ? (
+                <Field>
+                  <FieldLabel htmlFor={`team-name-${team.id}`}>New team name</FieldLabel>
                   <Input
-                    type="color"
-                    value={team.color}
-                    onChange={(event): void => onRecolor(team.id, event.target.value)}
-                    className="h-6 w-8 cursor-pointer p-0.5"
-                    aria-label="Custom team color"
+                    id={`team-name-${team.id}`}
+                    value={draftName}
+                    onChange={(event): void => setDraftName(event.target.value)}
                   />
-                </div>
+                </Field>
+              ) : (
+                <Field>
+                  <FieldLabel>Existing server team</FieldLabel>
+                  <Select
+                    value={draftExistingTeamId?.toString()}
+                    onValueChange={(value): void => {
+                      const selectedTeam = existingTeams.find((existingTeam) => (
+                        existingTeam.teamId === Number(value)
+                      ));
+                      setDraftExistingTeamId(Number(value));
+                      setDraftRoleId(selectedTeam?.roleId ?? null);
+                    }}
+                    disabled={existingTeams.length === 0}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select an existing team" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {existingTeams.map((existingTeam) => (
+                        <SelectItem key={existingTeam.teamId} value={existingTeam.teamId.toString()}>
+                          {existingTeam.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>
+                    {existingTeams.length ? "Choose a team already stored for this server." : "No existing teams are stored for this server."}
+                  </FieldDescription>
+                </Field>
+              )}
+              <Field>
+                <FieldLabel>Discord role</FieldLabel>
+                <Select
+                  value={draftRoleId?.toString()}
+                  onValueChange={(value): void => setDraftRoleId(Number(value))}
+                  disabled={roles.length === 0}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={roles.length ? "Select a server role" : "Loading server roles"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role.roleId} value={role.roleId.toString()}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldDescription>
+                  {roles.length ? "Roles are loaded from the selected Discord server." : "No server roles are available yet."}
+                </FieldDescription>
               </Field>
-            </PopoverContent>
-          </Popover>
+              {!draftCreateNewTeam && draftExistingTeamId !== null ? (
+                <Field orientation="horizontal" className="items-center justify-between gap-3 rounded-md border p-3">
+                  <div className="space-y-1">
+                    <FieldLabel htmlFor={`team-append-${team.id}`}>Append members</FieldLabel>
+                    <FieldDescription>On keeps current members; off fully replaces the backend team.</FieldDescription>
+                  </div>
+                  <Switch
+                    id={`team-append-${team.id}`}
+                    checked={draftAppendMembers}
+                    onCheckedChange={setDraftAppendMembers}
+                  />
+                </Field>
+              ) : null}
+              <DialogFooter>
+                <Button variant="outline" onClick={(): void => setOpen(false)}>Cancel</Button>
+                <Button onClick={confirm} disabled={!canConfirm}>OK</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardAction>
       </CardHeader>
       <CardContent className="min-w-0 px-3">

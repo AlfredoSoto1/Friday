@@ -155,7 +155,7 @@ public sealed partial class BotRepository
              AND teams.server_id = servers.server_id
              AND servers.guild_id = @GuildId
              AND roles.role_id = @RoleId
-          RETURNING teams.team_id, teams.name;
+          RETURNING teams.team_id, teams.role_id, teams.name;
         ";
         const string insertSql = @"
           INSERT INTO discord.teams (server_id, position, name, role_id)
@@ -164,7 +164,7 @@ public sealed partial class BotRepository
             JOIN discord.roles ON roles.server_id = servers.server_id
            WHERE servers.guild_id = @GuildId
              AND roles.role_id = @RoleId
-          RETURNING team_id, name;
+          RETURNING team_id, role_id, name;
         ";
         var record = team.TeamId is null
           ? await connection.QuerySingleOrDefaultAsync(insertSql, new
@@ -191,6 +191,7 @@ public sealed partial class BotRepository
         teamReferences.Add(new RosterTeamReference
         {
           TeamId = (int)record.team_id,
+          RoleId = (int)record.role_id,
           Name = (string)record.name,
           AppendMembers = team.AppendMembers
         });
@@ -221,7 +222,7 @@ public sealed partial class BotRepository
         .Join(members, item => item.UserId, member => member.UserId,
           (item, member) => new { item.TeamName, member.ServerUserId })
         .Join(teams, item => item.TeamName, team => team.Name,
-          (item, team) => new { item.ServerUserId, team.TeamId })
+          (item, team) => new { item.ServerUserId, team.TeamId, team.RoleId })
         .ToArray();
       var teamsToReplace = teams
         .Where(team => !team.AppendMembers)
@@ -230,8 +231,32 @@ public sealed partial class BotRepository
       if (teamsToReplace.Length > 0)
       {
         const string deleteSql = @"
-          DELETE FROM discord.user_teams
-           WHERE team_id = ANY(@TeamIds);
+          WITH removed_members AS (
+            DELETE FROM discord.user_teams
+             WHERE team_id = ANY(@TeamIds)
+            RETURNING su_id, team_id
+          )
+          DELETE FROM discord.user_roles
+           USING removed_members
+           JOIN discord.teams AS removed_teams
+             ON removed_teams.team_id = removed_members.team_id
+           JOIN discord.servers_users
+             ON servers_users.su_id = removed_members.su_id
+           JOIN discord.users
+             ON users.user_id = servers_users.user_id
+           JOIN discord.roles
+             ON roles.role_id = removed_teams.role_id
+          WHERE user_roles.su_id = removed_members.su_id
+            AND user_roles.role_id = removed_teams.role_id
+            AND UPPER(users.program) <> UPPER(roles.name)
+            AND NOT EXISTS (
+              SELECT 1
+                FROM discord.user_teams AS retained_members
+                JOIN discord.teams AS retained_teams
+                  ON retained_teams.team_id = retained_members.team_id
+               WHERE retained_members.su_id = user_roles.su_id
+                 AND retained_teams.role_id = user_roles.role_id
+            );
         ";
         await connection.ExecuteAsync(deleteSql, new
         {
@@ -248,6 +273,18 @@ public sealed partial class BotRepository
       {
         ServerUserIds = assignments.Select(item => item.ServerUserId).ToArray(),
         TeamIds = assignments.Select(item => item.TeamId).ToArray()
+      }, transaction);
+
+      const string assignTeamRolesSql = @"
+        INSERT INTO discord.user_roles (su_id, role_id)
+        SELECT su_id, role_id
+          FROM UNNEST(@ServerUserIds, @RoleIds) AS roster(su_id, role_id)
+        ON CONFLICT (su_id, role_id) DO NOTHING;
+      ";
+      await connection.ExecuteAsync(assignTeamRolesSql, new
+      {
+        ServerUserIds = assignments.Select(item => item.ServerUserId).ToArray(),
+        RoleIds = assignments.Select(item => item.RoleId).ToArray()
       }, transaction);
 
       return Result<int, AppError>.Ok(assignments.Length);

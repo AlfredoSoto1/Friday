@@ -50,7 +50,7 @@ export class BotApi {
   }
 
   static async getGuildRoles(
-    guildId: number
+    guildId: string | number
   ): Promise<EnvelopeResult<Paged<BotRoleDto>>> {
     return axios.get(`${BASE}/servers/${guildId}/roles`)
       .then((response) => (
@@ -62,7 +62,7 @@ export class BotApi {
   }
 
   static async getGuildTeams(
-    guildId: number
+    guildId: string | number
   ): Promise<EnvelopeResult<Paged<BotTeamDto>>> {
     return axios.get(`${BASE}/servers/${guildId}/teams`)
       .then((response) => (
@@ -71,24 +71,6 @@ export class BotApi {
       .catch((error: unknown) => (
         EnvelopeResult.fromError<Paged<BotTeamDto>>(error)
       ));
-  }
-
-  static async createGuildRole(guildId: number, data: any) {
-    return axios.post(`${BASE}/servers/${guildId}/roles`, keysToSnake(data))
-      .then((response) => EnvelopeResult.fromObject<any>(response.data))
-      .catch((error) => EnvelopeResult.fromError<any>(error));
-  }
-
-  static async updateGuildRole(guildId: number, roleId: number, data: any) {
-    return axios.put(`${BASE}/servers/${guildId}/roles/${roleId}`, keysToSnake(data))
-      .then((response) => EnvelopeResult.fromObject<any>(response.data))
-      .catch((error) => EnvelopeResult.fromError<any>(error));
-  }
-
-  static async deleteGuildRole(guildId: number, roleId: number) {
-    return axios.delete(`${BASE}/servers/${guildId}/roles/${roleId}`)
-      .then((response) => EnvelopeResult.fromObject<any>(response.data))
-      .catch((error) => EnvelopeResult.fromError<any>(error));
   }
 
   static async getCommandResponse(guildId: number, commandName: string) {

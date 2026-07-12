@@ -1,4 +1,4 @@
-import type { BotRoleDto } from "@/server/entities/bot";
+import type { BotRoleDto, BotTeamDto } from "@/server/entities/bot";
 export interface Student {
   id: number;
   name: string;
@@ -19,36 +19,31 @@ export interface RosterFile {
 
 export type SortField = "firstName" | "firstLastName" | "secondLastName";
 export type SortDirection = "asc" | "desc";
-export type DistributionMode = "balanced" | "randomized" | "manual";
+export type DistributionMode = "balanced" | "randomized";
 
 export interface TeamGroup {
   id: number;
   name: string;
   color: string;
   roleId: number | null;
+  existingTeamId: number | null;
+  appendMembers: boolean;
+  createNewTeam: boolean;
   studentIds: number[];
 }
-
-export const TEAM_COLOR_SWATCHES = [
-  "#5865f2",
-  "#3fb950",
-  "#d29922",
-  "#f85149",
-  "#58a6ff",
-  "#bc8cff",
-  "#f778ba",
-  "#39c5cf",
-] as const;
 
 export interface TeamCardProps {
   team: TeamGroup;
   members: Student[];
   otherTeams: TeamGroup[];
   roles: BotRoleDto[];
-  existingTeamNames: string[];
+  existingTeams: BotTeamDto[];
   editMode: boolean;
   onRename: (teamId: number, name: string) => void;
-  onRecolor: (teamId: number, color: string) => void;
   onRoleChange: (teamId: number, roleId: number) => void;
+  onExistingTeamChange: (teamId: number, existingTeamId: number | null) => void;
+  onCreateNewTeamChange: (teamId: number, createNewTeam: boolean) => void;
+  onAppendMembersChange: (teamId: number, appendMembers: boolean) => void;
+  onConfigurationOpen: () => void;
   onMoveStudent: (studentId: number, toTeamId: number | null) => void;
 }

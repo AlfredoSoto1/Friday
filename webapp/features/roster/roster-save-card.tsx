@@ -24,18 +24,20 @@ export function RosterSaveCard({
   onSave,
 }: RosterSaveCardProps): React.ReactElement {
   return (
-    <Card className="min-w-0 rounded-md border-border bg-card shadow-panel">
-      <CardContent className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-sm text-muted-foreground">
-          {teamCount
-            ? `${assignedCount}/${studentCount} students assigned across ${teamCount} teams.`
-            : "Upload a list and generate teams before saving."}
-        </p>
-        <Button onClick={onSave} disabled={disabled || saving}>
-          {saving ? <Spinner /> : saved ? <Check /> : <Save />}
-          {saved ? "Saved" : "Save team distribution"}
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:px-6">
+      <Card className="mx-auto min-w-0 max-w-7xl rounded-md border-border bg-card shadow-panel">
+        <CardContent className="flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
+            {teamCount
+              ? `${assignedCount}/${studentCount} students assigned across ${teamCount} teams.`
+              : "Upload a list and generate teams before saving."}
+          </p>
+          <Button onClick={onSave} disabled={disabled || saving}>
+            {saving ? <Spinner /> : saved ? <Check /> : <Save />}
+            {saved ? "Saved" : "Save team distribution"}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -56,6 +56,7 @@ public sealed class RosterMemberReference
 public sealed class RosterTeamReference
 {
   public int TeamId { get; init; }
+  public int RoleId { get; init; }
   public string Name { get; init; } = string.Empty;
   public bool AppendMembers { get; init; }
 }

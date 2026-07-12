@@ -1,6 +1,8 @@
 "use client";
+
 import { useEffect, useMemo, useState } from "react";
 import { TriangleAlert } from "lucide-react";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { distributeStudents, type Distribution } from "@/features/roster/roster-distribution";
 import { parseRosterFile, RosterParseError } from "@/features/roster/roster-parser";
@@ -16,13 +18,15 @@ import type {
   Student,
 } from "@/features/roster/roster-types";
 import { saveGuildDistribution } from "@/features/roster/roster-persistence";
-import { BotApi } from "@/server/webservices/bot-webservice";
 import type { BotRoleDto, BotTeamDto } from "@/server/entities/bot";
-export function RosterManager({
-  guildId,
-}: {
-  guildId: string;
-}): React.ReactElement {
+import { BotApi } from "@/server/webservices/bot-webservice";
+
+function roleColor(role: BotRoleDto | undefined): string {
+  const color = role?.color ?? 0;
+  return color > 0 ? `#${color.toString(16).padStart(6, "0")}` : "#5865f2";
+}
+
+export function RosterManager({ guildId }: { guildId: string }): React.ReactElement {
   const [file, setFile] = useState<RosterFile | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [roles, setRoles] = useState<BotRoleDto[]>([]);
@@ -37,36 +41,56 @@ export function RosterManager({
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  async function refreshGuildConfiguration(): Promise<void> {
+    if (!/^[0-9]+$/.test(guildId)) {
+      setError("Select a valid Discord server before configuring teams.");
+      return;
+    }
+
+    const [rolesResult, teamsResult] = await Promise.all([
+      BotApi.getGuildRoles(guildId),
+      BotApi.getGuildTeams(guildId),
+    ]);
+    const errors: string[] = [];
+
+    if (rolesResult.isSuccess) setRoles(rolesResult.value.items);
+    else errors.push(`Could not load server roles: ${rolesResult.error.message}`);
+
+    if (teamsResult.isSuccess) setExistingTeams(teamsResult.value.items);
+    else errors.push(`Could not load existing teams: ${teamsResult.error.message}`);
+
+    setError(errors.join(" "));
+  }
+
   useEffect((): void => {
-    const numericGuildId = Number(guildId);
-    if (!Number.isSafeInteger(numericGuildId)) return;
-
-    void Promise.all([
-      BotApi.getGuildRoles(numericGuildId),
-      BotApi.getGuildTeams(numericGuildId),
-    ]).then(([rolesResult, teamsResult]): void => {
-      const failed = [rolesResult, teamsResult].find((result) => result.isFailure);
-      if (failed?.isFailure) {
-        setError(failed.error.message);
-        return;
-      }
-
-      setRoles(rolesResult.value.items.filter((role) => Boolean(role.discordRoleId)));
-      setExistingTeams(teamsResult.value.items);
-    });
+    setRoles([]);
+    setExistingTeams([]);
+    void refreshGuildConfiguration();
   }, [guildId]);
 
   const studentsById = useMemo(
-    (): Map<number, Student> => new Map(
-      students.map((student) => [student.id, student])
-    ),
+    (): Map<number, Student> => new Map(students.map((student) => [student.id, student])),
     [students]
   );
-  const unassignedStudents = useMemo((): Student[] => {
-    return (distribution?.unassignedIds ?? [])
+  const unassignedStudents = useMemo((): Student[] => (
+    (distribution?.unassignedIds ?? [])
       .map((id) => studentsById.get(id))
-      .filter((student): student is Student => Boolean(student));
-  }, [distribution, studentsById]);
+      .filter((student): student is Student => Boolean(student))
+  ), [distribution, studentsById]);
+  useEffect((): void => {
+    if (!roles.length) return;
+    setDistribution((current) => current && ({
+      ...current,
+      teams: current.teams.map((team) => (
+        team.roleId === null
+          ? team
+          : { ...team, color: roleColor(roles.find((role) => role.roleId === team.roleId)) }
+      )),
+    }));
+  }, [roles]);
+
+
   async function selectFile(selected: File): Promise<void> {
     setLoadingFile(true);
     setError("");
@@ -78,9 +102,7 @@ export function RosterManager({
       setEditMode(false);
       setSaved(false);
     } catch (reason) {
-      setError(reason instanceof RosterParseError
-        ? reason.message
-        : "This file could not be read.");
+      setError(reason instanceof RosterParseError ? reason.message : "This file could not be read.");
     } finally {
       setLoadingFile(false);
     }
@@ -96,9 +118,7 @@ export function RosterManager({
   }
 
   function generate(): void {
-    setDistribution(distributeStudents(
-      students, teamCount, distributionMode
-    ));
+    setDistribution(distributeStudents(students, teamCount, distributionMode));
     setEditMode(false);
     setSaved(false);
   }
@@ -113,21 +133,68 @@ export function RosterManager({
     setSaved(false);
   }
 
-  function recolor(teamId: number, color: string): void {
+  function setCreateNewTeam(teamId: number, createNewTeam: boolean): void {
     setDistribution((current) => current && ({
       ...current,
       teams: current.teams.map((team) => (
-        team.id === teamId ? { ...team, color } : team
+        team.id === teamId ? {
+          ...team,
+          createNewTeam,
+          existingTeamId: createNewTeam ? null : team.existingTeamId,
+          appendMembers: createNewTeam ? false : team.appendMembers,
+        } : team
       )),
     }));
     setSaved(false);
   }
 
+  function selectExistingTeam(teamId: number, existingTeamId: number | null): void {
+    const selectedTeam = existingTeams.find((team) => team.teamId === existingTeamId);
+    if (!selectedTeam) return;
+
+    setDistribution((current) => {
+      if (!current) return current;
+      if (current.teams.some((team) => (
+        team.id !== teamId && team.existingTeamId === selectedTeam.teamId
+      ))) {
+        setError("Each existing server team can only be used once in a distribution.");
+        return current;
+      }
+
+      return {
+        ...current,
+        teams: current.teams.map((team) => (
+          team.id === teamId ? {
+            ...team,
+            name: selectedTeam.name,
+            roleId: selectedTeam.roleId ?? null,
+            color: roleColor(roles.find((role) => role.roleId === selectedTeam.roleId)),
+            existingTeamId: selectedTeam.teamId,
+            appendMembers: false,
+            createNewTeam: false,
+          } : team
+        )),
+      };
+    });
+    setSaved(false);
+  }
+
   function selectRole(teamId: number, roleId: number): void {
+    const selectedRole = roles.find((role) => role.roleId === roleId);
     setDistribution((current) => current && ({
       ...current,
       teams: current.teams.map((team) => (
-        team.id === teamId ? { ...team, roleId } : team
+        team.id === teamId ? { ...team, roleId, color: roleColor(selectedRole) } : team
+      )),
+    }));
+    setSaved(false);
+  }
+
+  function setAppendMembers(teamId: number, appendMembers: boolean): void {
+    setDistribution((current) => current && ({
+      ...current,
+      teams: current.teams.map((team) => (
+        team.id === teamId ? { ...team, appendMembers } : team
       )),
     }));
     setSaved(false);
@@ -142,7 +209,6 @@ export function RosterManager({
       }));
       const unassignedIds = current.unassignedIds.filter((id) => id !== studentId);
       const target = teams.find((team) => team.id === teamId);
-
       if (target) target.studentIds.push(studentId);
       else unassignedIds.push(studentId);
       return { teams, unassignedIds };
@@ -151,25 +217,39 @@ export function RosterManager({
   }
 
   async function save(): Promise<void> {
-    if (!distribution || distribution.unassignedIds.length || !guildId || distribution.teams.some((team) => team.roleId === null)) {
-      setError("Select a Discord role for every team.");
+    const validRoleIds = new Set(roles.map((role) => role.roleId));
+    const invalidTeam = distribution?.teams.some((team) => (
+      !team.name.trim() ||
+      team.roleId === null ||
+      !validRoleIds.has(team.roleId) ||
+      (!team.createNewTeam && team.existingTeamId === null)
+    ));
+    if (!distribution || distribution.unassignedIds.length || !guildId || invalidTeam) {
+      setError("Select a valid server role and, when not creating a new team, an existing server team.");
       return;
     }
+
     setSaving(true);
-    const result = await saveGuildDistribution(
-      guildId, distribution, studentsById
-    );
+    const result = await saveGuildDistribution(guildId, distribution, studentsById);
     setSaving(false);
     setSaved(result.isSuccess);
     setError(result.isFailure ? result.error.message : "");
+    if (result.isSuccess) {
+      await refreshGuildConfiguration();
+    }
   }
 
   const assignedCount = distribution?.teams.reduce(
     (total, team) => total + team.studentIds.length, 0
   ) ?? 0;
+  const saveDisabled = !guildId || !distribution || Boolean(distribution.unassignedIds.length) || (
+    distribution?.teams.some((team) => (
+      team.roleId === null || (!team.createNewTeam && team.existingTeamId === null)
+    )) ?? false
+  );
 
   return (
-    <div className="grid min-w-0 gap-6">
+    <div className="grid min-w-0 gap-6 pb-28">
       {error ? (
         <Alert variant="destructive">
           <TriangleAlert />
@@ -208,12 +288,14 @@ export function RosterManager({
           sortField={sortField}
           sortDirection={sortDirection}
           onToggleEditMode={(): void => setEditMode((current) => !current)}
-          onRegenerate={generate}
           onRename={rename}
-          onRecolor={recolor}
           roles={roles}
-          existingTeamNames={existingTeams.map((team) => team.name)}
+          existingTeams={existingTeams}
           onRoleChange={selectRole}
+          onExistingTeamChange={selectExistingTeam}
+          onCreateNewTeamChange={setCreateNewTeam}
+          onAppendMembersChange={setAppendMembers}
+          onConfigurationOpen={(): void => { void refreshGuildConfiguration(); }}
           onMoveStudent={moveStudent}
         />
       ) : null}
@@ -223,9 +305,7 @@ export function RosterManager({
         teamCount={distribution?.teams.length ?? 0}
         saving={saving}
         saved={saved}
-        disabled={
-          !guildId || !distribution || Boolean(distribution.unassignedIds.length) || distribution.teams.some((team) => team.roleId === null)
-        }
+        disabled={saveDisabled}
         onSave={(): void => { void save(); }}
       />
     </div>

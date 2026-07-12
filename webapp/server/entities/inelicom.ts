@@ -96,8 +96,10 @@ export interface GuildRosterStudentRequest {
 }
 
 export interface GuildRosterTeamRequest {
+  teamId?: number;
   name: string;
   roleId: number;
+  appendMembers: boolean;
   students: GuildRosterStudentRequest[];
 }
 

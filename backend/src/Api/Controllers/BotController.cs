@@ -66,26 +66,6 @@ public sealed class BotController : ControllerBase
     return result.Send();
   }
 
-  [HttpPost("servers/{guildId:long}/roles")]
-  public async Task<IActionResult> CreateGuildRole([FromRoute] long guildId, [FromBody] BotRoleRequest request)
-  {
-    var result = await _service.CreateGuildRole(guildId, request);
-    return result.Send();
-  }
-
-  [HttpPut("servers/{guildId:long}/roles/{roleId:int}")]
-  public async Task<IActionResult> UpdateGuildRole([FromRoute] long guildId, [FromRoute] int roleId, [FromBody] BotRoleRequest request)
-  {
-    var result = await _service.UpdateGuildRole(guildId, roleId, request);
-    return result.Send();
-  }
-
-  [HttpDelete("servers/{guildId:long}/roles/{roleId:int}")]
-  public async Task<IActionResult> DeleteGuildRole([FromRoute] long guildId, [FromRoute] int roleId)
-  {
-    var result = await _service.DeleteGuildRole(guildId, roleId);
-    return result.Send();
-  }
 
 
   [HttpGet("servers/{guildId:long}/commands/{commandName}")]
