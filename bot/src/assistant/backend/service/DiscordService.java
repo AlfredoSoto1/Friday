@@ -48,13 +48,13 @@ public final class DiscordService {
   }
 
   public Optional<DiscordRoleDTO> getEffectiveRole(MemberPosition position, long guildId) {
-    String wanted = position.name().replace("_", " ");
     return getAllRoles(0, 100, guildId).stream()
-        .filter(
-            r ->
-                r.getName().equalsIgnoreCase(wanted)
-                    || r.getEffectivename().equalsIgnoreCase(position.name()))
+        .filter(role -> normalizeRoleName(role.getName()).equals(normalizeRoleName(position.name())))
         .findFirst();
+  }
+
+  private String normalizeRoleName(String name) {
+    return name.replace(" ", "").replace("_", "").replace("-", "").toLowerCase(Locale.ROOT);
   }
 
   public int registerDiscordServer(DiscordServerDTO server) {

@@ -39,6 +39,12 @@ public final class MemberService {
         .findFirst();
   }
 
+  public BotVerifyMemberResult verifyMember(
+      long guildId, String email, String discordUserId, String funFact) {
+    return BackendClient.verifyMember(
+        guildId, new BotVerifyMemberRequest(discordUserId, email, funFact));
+  }
+
   public Optional<TeamDTO> getMemberTeam(String email, long g) {
     return Optional.empty();
   }

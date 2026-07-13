@@ -20,6 +20,7 @@ import assistant.app.discord.Logger.LogFeedback;
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
 import assistant.app.model.MemberPosition;
+import assistant.backend.dto.BotVerifyMemberResult;
 import assistant.backend.dto.DiscordRoleDTO;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.dto.MemberDTO;
@@ -150,31 +151,32 @@ public class VerificationCmd extends InteractionModel implements CommandI {
 
     // Check if the channel is in server
     if (textChannel.isPresent()) {
-      event
-          .reply("Verification embed sent to: " + textChannel.get().getName())
-          .setEphemeral(true)
-          .queue();
+      event.deferReply(true).queue(hook -> {
+        Optional<Role> modRole = super.getEffectiveRole(MemberPosition.MODERATOR, textChannel.get().getGuild());
+        Optional<Role> bdeRole = super.getEffectiveRole(MemberPosition.BOT_DEVELOPER, textChannel.get().getGuild());
+        if (modRole.isEmpty() || bdeRole.isEmpty()) {
+          hook.sendMessage("Configure the MODERATOR and BOT_DEVELOPER role mappings first.")
+              .setEphemeral(true)
+              .queue();
+          return;
+        }
 
-      // Mentioned Roles in embedded message
-      Optional<Role> modRole = super.getEffectiveRole(MemberPosition.MODERATOR, textChannel.get().getGuild());
-      Optional<Role> bdeRole = super.getEffectiveRole(MemberPosition.BOT_DEVELOPER, textChannel.get().getGuild());
-      if (modRole.isEmpty() || bdeRole.isEmpty()) {
-        event
-            .reply("Configure the MODERATOR and BOT_DEVELOPER role mappings first.")
-            .setEphemeral(true)
-            .queue();
-        return;
-      }
+        DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
+        int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
 
-      DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-      int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
-
-      textChannel
-          .get()
-          .sendMessageEmbeds(
-              verificationEmbed.buildVerificationPrompt(modRole.get(), bdeRole.get(), color))
-          .setActionRow(verifyButton)
-          .queue();
+        textChannel
+            .get()
+            .sendMessageEmbeds(
+                verificationEmbed.buildVerificationPrompt(modRole.get(), bdeRole.get(), color))
+            .setActionRow(verifyButton)
+            .queue(
+                message -> hook.sendMessage("Verification embed sent to: " + textChannel.get().getName())
+                    .setEphemeral(true)
+                    .queue(),
+                error -> hook.sendMessage("The verification embed could not be sent. Check my channel permissions.")
+                    .setEphemeral(true)
+                    .queue());
+      });
     } else
       event.reply("Channel not found").setEphemeral(true).queue();
   }
@@ -187,7 +189,7 @@ public class VerificationCmd extends InteractionModel implements CommandI {
   private void onModalVerificationRespond(ModalInteractionEvent event) {
     // Respond to the user (ephemeral response)
     event
-        .reply("Gracias por unirte al server, en cualquier momento recibiras tus roles.")
+        .reply("Estamos verificando tu correo y preparando tus roles.")
         .setEphemeral(true)
         .queue();
 
@@ -196,87 +198,25 @@ public class VerificationCmd extends InteractionModel implements CommandI {
   }
 
   private void verifyUser(ModalInteractionEvent event) {
+    String email = event.getValue("email-id").getAsString().trim();
+    String funFact = Optional.ofNullable(event.getValue("funfact-id"))
+        .map(value -> value.getAsString().trim())
+        .filter(value -> !value.isBlank())
+        .orElse(null);
 
-    // Retrieve the values entered by the user
-    String email = event.getValue("email-id").getAsString();
-    String funfacts = event.getValue("funfact-id").getAsString();
-
-    // Obtain the roles of the EOs in charge of Discord
-    Optional<Role> modRole = super.getEffectiveRole(MemberPosition.MODERATOR, event.getGuild());
-    Optional<Role> bdeRole = super.getEffectiveRole(MemberPosition.BOT_DEVELOPER, event.getGuild());
-
-    // Check if the roles exists in database
-    if (modRole.isEmpty() || bdeRole.isEmpty()) {
-      event
-          .reply("No se puede asignar los roles, contacta a un bot developer")
-          .setEphemeral(true)
-          .queue();
-      Logger.instance()
-          .logFile(LogFeedback.ERROR, "Failed looking for effective roles in database");
+    BotVerifyMemberResult verification = service.verifyMember(
+        event.getGuild().getIdLong(), email, event.getUser().getId(), funFact);
+    if (!verification.verified()) {
+      event.getHook().sendMessage(verification.message()).setEphemeral(true).queue();
+      Logger.instance().logFile(
+          LogFeedback.INFO, "Failed verifying member: %s", event.getMember().getEffectiveName());
       return;
     }
 
-    // Obtain member from database
-    Optional<MemberDTO> memberDTO = service.getMember(email);
-
-    // Safety check if the member doesn't exist in database
-    if (!memberDTO.isPresent()) {
-      String hookMessage = """
-          Hmm parece que el email que entraste *__%s__* no está en nuestra base de datos :confused:
-          Por favor trata de nuevo. Si no puedo encontrar tu información, contacta a %s or %s.
-
-          Asegurate que estas usando **__@upr.edu__** ya que se necesita el email institucional para poder ser verificado.
-          """;
-
-      // Reply user privately
-      event
-          .getHook()
-          .sendMessageFormat(
-              hookMessage, email, bdeRole.get().getAsMention(), modRole.get().getAsMention())
-          .setEphemeral(true)
-          .queue();
-
-      Logger.instance()
-          .logFile(
-              LogFeedback.INFO,
-              "Failed looking for user: %s",
-              event.getMember().getEffectiveName());
-      return;
-    }
-
-    // Update the member to later submit the member presence
-    memberDTO.ifPresent(
-        member -> {
-          // Set the funfacts and the username
-          member.setFunfact(funfacts);
-          member.setUsername(event.getMember().getUser().getName());
-        });
-
-    // Check member verification
-    if (memberDTO.get().isVerified()) {
-      // Set the roles and nickname of the member.
-      applyTeam(event.getHook(), event.getGuild(), event.getMember(), memberDTO.get().getEmail());
-      applyRoles(event.getHook(), event.getGuild(), event.getMember(), memberDTO.get().getEmail());
-      applyNickname(event.getHook(), event.getGuild(), event.getMember(), memberDTO.get());
-    } else {
-      // Stamp the presence of the member and assign the roles
-      service.stampMemberPresence(memberDTO.get(), event.getGuild().getIdLong());
-
-      // Set the roles and nickname of the member.
-      applyTeam(event.getHook(), event.getGuild(), event.getMember(), memberDTO.get().getEmail());
-      applyRoles(event.getHook(), event.getGuild(), event.getMember(), memberDTO.get().getEmail());
-      applyNickname(event.getHook(), event.getGuild(), event.getMember(), memberDTO.get());
-
-      // From the user, open a private channel to send DMs
-      event
-          .getMember()
-          .getUser()
-          .openPrivateChannel()
-          .queue(
-              privateMessage -> showWelcomeMessage(privateMessage, memberDTO.get(), event.getGuild()));
-    }
-
-    delayInteractions(2000); // two seconds
+    applyRoles(event.getHook(), event.getGuild(), event.getMember(), verification.roleIds());
+    service.getMember(email).ifPresent(member ->
+        applyNickname(event.getHook(), event.getGuild(), event.getMember(), member));
+    event.getHook().sendMessage(verification.message()).setEphemeral(true).queue();
   }
 
   private void showWelcomeMessage(PrivateChannel privateChannel, MemberDTO member, Guild server) {
@@ -397,19 +337,13 @@ public class VerificationCmd extends InteractionModel implements CommandI {
         .queue();
   }
 
-  private void applyRoles(InteractionHook hook, Guild server, Member member, String email) {
-    // Obtain the roles that the user has associated to the email
-    List<DiscordRoleDTO> classificationRoles = service.getMemberRoles(email, server.getIdLong());
-
-    // Set the roles to the member
-    for (DiscordRoleDTO roleDTO : classificationRoles) {
-      Role role = server.getRoleById(roleDTO.getRoleid());
+  private void applyRoles(
+      InteractionHook hook, Guild server, Member member, List<String> roleIds) {
+    for (String roleId : roleIds) {
+      Role role = server.getRoleById(roleId);
       if (role == null) {
-        Logger.instance()
-            .logFile(
-                LogFeedback.WARNING,
-                "Configured Discord role no longer exists: %s",
-                roleDTO.getRoleid());
+        Logger.instance().logFile(
+            LogFeedback.WARNING, "Configured Discord role no longer exists: %s", roleId);
         continue;
       }
 
@@ -417,30 +351,25 @@ public class VerificationCmd extends InteractionModel implements CommandI {
         server
             .addRoleToMember(member, role)
             .queue(
-                success -> Logger.instance()
-                    .logFile(
-                        LogFeedback.SUCCESS,
-                        "Given Role [%s] to [%s]",
-                        role.getName(),
-                        member.getEffectiveName()),
-                error -> Logger.instance()
-                    .logFile(
-                        LogFeedback.ERROR,
-                        "Failed giving Role [%s] to [%s]",
-                        role.getName(),
-                        member.getEffectiveName()));
-
-        delayInteractions(2000); // two seconds
+                success -> Logger.instance().logFile(
+                    LogFeedback.SUCCESS,
+                    "Given Role [%s] to [%s]",
+                    role.getName(),
+                    member.getEffectiveName()),
+                error -> Logger.instance().logFile(
+                    LogFeedback.ERROR,
+                    "Failed giving Role [%s] to [%s]",
+                    role.getName(),
+                    member.getEffectiveName()));
       } catch (HierarchyException he) {
         hook.sendMessage("No se pudo otorgar los roles, por favor notifique a un Bot developer")
             .setEphemeral(true)
             .queue();
-        Logger.instance()
-            .logFile(
-                LogFeedback.WARNING,
-                "Failed to add role: %s to member %s",
-                he.getMessage(),
-                member.getEffectiveName());
+        Logger.instance().logFile(
+            LogFeedback.WARNING,
+            "Failed to add role: %s to member %s",
+            he.getMessage(),
+            member.getEffectiveName());
       }
     }
   }

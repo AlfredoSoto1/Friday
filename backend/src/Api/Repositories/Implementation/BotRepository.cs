@@ -77,14 +77,23 @@ public sealed partial class BotRepository : IBotRepository
         WITH verified_member AS (
           UPDATE discord.servers_users
              SET verified = TRUE,
+                 discord_user_id = @DiscordUserId,
                  funfact = COALESCE(@FunFact, funfact),
                  updated_at = CURRENT_TIMESTAMP
             FROM discord.servers, discord.users
           WHERE discord.servers.server_id = discord.servers_users.server_id
             AND discord.users.user_id = discord.servers_users.user_id
             AND discord.servers.guild_id = @GuildId
-            AND discord.users.email = @Email
-            AND discord.servers_users.discord_user_id = @DiscordUserId
+            AND LOWER(discord.users.email) = LOWER(@Email)
+            AND (discord.servers_users.discord_user_id = '-'
+                 OR discord.servers_users.discord_user_id = @DiscordUserId)
+            AND NOT EXISTS (
+              SELECT 1
+                FROM discord.servers_users AS existing_member
+               WHERE existing_member.server_id = discord.servers_users.server_id
+                 AND existing_member.discord_user_id = @DiscordUserId
+                 AND existing_member.su_id <> discord.servers_users.su_id
+            )
           RETURNING discord.servers_users.su_id, discord.servers_users.verified
         )
         SELECT verified_member.verified,
