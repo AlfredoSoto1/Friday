@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { Switch } from "@/components/ui/switch";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
@@ -47,6 +48,7 @@ interface UploadedCsvTable {
 
 export function CsvImportManager(): React.ReactElement {
   const [kind, setKind] = useState<InelicomCsvImportKind>("faculties");
+  const [append, setAppend] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -101,7 +103,7 @@ export function CsvImportManager(): React.ReactElement {
       return;
     }
 
-    const response = await InelicomApi.importCsv(kind, file);
+    const response = await InelicomApi.importCsv(kind, file, append);
     if (response.isFailure) {
       setError(response.error.message);
       setUploading(false);
@@ -127,7 +129,7 @@ export function CsvImportManager(): React.ReactElement {
         </CardHeader>
         <CardContent>
           <form className="grid gap-5" onSubmit={submitCsvImport}>
-            <div className="grid gap-5 md:grid-cols-[minmax(16rem,24rem)_1fr]">
+            <div className="grid gap-5 lg:grid-cols-[minmax(12rem,16rem)_minmax(18rem,24rem)_1fr]">
               <label className="grid h-fit gap-2 text-sm font-medium">
                 Import target
                 <NativeSelect
@@ -145,6 +147,23 @@ export function CsvImportManager(): React.ReactElement {
                   ))}
                 </NativeSelect>
               </label>
+
+              <div className="min-w-0">
+                <div className="flex items-center justify-between gap-4 rounded-md border p-3">
+                  <div className="min-w-0 space-y-1">
+                    <Label htmlFor="csv-import-append">Append to existing data</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Keep matching records unchanged and add only new rows.
+                    </p>
+                  </div>
+                  <Switch
+                    id="csv-import-append"
+                    checked={append}
+                    onCheckedChange={setAppend}
+                    disabled={uploading}
+                  />
+                </div>
+              </div>
 
               <div className="min-w-0">
                 <Input

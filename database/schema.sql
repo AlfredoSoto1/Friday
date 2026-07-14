@@ -151,7 +151,7 @@ CREATE TABLE inelicom.contacts (
   name         VARCHAR(255) NOT NULL,
   description  TEXT         NOT NULL,
   email        VARCHAR(255) NOT NULL,
-  phone        VARCHAR(20)  NOT NULL,
+  phone        TEXT         NOT NULL,
   website      TEXT         NOT NULL,
   services     TEXT         NOT NULL,
   contact_type VARCHAR(32),

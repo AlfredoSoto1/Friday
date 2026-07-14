@@ -86,9 +86,9 @@ public sealed partial class InelicomRepository : IInelicomRepository
     try
     {
       const string sql = @"
-        SELECT contact_id, name, email, phone, website, created_at, COUNT(*) OVER() AS total
+        SELECT contact_id, name, email, phone, website, description, services, created_at, COUNT(*) OVER() AS total
           FROM inelicom.contacts
-        WHERE contact_type = @ContactType AND (@Search IS NULL OR name ILIKE @Search OR email ILIKE @Search)
+        WHERE (@ContactType IS NULL OR contact_type = @ContactType) AND (@Search IS NULL OR name ILIKE @Search OR email ILIKE @Search)
         ORDER BY name
         LIMIT @Limit OFFSET @Offset;
       ";
@@ -116,7 +116,7 @@ public sealed partial class InelicomRepository : IInelicomRepository
     try
     {
       const string sql = @"
-        SELECT contact_id, name, email, phone, website, created_at
+        SELECT contact_id, name, email, phone, website, description, services, created_at
           FROM inelicom.contacts
         WHERE contact_type = @ContactType AND contact_id = @Id;
       ";

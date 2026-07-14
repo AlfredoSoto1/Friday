@@ -19,7 +19,10 @@ public sealed class InelicomImportsController : ControllerBase
 
   [HttpPost("{kind}")]
   [RequestSizeLimit(10_000_000)]
-  public async Task<IActionResult> ImportCsv([FromRoute] string kind, [FromForm] IFormFile? file)
+  public async Task<IActionResult> ImportCsv(
+    [FromRoute] string kind,
+    [FromForm] IFormFile? file,
+    [FromForm] bool append = false)
   {
     if (file is null || file.Length == 0)
     {
@@ -36,7 +39,7 @@ public sealed class InelicomImportsController : ControllerBase
     }
 
     await using var stream = file.OpenReadStream();
-    var result = await _service.ImportCsv(kind, file.FileName, stream);
+    var result = await _service.ImportCsv(kind, file.FileName, stream, append);
     return result.Send();
   }
 }

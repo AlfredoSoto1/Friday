@@ -13,7 +13,7 @@ public final class ServicesEmbed {
         new EmbedBuilder()
             .setColor(color)
             .setTitle("🏛️  " + EmbedValues.na(service.getName()))
-            .setDescription(EmbedValues.na(service.getDescription()));
+            .setDescription(limit(EmbedValues.na(service.getDescription()), 4096));
 
     String location = location(service);
     embed.addField("📍 Location", location, true);
@@ -45,6 +45,7 @@ public final class ServicesEmbed {
   private String contact(ServiceDTO service) {
     if (service.getContact() == null) return "N/A";
     StringBuilder value = new StringBuilder("✉️  ").append(EmbedValues.na(service.getContact().getEmail()));
+    append(value, "☎️  " + EmbedValues.na(service.getContact().getPhone()));
     List<?> webpages = service.getContact().getWebpages();
     if (webpages == null || webpages.isEmpty()) append(value, "🌐  N/A");
     else service.getContact().getWebpages().forEach(page -> {
@@ -68,14 +69,20 @@ public final class ServicesEmbed {
 
   private String list(List<String> values) {
     if (values == null || values.isEmpty()) return "N/A";
-    return values.stream().map(EmbedValues::na).collect(Collectors.joining("\n• ", "• ", ""));
+    return limit(values.stream().map(EmbedValues::na)
+        .collect(Collectors.joining("\n• ", "• ", "")), 1024);
   }
 
   private String list(String[] values) {
     if (values == null || values.length == 0) return "N/A";
-    return java.util.Arrays.stream(values)
+    return limit(java.util.Arrays.stream(values)
         .map(EmbedValues::na)
-        .collect(Collectors.joining("\n• ", "• ", ""));
+        .collect(Collectors.joining("\n• ", "• ", "")), 1024);
+  }
+
+  private String limit(String value, int maxLength) {
+    if (value.length() <= maxLength) return value;
+    return value.substring(0, maxLength - 3) + "...";
   }
 
   private void append(StringBuilder value, String line) {

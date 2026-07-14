@@ -11,37 +11,46 @@ public sealed partial class InelicomRepository
     IDbConnection connection,
     IDbTransaction transaction,
     string kind,
-    string rowsJson)
+    string rowsJson,
+    bool append)
   {
     const string contactsSql = @"
       WITH input AS (
         SELECT
           row_number() OVER ()::int AS source_row,
           name,
+          description,
           email,
           phone,
-          COALESCE(website, web) AS website
+          COALESCE(website, web) AS website,
+          services
         FROM jsonb_to_recordset(CAST(@RowsJson AS jsonb)) AS source(
           name text,
           email text,
           phone text,
+          description text,
           website text,
-          web text)
+          web text,
+          services text)
       ), valid AS (
         SELECT *
         FROM input
         WHERE name IS NOT NULL
+          AND description IS NOT NULL
           AND email IS NOT NULL
           AND phone IS NOT NULL
           AND website IS NOT NULL
+          AND services IS NOT NULL
       ), matched AS (
         SELECT DISTINCT ON (valid.source_row)
           valid.source_row,
           contacts.contact_id,
           valid.name,
+          valid.description,
           valid.email,
           valid.phone,
-          valid.website
+          valid.website,
+          valid.services
         FROM valid
         INNER JOIN inelicom.contacts contacts
           ON contacts.email = valid.email OR contacts.name = valid.name
@@ -51,15 +60,18 @@ public sealed partial class InelicomRepository
       ), updated AS (
         UPDATE inelicom.contacts contacts
         SET name = matched.name,
+            description = matched.description,
             email = matched.email,
             phone = matched.phone,
-            website = matched.website
+            website = matched.website,
+            services = matched.services
         FROM matched
         WHERE contacts.contact_id = matched.contact_id
+          AND NOT @Append
         RETURNING contacts.contact_id
       ), inserted AS (
-        INSERT INTO inelicom.contacts (name, email, phone, website)
-        SELECT valid.name, valid.email, valid.phone, valid.website
+        INSERT INTO inelicom.contacts (name, description, email, phone, website, services)
+        SELECT valid.name, valid.description, valid.email, valid.phone, valid.website, valid.services
         FROM valid
         WHERE NOT EXISTS (
           SELECT 1
@@ -72,9 +84,12 @@ public sealed partial class InelicomRepository
         (SELECT COUNT(*) FROM updated)::int AS ""Updated"",
         (SELECT COUNT(*) FROM input
           WHERE name IS NULL
+             OR description IS NULL
              OR email IS NULL
              OR phone IS NULL
-             OR website IS NULL)::int AS ""Skipped"";
+             OR website IS NULL
+             OR services IS NULL)::int
+          + CASE WHEN @Append THEN (SELECT COUNT(*) FROM matched)::int ELSE 0 END AS ""Skipped"";
     ";
 
     const string buildingsSql = @"
@@ -96,13 +111,15 @@ public sealed partial class InelicomRepository
           SET code = EXCLUDED.code,
               name = EXCLUDED.name,
               gpin = EXCLUDED.gpin
+        WHERE NOT @Append
         RETURNING xmax = 0 AS inserted
       )
       SELECT
         COUNT(*) FILTER (WHERE inserted)::int AS ""Inserted"",
         COUNT(*) FILTER (WHERE NOT inserted)::int AS ""Updated"",
         (SELECT COUNT(*) FROM input
-          WHERE name IS NULL OR gpin IS NULL)::int AS ""Skipped""
+          WHERE name IS NULL OR gpin IS NULL)::int
+          + CASE WHEN @Append THEN ((SELECT COUNT(*) FROM valid) - (SELECT COUNT(*) FROM upsert))::int ELSE 0 END AS ""Skipped""
       FROM upsert;
     ";
 
@@ -158,12 +175,14 @@ public sealed partial class InelicomRepository
               description = EXCLUDED.description,
               abbreviation = EXCLUDED.abbreviation,
               instagram = EXCLUDED.instagram
+        WHERE NOT @Append
         RETURNING xmax = 0 AS inserted
       )
       SELECT
         COUNT(*) FILTER (WHERE inserted)::int AS ""Inserted"",
         COUNT(*) FILTER (WHERE NOT inserted)::int AS ""Updated"",
-        (SELECT COUNT(*) FROM input WHERE name IS NULL)::int AS ""Skipped""
+        (SELECT COUNT(*) FROM input WHERE name IS NULL)::int
+          + CASE WHEN @Append THEN ((SELECT COUNT(*) FROM valid) - (SELECT COUNT(*) FROM upsert))::int ELSE 0 END AS ""Skipped""
       FROM upsert;
     ";
 
@@ -200,13 +219,15 @@ public sealed partial class InelicomRepository
               email = EXCLUDED.email,
               name = EXCLUDED.name,
               description = EXCLUDED.description
+        WHERE NOT @Append
         RETURNING xmax = 0 AS inserted
       )
       SELECT
         COUNT(*) FILTER (WHERE inserted)::int AS ""Inserted"",
         COUNT(*) FILTER (WHERE NOT inserted)::int AS ""Updated"",
         (SELECT COUNT(*) FROM input
-          WHERE name IS NULL OR description IS NULL)::int AS ""Skipped""
+          WHERE name IS NULL OR description IS NULL)::int
+          + CASE WHEN @Append THEN ((SELECT COUNT(*) FROM valid) - (SELECT COUNT(*) FROM upsert))::int ELSE 0 END AS ""Skipped""
       FROM upsert;
     ";
 
@@ -246,13 +267,15 @@ public sealed partial class InelicomRepository
               web = EXCLUDED.web,
               name = EXCLUDED.name,
               description = EXCLUDED.description
+        WHERE NOT @Append
         RETURNING xmax = 0 AS inserted
       )
       SELECT
         COUNT(*) FILTER (WHERE inserted)::int AS ""Inserted"",
         COUNT(*) FILTER (WHERE NOT inserted)::int AS ""Updated"",
         (SELECT COUNT(*) FROM input
-          WHERE name IS NULL OR description IS NULL)::int AS ""Skipped""
+          WHERE name IS NULL OR description IS NULL)::int
+          + CASE WHEN @Append THEN ((SELECT COUNT(*) FROM valid) - (SELECT COUNT(*) FROM upsert))::int ELSE 0 END AS ""Skipped""
       FROM upsert;
     ";
 
@@ -270,7 +293,7 @@ public sealed partial class InelicomRepository
 
       var stats = await connection.QuerySingleAsync<CsvImportStats>(
         sql,
-        new { RowsJson = rowsJson },
+        new { RowsJson = rowsJson, Append = append },
         transaction);
       return Result<CsvImportStats, AppError>.Ok(stats);
     }

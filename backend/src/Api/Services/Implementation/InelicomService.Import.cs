@@ -8,7 +8,11 @@ namespace Friday.Backend.Api.Services;
 
 public sealed partial class InelicomService
 {
-  public async Task<Result<CsvImportResult, AppError>> ImportCsv(string kind, string fileName, Stream csvStream)
+  public async Task<Result<CsvImportResult, AppError>> ImportCsv(
+    string kind,
+    string fileName,
+    Stream csvStream,
+    bool append)
   {
     var normalizedKind = kind.Trim().ToLowerInvariant() switch
     {
@@ -49,7 +53,7 @@ public sealed partial class InelicomService
     var requiredHeaders = normalizedKind switch
     {
       "buildings" => new[] { "code", "name", "gpin" },
-      "contacts" => new[] { "name", "email", "phone", "website" },
+      "contacts" => new[] { "name", "description", "email", "phone", "website", "services" },
       "faculties" => new[]
         { "ext", "web", "phone", "facebook", "email", "office", "name", "job_entitlement", "description", "instagram" },
       "departments" => new[] { "name" },
@@ -107,7 +111,7 @@ public sealed partial class InelicomService
       var importResult = await TransactionResult<CsvImportStats, AppError>
         .Begin(connection, exception => AppError.BadRequest(exception.Message))
         .AndThen((conn, transaction) =>
-          _repository.ImportCsv(conn, transaction, normalizedKind, rowsJson))
+          _repository.ImportCsv(conn, transaction, normalizedKind, rowsJson, append))
         .Complete();
 
       return importResult.Transform(stats => new CsvImportResult

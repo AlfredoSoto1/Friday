@@ -72,7 +72,7 @@ public class UniversityGuardCmd extends InteractionModel implements CommandI {
   @Override
   public void execute(SlashCommandInteractionEvent event) {
     // Obtain the service data related to the Transito y Vigilancia
-    ServiceDTO result = service.getService("Transito y Vigilancia", null);
+    ServiceDTO result = service.getServiceByContactType("guardia-univ");
 
     // Check if the command was called from a server
     if (event.isFromGuild()) {

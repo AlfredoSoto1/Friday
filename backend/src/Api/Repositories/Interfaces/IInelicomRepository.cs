@@ -28,5 +28,6 @@ public interface IInelicomRepository
     IDbConnection connection,
     IDbTransaction transaction,
     string kind,
-    string rowsJson);
+    string rowsJson,
+    bool append);
 }

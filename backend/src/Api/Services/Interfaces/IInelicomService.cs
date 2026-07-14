@@ -47,5 +47,9 @@ public interface IInelicomService
 
   // ==========================================================================
   // ==========================================================================
-  Task<Result<CsvImportResult, AppError>> ImportCsv(string kind, string fileName, Stream csvStream);
+  Task<Result<CsvImportResult, AppError>> ImportCsv(
+    string kind,
+    string fileName,
+    Stream csvStream,
+    bool append);
 }

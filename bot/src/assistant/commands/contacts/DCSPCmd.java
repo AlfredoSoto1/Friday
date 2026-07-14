@@ -73,7 +73,7 @@ public class DCSPCmd extends InteractionModel implements CommandI {
   public void execute(SlashCommandInteractionEvent event) {
 
     // Obtain the service data related to the DCSP
-    ServiceDTO result = service.getService("Departamento de Consejería y Servicios Psicológicos", null);
+    ServiceDTO result = service.getServiceByContactType("dcsp");
 
     // Check if the command was called from a server
     if (event.isFromGuild()) {

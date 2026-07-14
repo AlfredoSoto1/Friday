@@ -25,6 +25,7 @@ public class ContactDTO {
 
   private int id;
   private String email;
+  private String phone;
 
   private List<ExtensionDTO> extensions;
   private List<WebpageDTO> webpages;
@@ -50,6 +51,14 @@ public class ContactDTO {
 
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public void setPhone(String phone) {
+    this.phone = phone;
   }
 
   public List<ExtensionDTO> getExtensions() {

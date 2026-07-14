@@ -140,10 +140,12 @@ export class InelicomApi {
 
   static async importCsv(
     kind: InelicomCsvImportKind,
-    file: File
+    file: File,
+    append = false
   ): Promise<EnvelopeResult<CsvImportResultDto>> {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("append", String(append));
 
     return axios.post(`${BASE}/imports/${kind}`, formData)
       .then((response) => (
