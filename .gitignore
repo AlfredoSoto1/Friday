@@ -41,3 +41,6 @@ attendance/
 !webapp/app/(dashboard)/attendance/**
 !webapp/features/attendance/
 !webapp/features/attendance/**
+
+
+attendance/
