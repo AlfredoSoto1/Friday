@@ -6,9 +6,9 @@ namespace Friday.Backend.Api.Repositories;
 
 public interface IInelicomRepository
 {
-  Task<Result<Paged<Contact>, AppError>> GetContactsByType(IDbConnection connection, string contactType, InelicomQuery query);
+  Task<Result<Paged<Contact>, AppError>> GetContacts(IDbConnection connection, InelicomQuery query);
 
-  Task<Result<Contact, AppError>> GetContactOfType(IDbConnection connection, string contactType, int id);
+  Task<Result<Contact, AppError>> GetContact(IDbConnection connection, int id);
 
 
 

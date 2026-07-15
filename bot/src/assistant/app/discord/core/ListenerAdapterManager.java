@@ -36,6 +36,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -271,6 +272,23 @@ public class ListenerAdapterManager extends ListenerAdapter {
 
     if (action != null) action.onMenuSelection(event);
     else event.reply("The Select Menu that you are interacting with is not registered!").queue();
+  }
+
+  @Override
+  public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
+    CommandI command = commands.get(event.getName());
+    if (command == null) {
+      event.replyChoices(List.of()).queue();
+      return;
+    }
+
+    try {
+      event.replyChoices(command.getAutoCompleteChoices(
+          event.getFocusedOption().getName(), event.getFocusedOption().getValue())).queue();
+    } catch (RuntimeException exception) {
+      LOGGER.error("Autocomplete for /{} failed", event.getName(), exception);
+      event.replyChoices(List.of()).queue();
+    }
   }
 
   @Override

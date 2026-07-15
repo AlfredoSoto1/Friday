@@ -82,60 +82,6 @@ public sealed partial class BotService : IBotService
           building => $"{building.Code ?? building.Name ?? "N/A"} - {building.Name ?? "N/A"}"),
 
 
-        "contact-dcsp" => await GetInelicomCommandResponse(
-          connection,
-          commandName,
-          "Contact Information",
-          "No matching contact records found.",
-          (conn, query) => _inelicomRepository.GetContactsByType(conn, "dcsp", query),
-          contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
-          "DCSP"),
-
-        "contact-department" => await GetInelicomCommandResponse(
-          connection,
-          commandName,
-          "Contact Information",
-          "No matching contact records found.",
-          (conn, query) => _inelicomRepository.GetContactsByType(conn, "department", query),
-          contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
-          "Department"),
-
-        "contact-decanato-estudiantes" => await GetInelicomCommandResponse(
-          connection,
-          commandName,
-          "Contact Information",
-          "No matching contact records found.",
-          (conn, query) => _inelicomRepository.GetContactsByType(conn, "decanato-estudiantes", query),
-          contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
-          "Decanato"),
-
-        "contact-guardia-univ" => await GetInelicomCommandResponse(
-          connection,
-          commandName,
-          "Contact Information",
-          "No matching contact records found.",
-          (conn, query) => _inelicomRepository.GetContactsByType(conn, "guardia-univ", query),
-          contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
-          "Guardia"),
-
-        "contact-asesoria-academica" => await GetInelicomCommandResponse(
-          connection,
-          commandName,
-          "Contact Information",
-          "No matching contact records found.",
-          (conn, query) => _inelicomRepository.GetContactsByType(conn, "asesoria-academica", query),
-          contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
-          "Asesoria"),
-
-        "contact-asistencia-economica" => await GetInelicomCommandResponse(
-          connection,
-          commandName,
-          "Contact Information",
-          "No matching contact records found.",
-          (conn, query) => _inelicomRepository.GetContactsByType(conn, "asistencia-economica", query),
-          contact => $"{contact.Name ?? "N/A"} - {contact.Email ?? "N/A"} - {contact.Phone ?? "N/A"} - {contact.Website ?? "N/A"}",
-          "Asistencia"),
-
         _ => Result<BotCommandResponse, AppError>.Ok(new BotCommandResponse
         {
           CommandName = commandName,

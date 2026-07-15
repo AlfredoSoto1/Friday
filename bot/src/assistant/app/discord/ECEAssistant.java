@@ -18,12 +18,7 @@ package assistant.app.discord;
 import assistant.app.discord.core.ListenerAdapterManager;
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
-import assistant.commands.contacts.AcademicAdvisoryCmd;
-import assistant.commands.contacts.DCSPCmd;
-import assistant.commands.contacts.DeanOfStudentsCmd;
-import assistant.commands.contacts.DepartmentCmd;
-import assistant.commands.contacts.EconomicAssistanceCmd;
-import assistant.commands.contacts.UniversityGuardCmd;
+import assistant.commands.contacts.ContactCmd;
 import assistant.commands.files.CurriculumCmd;
 import assistant.commands.files.FreshmanGuideCmd;
 import assistant.commands.games.CoinFlipCmd;
@@ -70,12 +65,7 @@ public final class ECEAssistant extends BotApplication {
         global(new CalendarCmd()),
         new MadeWebCmd(),
         global(new LinksCmd()),
-        global(new DCSPCmd()),
-        new DepartmentCmd(),
-        global(new DeanOfStudentsCmd()),
-        global(new UniversityGuardCmd()),
-        new AcademicAdvisoryCmd(),
-        global(new EconomicAssistanceCmd()),
+        new ContactCmd(),
         new CurriculumCmd(),
         global(new FreshmanGuideCmd()),
         new AssistantCmd(this),

@@ -7,11 +7,11 @@ public interface IInelicomService
 {
   // ==========================================================================
   // ==========================================================================
-  Task<Result<Paged<Contact>, AppError>> GetContacts(string contactType, InelicomQuery query);
+  Task<Result<Paged<Contact>, AppError>> GetContacts(InelicomQuery query);
 
   // ==========================================================================
   // ==========================================================================
-  Task<Result<Contact, AppError>> GetContact(string contactType, int id);
+  Task<Result<Contact, AppError>> GetContact(int id);
 
   // ==========================================================================
   // ==========================================================================

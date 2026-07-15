@@ -58,7 +58,7 @@ public sealed class InelicomController : ControllerBase
   }
 
   [HttpGet("contacts")]
-  public async Task<IActionResult> GetContacts([FromQuery] InelicomQuery query, [FromQuery] string contactType)
+  public async Task<IActionResult> GetContacts([FromQuery] InelicomQuery query)
   {
     var reqResult = query.Validate();
     if (reqResult.IsFailure)
@@ -66,14 +66,14 @@ public sealed class InelicomController : ControllerBase
       return reqResult.Send();
     }
 
-    var result = await _service.GetContacts(contactType, reqResult.Value);
+    var result = await _service.GetContacts(reqResult.Value);
     return result.Send(query.Limit, query.PageIndex);
   }
 
   [HttpGet("contacts/{id:int}")]
-  public async Task<IActionResult> GetContact([FromRoute] int id, [FromQuery] string contactType)
+  public async Task<IActionResult> GetContact([FromRoute] int id)
   {
-    var result = await _service.GetContact(contactType, id);
+    var result = await _service.GetContact(id);
     return result.Send();
   }
 

@@ -81,7 +81,7 @@ public sealed partial class InelicomRepository : IInelicomRepository
     CreatedAt = (DateTime)record.created_at
   };
 
-  public async Task<Result<Paged<Contact>, AppError>> GetContactsByType(IDbConnection connection, string contactType, InelicomQuery query)
+  public async Task<Result<Paged<Contact>, AppError>> GetContacts(IDbConnection connection, InelicomQuery query)
   {
     try
     {
@@ -95,7 +95,7 @@ public sealed partial class InelicomRepository : IInelicomRepository
 
       var records = await connection.QueryAsync(sql, new
       {
-        ContactType = contactType,
+        query.ContactType,
         Search = string.IsNullOrWhiteSpace(query.Search) ? null : $"%{query.Search}%",
         query.Limit,
         Offset = query.PageIndex * query.Limit
@@ -111,17 +111,17 @@ public sealed partial class InelicomRepository : IInelicomRepository
     }
   }
 
-  public async Task<Result<Contact, AppError>> GetContactOfType(IDbConnection connection, string contactType, int id)
+  public async Task<Result<Contact, AppError>> GetContact(IDbConnection connection, int id)
   {
     try
     {
       const string sql = @"
         SELECT contact_id, name, email, phone, website, description, services, created_at
           FROM inelicom.contacts
-        WHERE contact_type = @ContactType AND contact_id = @Id;
+        WHERE contact_id = @Id;
       ";
 
-      var record = await connection.QuerySingleOrDefaultAsync(sql, new { ContactType = contactType, Id = id });
+      var record = await connection.QuerySingleOrDefaultAsync(sql, new { Id = id });
       if (record is null)
       {
         return Result<Contact, AppError>.Fail(AppError.NotFound("Record not found."));

@@ -18,6 +18,7 @@ package assistant.app.interactions;
 import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -61,6 +62,11 @@ public interface CommandI {
    * @param event
    */
   public void execute(SlashCommandInteractionEvent event);
+
+  default List<Command.Choice> getAutoCompleteChoices(String optionName, String input) {
+    return List.of();
+  }
+
 
   default CommandData commandData(Guild guild) {
     return Commands.slash(getCommandName(), getDescription()).addOptions(getOptions(guild));

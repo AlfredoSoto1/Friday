@@ -71,7 +71,7 @@ public final class HelpEmbed {
         command(
             "☎️",
             "Contactos",
-            "Usa los comandos `contact-*` para oficinas y servicios universitarios.",
+            "Usa `/contact` para oficinas y servicios universitarios.",
             false));
   }
 
