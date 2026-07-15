@@ -17,14 +17,11 @@ package assistant.commands.information;
 
 import assistant.app.interactions.CommandI;
 import assistant.app.interactions.InteractionModel;
-import assistant.app.model.MemberPosition;
 import assistant.backend.dto.DiscordServerDTO;
 import assistant.backend.service.GameService;
 import assistant.embeds.information.HelpEmbed;
 import java.util.List;
-import java.util.Optional;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -79,19 +76,9 @@ public class HelpCmd extends InteractionModel implements CommandI {
   }
 
   private void fromServer(int page, SlashCommandInteractionEvent event) {
-    // Mentioned Roles in embedded message
-    Optional<Role> esoRole =
-        super.getEffectiveRole(MemberPosition.ESTUDIANTE_ORIENTADOR, event.getGuild());
-
     DiscordServerDTO discordServer = super.getServerOwnerInfo(event.getGuild().getIdLong());
-    String department = discordServer.getDepartment();
     int color = Integer.parseInt(discordServer.getColor().replace("#", ""), 16);
-
-    if ("ECE".equalsIgnoreCase(department)) {
-      event.replyEmbeds(embed.buildHelp(color, roleMention(esoRole, "Estudiante Orientador"), page)).queue();
-    } else {
-      event.replyEmbeds(embed.buildHelp(color, roleMention(esoRole, "Estudiante Orientador"), page)).queue();
-    }
+    event.replyEmbeds(embed.buildHelp(color, page)).queue();
 
     // Update the user points stats when he uses the command
     commandEventService.updateCommandUserCount(
@@ -99,6 +86,6 @@ public class HelpCmd extends InteractionModel implements CommandI {
   }
 
   private void fromDM(int page, SlashCommandInteractionEvent event) {
-    event.replyEmbeds(embed.buildHelpDM("Estudiante Orientador", page)).queue();
+    event.replyEmbeds(embed.buildHelpDM(page)).queue();
   }
 }

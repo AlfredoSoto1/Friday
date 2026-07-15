@@ -9,16 +9,16 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 public final class HelpEmbed {
   private static final int FIELDS_PER_PAGE = 6;
 
-  public MessageEmbed buildHelp(int color, String advisorRole, int page) {
-    return build(color, null, advisorRole, page);
+  public MessageEmbed buildHelp(int color, int page) {
+    return build(color, null, page);
   }
 
-  public MessageEmbed buildHelpDM(String advisorRole, int page) {
-    return build(0x5865F2, null, advisorRole, page);
+  public MessageEmbed buildHelpDM(int page) {
+    return build(0x5865F2, null, page);
   }
 
-  private MessageEmbed build(int color, String banner, String advisorRole, int page) {
-    List<Field> commands = commands(advisorRole);
+  private MessageEmbed build(int color, String banner, int page) {
+    List<Field> commands = commands();
     int totalPages = Math.max(1, (commands.size() + FIELDS_PER_PAGE - 1) / FIELDS_PER_PAGE);
 
     EmbedBuilder embed =
@@ -49,7 +49,7 @@ public final class HelpEmbed {
     return embed.build();
   }
 
-  private List<Field> commands(String advisorRole) {
+  private List<Field> commands() {
     return List.of(
         command("🧭", "/help", "Abre este centro de comandos.", false),
         command("❓", "/faq", "Respuestas a preguntas frecuentes.", false),
@@ -61,7 +61,6 @@ public final class HelpEmbed {
         command("📄", "/curriculo", "Descarga el currículo de tu programa.", true),
         command("🚀", "/ls_projects", "Explora proyectos estudiantiles y de investigación.", false),
         command("🌐", "/ls_organizations", "Descubre organizaciones estudiantiles.", false),
-        command("🧑‍🤝‍🧑", "/estudiantes-orientadores", "Conoce a " + advisorRole + ".", true),
         command("🏆", "/rank", "Consulta tu nivel o el leaderboard.", true),
         command("🪙", "/game-coinflip", "Lanza una moneda.", false),
         command("🏓", "/game-ping", "Consulta la latencia del bot.", false),

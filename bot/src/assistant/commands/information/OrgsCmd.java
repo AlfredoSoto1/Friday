@@ -28,6 +28,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.Command;
 
 /**
  * @author Alfredo
@@ -71,9 +72,17 @@ public class OrgsCmd extends InteractionModel implements CommandI {
   @Override
   public List<OptionData> getOptions(Guild server) {
     OptionData organizations =
-        new OptionData(OptionType.STRING, COMMAND_LABEL, "Selecciona la organización", true);
-    service.getOrganizationNames(0, 25).forEach(name -> organizations.addChoice(name, name));
+        new OptionData(OptionType.STRING, COMMAND_LABEL, "Selecciona la organización", true).setAutoComplete(true);
     return List.of(organizations);
+  }
+
+  @Override
+  public List<Command.Choice> getAutoCompleteChoices(String optionName, String input) {
+    if (!COMMAND_LABEL.equals(optionName)) return List.of();
+
+    return service.getOrganizations(input).stream()
+        .map(organization -> new Command.Choice(organization.getName(), organization.getName()))
+        .toList();
   }
 
   @Override

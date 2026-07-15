@@ -29,7 +29,6 @@ import assistant.commands.games.LeaderboardCmd;
 import assistant.commands.games.PingCmd;
 import assistant.commands.games.RockPaperScissorsCmd;
 import assistant.commands.information.CalendarCmd;
-import assistant.commands.information.EOInfoCmd;
 import assistant.commands.information.FAQCmd;
 import assistant.commands.information.FacultyCmd;
 import assistant.commands.information.FindBuildingCmd;
@@ -54,9 +53,8 @@ public final class ECEAssistant extends BotApplication {
     super(botToken);
     interactions = List.of(
         new FacultyCmd(),
-        global(new ProjectsCmd()),
-        global(new OrgsCmd()),
-        new EOInfoCmd(),
+        new ProjectsCmd(),
+        new OrgsCmd(),
         global(new FindBuildingCmd()),
         new FAQCmd(),
         global(new HelpCmd()),

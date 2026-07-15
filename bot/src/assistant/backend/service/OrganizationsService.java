@@ -10,12 +10,8 @@ import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 public final class OrganizationsService {
-  public List<String> getOrganizationNames(int page, int size) {
-    return organizations(page, size, null).stream().map(OrganizationDTO::getName).toList();
-  }
-
-  public List<OrganizationDTO> getAllOrganizations(int page, int size) {
-    return organizations(page, size, null);
+  public List<OrganizationDTO> getOrganizations(String search) {
+    return organizations(0, 25, search);
   }
 
   public Optional<OrganizationDTO> getOrganization(String name) {

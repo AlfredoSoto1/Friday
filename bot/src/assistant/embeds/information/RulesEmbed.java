@@ -163,13 +163,6 @@ public class RulesEmbed {
                 """,
                 EmbedValues.na(esoRole)),
             false)
-        .addField(
-            "4. :question: Conoce a nuestros estudiantes orientadores",
-            """
-            Si quiere saber que estudiantes orientadores fuera de sus líderes son de su
-            departamento, utilize el comando `/estudiantes-orientadores`.
-            """,
-            false)
         .build();
   }
 }

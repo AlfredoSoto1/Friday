@@ -10,12 +10,8 @@ import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 public final class ProjectsService {
-  public List<String> getProjectNames(int page, int size) {
-    return projects(page, size, null).stream().map(ProjectDTO::getName).toList();
-  }
-
-  public List<ProjectDTO> getAllProjects(int page, int size) {
-    return projects(page, size, null);
+  public List<ProjectDTO> getProjects(String search) {
+    return projects(0, 25, search);
   }
 
   public Optional<ProjectDTO> getProject(String name) {
