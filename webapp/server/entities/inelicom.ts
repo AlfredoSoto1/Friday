@@ -1,23 +1,3 @@
-export interface ContactDto {
-  contactId: number;
-  name: string;
-  email: string;
-  phone: string;
-  website: string;
-  description: string;
-  services: string;
-  createdAt: string;
-}
-
-export interface ContactRequest {
-  name: string;
-  email: string;
-  phone: string;
-  website: string;
-  description?: string;
-  services?: string;
-}
-
 export interface FacultyDto {
   facultyId: number;
   name: string;
@@ -62,30 +42,6 @@ export interface BuildingRequest {
   gpin: string;
 }
 
-export interface ProjectDto {
-  projectId: number;
-  web?: string | null;
-  facebook?: string | null;
-  instagram?: string | null;
-  email?: string | null;
-  name: string;
-  description: string;
-  createdAt: string;
-}
-
-export interface OrganizationDto {
-  organizationId: number;
-  email?: string | null;
-  facebook?: string | null;
-  instagram?: string | null;
-  twitterX?: string | null;
-  web?: string | null;
-  name: string;
-  description: string;
-  createdAt: string;
-}
-
-
 export interface GuildRosterStudentRequest {
   email: string;
   firstName: string;
@@ -98,7 +54,7 @@ export interface GuildRosterStudentRequest {
 export interface GuildRosterTeamRequest {
   teamId?: number;
   name: string;
-  roleId: number;
+  roleIds: number[];
   appendMembers: boolean;
   students: GuildRosterStudentRequest[];
 }
@@ -127,4 +83,3 @@ export interface CsvImportResultDto {
   skipped: number;
   errors: string[];
 }
-

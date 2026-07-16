@@ -103,6 +103,30 @@ public sealed partial class BotRepository
   {
     try
     {
+      var selectedRoleIds = teams
+        .SelectMany(team => team.SelectedRoleIds)
+        .Distinct()
+        .ToArray();
+      const string selectedRolesSql = @"
+        SELECT roles.role_id
+          FROM discord.roles
+          JOIN discord.servers USING (server_id)
+         WHERE servers.guild_id = @GuildId
+           AND roles.role_id = ANY(@RoleIds);
+      ";
+      var storedRoleIds = (await connection.QueryAsync<int>(selectedRolesSql, new
+      {
+        GuildId = guildId.ToString(),
+        RoleIds = selectedRoleIds
+      }, transaction)).ToHashSet();
+
+      if (teams.Any(team => team.SelectedRoleIds.Count == 0) ||
+          storedRoleIds.Count != selectedRoleIds.Length)
+      {
+        return Result<IReadOnlyCollection<RosterTeamReference>, AppError>.Fail(
+          AppError.BadRequest("Each team must use roles from this server."));
+      }
+
       var selectedTeamIds = teams
         .Where(team => team.TeamId is not null)
         .Select(team => team.TeamId!.Value)
@@ -144,26 +168,42 @@ public sealed partial class BotRepository
 
       foreach (var team in teams)
       {
+        var roleIds = team.SelectedRoleIds.Distinct().ToArray();
+        var primaryRoleId = roleIds[0];
+        var previousRoleIds = Array.Empty<int>();
+        if (team.TeamId is int existingTeamId)
+        {
+          const string previousRolesSql = @"
+            SELECT role_id
+              FROM discord.team_roles
+             WHERE team_id = @TeamId
+            UNION
+            SELECT role_id
+              FROM discord.teams
+             WHERE team_id = @TeamId
+               AND role_id IS NOT NULL;
+          ";
+          previousRoleIds = (await connection.QueryAsync<int>(
+            previousRolesSql,
+            new { TeamId = existingTeamId },
+            transaction)).ToArray();
+        }
         const string updateSql = @"
           UPDATE discord.teams
              SET name = @Name,
                  role_id = @RoleId,
                  updated_at = CURRENT_TIMESTAMP
             FROM discord.servers
-            JOIN discord.roles ON roles.server_id = servers.server_id
            WHERE teams.team_id = @TeamId
              AND teams.server_id = servers.server_id
              AND servers.guild_id = @GuildId
-             AND roles.role_id = @RoleId
           RETURNING teams.team_id, teams.role_id, teams.name;
         ";
         const string insertSql = @"
           INSERT INTO discord.teams (server_id, position, name, role_id)
           SELECT servers.server_id, @Position, @Name, @RoleId
             FROM discord.servers
-            JOIN discord.roles ON roles.server_id = servers.server_id
            WHERE servers.guild_id = @GuildId
-             AND roles.role_id = @RoleId
           RETURNING team_id, role_id, name;
         ";
         var record = team.TeamId is null
@@ -172,14 +212,14 @@ public sealed partial class BotRepository
             GuildId = guildId.ToString(),
             Position = ++nextPosition,
             Name = team.Name.Trim(),
-            RoleId = team.RoleId!.Value
+            RoleId = primaryRoleId
           }, transaction)
           : await connection.QuerySingleOrDefaultAsync(updateSql, new
           {
             GuildId = guildId.ToString(),
             TeamId = team.TeamId.Value,
             Name = team.Name.Trim(),
-            RoleId = team.RoleId!.Value
+            RoleId = primaryRoleId
           }, transaction);
 
         if (record is null)
@@ -188,10 +228,25 @@ public sealed partial class BotRepository
             AppError.BadRequest("Each team must use a role from this server."));
         }
 
+        const string replaceTeamRolesSql = @"
+          DELETE FROM discord.team_roles
+           WHERE team_id = @TeamId;
+
+          INSERT INTO discord.team_roles (team_id, role_id)
+          SELECT @TeamId, role_id
+            FROM UNNEST(@RoleIds) AS selected_roles(role_id);
+        ";
+        await connection.ExecuteAsync(replaceTeamRolesSql, new
+        {
+          TeamId = (int)record.team_id,
+          RoleIds = roleIds
+        }, transaction);
+
         teamReferences.Add(new RosterTeamReference
         {
           TeamId = (int)record.team_id,
-          RoleId = (int)record.role_id,
+          RoleIds = roleIds,
+          PreviousRoleIds = previousRoleIds,
           Name = (string)record.name,
           AppendMembers = team.AppendMembers
         });
@@ -222,7 +277,14 @@ public sealed partial class BotRepository
         .Join(members, item => item.UserId, member => member.UserId,
           (item, member) => new { item.TeamName, member.ServerUserId })
         .Join(teams, item => item.TeamName, team => team.Name,
-          (item, team) => new { item.ServerUserId, team.TeamId, team.RoleId })
+          (item, team) => new { item.ServerUserId, team.TeamId, team.RoleIds })
+        .ToArray();
+      var previousTeamRoles = teams
+        .SelectMany(team => team.PreviousRoleIds.Select(roleId => new
+        {
+          team.TeamId,
+          RoleId = roleId
+        }))
         .ToArray();
       var teamsToReplace = teams
         .Where(team => !team.AppendMembers)
@@ -231,36 +293,43 @@ public sealed partial class BotRepository
       if (teamsToReplace.Length > 0)
       {
         const string deleteSql = @"
-          WITH removed_members AS (
+          WITH previous_team_roles AS (
+            SELECT team_id, role_id
+              FROM UNNEST(@PreviousTeamIds, @PreviousRoleIds)
+                AS previous_roles(team_id, role_id)
+          ), removed_members AS (
             DELETE FROM discord.user_teams
              WHERE team_id = ANY(@TeamIds)
             RETURNING su_id, team_id
           )
           DELETE FROM discord.user_roles
            USING removed_members
-           JOIN discord.teams AS removed_teams
-             ON removed_teams.team_id = removed_members.team_id
+           JOIN previous_team_roles
+             ON previous_team_roles.team_id = removed_members.team_id
            JOIN discord.servers_users
              ON servers_users.su_id = removed_members.su_id
            JOIN discord.users
              ON users.user_id = servers_users.user_id
            JOIN discord.roles
-             ON roles.role_id = removed_teams.role_id
+             ON roles.role_id = previous_team_roles.role_id
           WHERE user_roles.su_id = removed_members.su_id
-            AND user_roles.role_id = removed_teams.role_id
+            AND user_roles.role_id = previous_team_roles.role_id
             AND UPPER(users.program) <> UPPER(roles.name)
             AND NOT EXISTS (
               SELECT 1
                 FROM discord.user_teams AS retained_members
-                JOIN discord.teams AS retained_teams
-                  ON retained_teams.team_id = retained_members.team_id
+                JOIN discord.team_roles AS retained_team_roles
+                  ON retained_team_roles.team_id = retained_members.team_id
                WHERE retained_members.su_id = user_roles.su_id
-                 AND retained_teams.role_id = user_roles.role_id
+                 AND retained_members.team_id <> ALL(@TeamIds)
+                 AND retained_team_roles.role_id = user_roles.role_id
             );
         ";
         await connection.ExecuteAsync(deleteSql, new
         {
-          TeamIds = teamsToReplace
+          TeamIds = teamsToReplace,
+          PreviousTeamIds = previousTeamRoles.Select(item => item.TeamId).ToArray(),
+          PreviousRoleIds = previousTeamRoles.Select(item => item.RoleId).ToArray()
         }, transaction);
       }
       const string insertSql = @"
@@ -275,16 +344,54 @@ public sealed partial class BotRepository
         TeamIds = assignments.Select(item => item.TeamId).ToArray()
       }, transaction);
 
+      var removedTeamRoles = teams
+        .SelectMany(team => team.PreviousRoleIds
+          .Except(team.RoleIds)
+          .Select(roleId => new { team.TeamId, RoleId = roleId }))
+        .ToArray();
+      if (removedTeamRoles.Length > 0)
+      {
+        const string removeStaleRolesSql = @"
+          DELETE FROM discord.user_roles
+           USING discord.user_teams AS members
+           JOIN UNNEST(@TeamIds, @RoleIds) AS removed_roles(team_id, role_id)
+             ON removed_roles.team_id = members.team_id
+           JOIN discord.servers_users
+             ON servers_users.su_id = members.su_id
+           JOIN discord.users
+             ON users.user_id = servers_users.user_id
+           JOIN discord.roles
+             ON roles.role_id = removed_roles.role_id
+          WHERE user_roles.su_id = members.su_id
+            AND user_roles.role_id = removed_roles.role_id
+            AND UPPER(users.program) <> UPPER(roles.name)
+            AND NOT EXISTS (
+              SELECT 1
+                FROM discord.user_teams AS retained_members
+                JOIN discord.team_roles AS retained_roles
+                  ON retained_roles.team_id = retained_members.team_id
+               WHERE retained_members.su_id = user_roles.su_id
+                 AND retained_roles.role_id = user_roles.role_id
+            );
+        ";
+        await connection.ExecuteAsync(removeStaleRolesSql, new
+        {
+          TeamIds = removedTeamRoles.Select(item => item.TeamId).ToArray(),
+          RoleIds = removedTeamRoles.Select(item => item.RoleId).ToArray()
+        }, transaction);
+      }
+
       const string assignTeamRolesSql = @"
         INSERT INTO discord.user_roles (su_id, role_id)
-        SELECT su_id, role_id
-          FROM UNNEST(@ServerUserIds, @RoleIds) AS roster(su_id, role_id)
+        SELECT members.su_id, team_roles.role_id
+          FROM discord.user_teams AS members
+          JOIN discord.team_roles USING (team_id)
+         WHERE members.team_id = ANY(@TeamIds)
         ON CONFLICT (su_id, role_id) DO NOTHING;
       ";
       await connection.ExecuteAsync(assignTeamRolesSql, new
       {
-        ServerUserIds = assignments.Select(item => item.ServerUserId).ToArray(),
-        RoleIds = assignments.Select(item => item.RoleId).ToArray()
+        TeamIds = teams.Select(team => team.TeamId).ToArray()
       }, transaction);
 
       return Result<int, AppError>.Ok(assignments.Length);

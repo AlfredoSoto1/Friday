@@ -4,8 +4,8 @@ import { ArrowLeft, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { RosterManager } from "@/features/roster/roster-manager";
 import { ServerHeaderCard } from "@/features/server/server-header-card";
-import { ServerOverview } from "@/features/server/server-overview";
 
 interface ServerPageProps {
   searchParams: Promise<{
@@ -64,12 +64,7 @@ export default async function ServerPage({
             name={name}
             enabled={enabled}
           />
-          <ServerOverview
-          serverId={serverId}
-          guildId={guildId}
-          serverName={name}
-          enabled={enabled}
-        />
+          <RosterManager guildId={guildId} />
         </CardContent>
       </Card>
     </div>

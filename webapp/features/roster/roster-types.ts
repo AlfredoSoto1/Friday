@@ -25,7 +25,7 @@ export interface TeamGroup {
   id: number;
   name: string;
   color: string;
-  roleId: number | null;
+  roleIds: number[];
   existingTeamId: number | null;
   appendMembers: boolean;
   createNewTeam: boolean;
@@ -40,7 +40,7 @@ export interface TeamCardProps {
   existingTeams: BotTeamDto[];
   editMode: boolean;
   onRename: (teamId: number, name: string) => void;
-  onRoleChange: (teamId: number, roleId: number) => void;
+  onRolesChange: (teamId: number, roleIds: number[]) => void;
   onExistingTeamChange: (teamId: number, existingTeamId: number | null) => void;
   onCreateNewTeamChange: (teamId: number, createNewTeam: boolean) => void;
   onAppendMembersChange: (teamId: number, appendMembers: boolean) => void;

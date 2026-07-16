@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TriangleAlert } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -24,12 +24,7 @@ export function ContentManager(): React.ReactElement {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect((): void => {
-    void loadContent();
-  }, []);
-
-  async function loadContent(): Promise<void> {
-    setLoading(true);
+  const loadContent = useCallback(async (): Promise<void> => {
     const results = await Promise.all([
       InelicomApi.getFaculties(),
       InelicomApi.getBuildings(),
@@ -48,7 +43,15 @@ export function ContentManager(): React.ReactElement {
     });
     setError("");
     setLoading(false);
-  }
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void loadContent();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [loadContent]);
 
   async function saveRecord(
     kind: ContentKind,
@@ -76,6 +79,7 @@ export function ContentManager(): React.ReactElement {
       return false;
     }
 
+    setLoading(true);
     await loadContent();
     return true;
   }
@@ -98,7 +102,6 @@ export function ContentManager(): React.ReactElement {
       setError(failedMessage);
       return;
     }
-
   }
 
   if (loading) {
@@ -126,7 +129,6 @@ export function ContentManager(): React.ReactElement {
           title="Faculties"
           description={`${data.faculties.length} faculty records`}
           records={data.faculties}
-          data={data}
           onSave={saveRecord}
           onDelete={deleteRecord}
         />
@@ -135,7 +137,6 @@ export function ContentManager(): React.ReactElement {
           title="Buildings"
           description={`${data.buildings.length} building records`}
           records={data.buildings}
-          data={data}
           onSave={saveRecord}
           onDelete={deleteRecord}
         />

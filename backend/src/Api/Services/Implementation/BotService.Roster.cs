@@ -36,24 +36,38 @@ public sealed partial class BotService
       string.IsNullOrWhiteSpace(student.FirstLastName) ||
       !new[] { "INEL", "ICOM", "INSO", "CIIC" }.Contains(student.Program) ||
       !teamNames.Contains(student.TeamName));
-    var teamRoleIds = request.Teams.Select(team => team.RoleId).ToArray();
+    var teamRoleIdGroups = request.Teams
+      .Select(team => team.SelectedRoleIds.ToArray())
+      .ToArray();
     var selectedTeamIds = request.Teams
       .Where(team => team.TeamId is not null)
       .Select(team => team.TeamId!.Value)
       .ToArray();
     var uniqueStudents =
       students.Select(student => student.Email).Distinct().Count();
-    if (invalidStudents ||
-        teamNames.Any(string.IsNullOrWhiteSpace) ||
-        teamNames.Distinct().Count() != teamNames.Length ||
-        selectedTeamIds.Distinct().Count() != selectedTeamIds.Length ||
-        uniqueStudents != students.Length ||
-        teamRoleIds.Any(roleId => roleId is null) ||
-        teamRoleIds.Distinct().Count() != teamRoleIds.Length)
+    if (invalidStudents || uniqueStudents != students.Length)
     {
       return Result<SaveGuildRosterResult, AppError>.Fail(
         AppError.BadRequest(
-          "Roster students and team names must be valid and unique."));
+          "Roster students must be valid and unique."));
+    }
+
+    if (teamNames.Any(string.IsNullOrWhiteSpace) ||
+        teamNames.Distinct().Count() != teamNames.Length ||
+        selectedTeamIds.Distinct().Count() != selectedTeamIds.Length)
+    {
+      return Result<SaveGuildRosterResult, AppError>.Fail(
+        AppError.BadRequest(
+          "Team names and existing team selections must be valid and unique."));
+    }
+
+    if (teamRoleIdGroups.Any(roleIds =>
+      roleIds.Length == 0 ||
+      roleIds.Distinct().Count() != roleIds.Length))
+    {
+      return Result<SaveGuildRosterResult, AppError>.Fail(
+        AppError.BadRequest(
+          "Each team must have at least one role without duplicate selections."));
     }
 
     var connection = (NpgsqlConnection)_dbFactory.Create();

@@ -6,7 +6,6 @@ import {
   Download,
   FileSpreadsheet,
   TriangleAlert,
-  Upload,
 } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -150,14 +149,6 @@ function csvEscape(value: string): string {
   }
 
   return value;
-}
-
-function htmlEscape(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }
 
 function downloadFile(fileName: string, content: string, type: string): void {

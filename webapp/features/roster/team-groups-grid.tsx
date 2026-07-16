@@ -40,7 +40,7 @@ interface TeamGroupsGridProps {
   sortDirection: SortDirection;
   onToggleEditMode: () => void;
   onRename: (teamId: number, name: string) => void;
-  onRoleChange: (teamId: number, roleId: number) => void;
+  onRolesChange: (teamId: number, roleIds: number[]) => void;
   onExistingTeamChange: (teamId: number, existingTeamId: number | null) => void;
   onCreateNewTeamChange: (teamId: number, createNewTeam: boolean) => void;
   onAppendMembersChange: (teamId: number, appendMembers: boolean) => void;
@@ -59,7 +59,7 @@ export function TeamGroupsGrid({
   sortDirection,
   onToggleEditMode,
   onRename,
-  onRoleChange,
+  onRolesChange,
   onExistingTeamChange,
   onCreateNewTeamChange,
   onAppendMembersChange,
@@ -137,7 +137,7 @@ export function TeamGroupsGrid({
               onRename={onRename}
               roles={roles}
               existingTeams={existingTeams}
-              onRoleChange={onRoleChange}
+              onRolesChange={onRolesChange}
               onExistingTeamChange={onExistingTeamChange}
               onCreateNewTeamChange={onCreateNewTeamChange}
               onAppendMembersChange={onAppendMembersChange}

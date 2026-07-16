@@ -6,6 +6,7 @@ import { ArrowRightLeft, Pencil, Users, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardAction,
@@ -58,7 +59,7 @@ export function TeamCard({
   otherTeams,
   roles,
   existingTeams,
-  onRoleChange,
+  onRolesChange,
   onExistingTeamChange,
   onCreateNewTeamChange,
   onAppendMembersChange,
@@ -71,14 +72,14 @@ export function TeamCard({
   const [draftName, setDraftName] = useState(team.name);
   const [draftCreateNewTeam, setDraftCreateNewTeam] = useState(team.createNewTeam);
   const [draftExistingTeamId, setDraftExistingTeamId] = useState<number | null>(team.existingTeamId);
-  const [draftRoleId, setDraftRoleId] = useState<number | null>(team.roleId);
+  const [draftRoleIds, setDraftRoleIds] = useState<number[]>(team.roleIds);
   const [draftAppendMembers, setDraftAppendMembers] = useState(team.appendMembers);
 
   function resetDraft(): void {
     setDraftName(team.name);
     setDraftCreateNewTeam(team.createNewTeam);
     setDraftExistingTeamId(team.existingTeamId);
-    setDraftRoleId(team.roleId);
+    setDraftRoleIds(team.roleIds);
     setDraftAppendMembers(team.appendMembers);
   }
 
@@ -90,14 +91,14 @@ export function TeamCard({
     if (!draftCreateNewTeam && draftExistingTeamId !== null) {
       onExistingTeamChange(team.id, draftExistingTeamId);
     }
-    if (draftRoleId !== null) onRoleChange(team.id, draftRoleId);
+    if (draftRoleIds.length) onRolesChange(team.id, draftRoleIds);
     if (!draftCreateNewTeam && draftExistingTeamId !== null) {
       onAppendMembersChange(team.id, draftAppendMembers);
     }
     setOpen(false);
   }
 
-  const canConfirm = draftRoleId !== null && (
+  const canConfirm = draftRoleIds.length > 0 && (
     draftCreateNewTeam ? Boolean(draftName.trim()) : draftExistingTeamId !== null
   );
 
@@ -124,11 +125,10 @@ export function TeamCard({
           <Dialog
             open={open}
             onOpenChange={(nextOpen): void => {
-              if (nextOpen) {
-                resetDraft();
-                onConfigurationOpen();
-              }
-              setOpen(nextOpen);
+              if (!nextOpen) return;
+              resetDraft();
+              onConfigurationOpen();
+              setOpen(true);
             }}
           >
             <DialogTrigger asChild>
@@ -137,11 +137,17 @@ export function TeamCard({
                 <span className="sr-only">Edit {team.name}</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent
+              className="sm:max-w-md"
+              showCloseButton={false}
+              onEscapeKeyDown={(event): void => event.preventDefault()}
+              onInteractOutside={(event): void => event.preventDefault()}
+              onPointerDownOutside={(event): void => event.preventDefault()}
+            >
               <DialogHeader>
                 <DialogTitle>Configure team</DialogTitle>
                 <DialogDescription>
-                  Select the server role. Its Discord color is applied to this team automatically.
+                  Select one or more server roles. The first role’s Discord color is applied to this team.
                 </DialogDescription>
               </DialogHeader>
               <Field orientation="horizontal" className="items-center justify-between gap-3 rounded-md border p-3">
@@ -174,7 +180,13 @@ export function TeamCard({
                         existingTeam.teamId === Number(value)
                       ));
                       setDraftExistingTeamId(Number(value));
-                      setDraftRoleId(selectedTeam?.roleId ?? null);
+                      setDraftRoleIds(
+                        selectedTeam?.roleIds?.length
+                          ? selectedTeam.roleIds
+                          : selectedTeam?.roleId === null || selectedTeam?.roleId === undefined
+                            ? []
+                            : [selectedTeam.roleId]
+                      );
                     }}
                     disabled={existingTeams.length === 0}
                   >
@@ -195,25 +207,56 @@ export function TeamCard({
                 </Field>
               )}
               <Field>
-                <FieldLabel>Discord role</FieldLabel>
-                <Select
-                  value={draftRoleId?.toString()}
-                  onValueChange={(value): void => setDraftRoleId(Number(value))}
-                  disabled={roles.length === 0}
+                <FieldLabel id={`team-roles-label-${team.id}`}>Discord roles</FieldLabel>
+                <div
+                  aria-labelledby={`team-roles-label-${team.id}`}
+                  className="max-h-44 space-y-1 overflow-y-auto rounded-md border p-1.5"
+                  role="group"
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={roles.length ? "Select a server role" : "Loading server roles"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roles.map((role) => (
-                      <SelectItem key={role.roleId} value={role.roleId.toString()}>
-                        {role.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {roles.map((role) => {
+                    const checkboxId = `team-${team.id}-role-${role.roleId}`;
+                    return (
+                      <label
+                        key={role.roleId}
+                        htmlFor={checkboxId}
+                        className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-accent"
+                      >
+                        <Checkbox
+                          id={checkboxId}
+                          checked={draftRoleIds.includes(role.roleId)}
+                          onCheckedChange={(checked): void => {
+                            setDraftRoleIds((current) => (
+                              checked === true
+                                ? current.includes(role.roleId)
+                                  ? current
+                                  : [...current, role.roleId]
+                                : current.filter((roleId) => roleId !== role.roleId)
+                            ));
+                          }}
+                        />
+                        <span
+                          aria-hidden
+                          className="size-2.5 shrink-0 rounded-full"
+                          style={{
+                            backgroundColor: role.color && role.color > 0
+                              ? `#${role.color.toString(16).padStart(6, "0")}`
+                              : "#5865f2",
+                          }}
+                        />
+                        <span className="min-w-0 truncate">{role.name}</span>
+                      </label>
+                    );
+                  })}
+                  {roles.length === 0 ? (
+                    <p className="px-2 py-3 text-center text-sm text-muted-foreground">
+                      No server roles are available yet.
+                    </p>
+                  ) : null}
+                </div>
                 <FieldDescription>
-                  {roles.length ? "Roles are loaded from the selected Discord server." : "No server roles are available yet."}
+                  {roles.length
+                    ? `${draftRoleIds.length} selected. Roles are loaded from the selected Discord server.`
+                    : "No server roles are available yet."}
                 </FieldDescription>
               </Field>
               {!draftCreateNewTeam && draftExistingTeamId !== null ? (

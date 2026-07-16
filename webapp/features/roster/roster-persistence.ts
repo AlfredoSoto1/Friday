@@ -12,7 +12,7 @@ export function saveGuildDistribution(
   const teams = distribution.teams.map((team) => ({
     teamId: team.existingTeamId ?? undefined,
     name: team.name,
-    roleId: team.roleId ?? 0,
+    roleIds: team.roleIds,
     appendMembers: team.appendMembers,
     students: team.studentIds.flatMap((studentId) => {
       const student = studentsById.get(studentId);

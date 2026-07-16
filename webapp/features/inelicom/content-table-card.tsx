@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/table";
 import { ContentDialog } from "@/features/inelicom/content-dialog";
 import type {
-  ContentData,
   ContentFormValues,
   ContentKind,
   ContentRecord,
@@ -32,7 +31,6 @@ interface ContentTableCardProps {
   title: string;
   description: string;
   records: ContentRecord[];
-  data: ContentData;
   onSave: (
     kind: ContentKind,
     values: ContentFormValues,
@@ -46,7 +44,6 @@ export function ContentTableCard({
   title,
   description,
   records,
-  data,
   onSave,
   onDelete,
 }: ContentTableCardProps): React.ReactElement {
@@ -58,7 +55,6 @@ export function ContentTableCard({
         <CardAction>
           <ContentDialog
             kind={kind}
-            data={data}
             onSave={onSave}
           />
         </CardAction>
@@ -83,7 +79,6 @@ export function ContentTableCard({
                   <div className="flex gap-1">
                     <ContentDialog
                       kind={kind}
-                      data={data}
                       current={record}
                       onSave={onSave}
                     />

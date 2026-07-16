@@ -34,7 +34,7 @@ function createEmptyTeams(teamCount: number): TeamGroup[] {
     id: index + 1,
     name: `Team ${index + 1}`,
     color: "#5865f2",
-    roleId: null,
+    roleIds: [],
     existingTeamId: null,
     appendMembers: false,
     createNewTeam: true,

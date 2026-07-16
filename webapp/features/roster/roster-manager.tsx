@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TriangleAlert } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { distributeStudents, type Distribution } from "@/features/roster/roster-distribution";
 import { parseRosterFile, RosterParseError } from "@/features/roster/roster-parser";
 import { RosterSaveCard } from "@/features/roster/roster-save-card";
-import { RosterUploadCard } from "@/features/roster/roster-upload-card";
+import { RosterSetupCard } from "@/features/roster/roster-setup-card";
 import { TeamGroupsGrid } from "@/features/roster/team-groups-grid";
-import { TeamSetupCard } from "@/features/roster/team-setup-card";
 import type {
   DistributionMode,
   RosterFile,
@@ -42,7 +41,7 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  async function refreshGuildConfiguration(): Promise<void> {
+  const refreshGuildConfiguration = useCallback(async (): Promise<void> => {
     if (!/^[0-9]+$/.test(guildId)) {
       setError("Select a valid Discord server before configuring teams.");
       return;
@@ -54,20 +53,38 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
     ]);
     const errors: string[] = [];
 
-    if (rolesResult.isSuccess) setRoles(rolesResult.value.items);
-    else errors.push(`Could not load server roles: ${rolesResult.error.message}`);
+    if (rolesResult.isSuccess) {
+      const nextRoles = rolesResult.value.items;
+      setRoles(nextRoles);
+      setDistribution((current) => current && ({
+        ...current,
+        teams: current.teams.map((team) => ({
+          ...team,
+          color: roleColor(nextRoles.find((role) => role.roleId === team.roleIds[0])),
+        })),
+      }));
+    } else {
+      errors.push(`Could not load server roles: ${rolesResult.error.message}`);
+    }
 
-    if (teamsResult.isSuccess) setExistingTeams(teamsResult.value.items);
-    else errors.push(`Could not load existing teams: ${teamsResult.error.message}`);
+    if (teamsResult.isSuccess) {
+      setExistingTeams(teamsResult.value.items);
+    } else {
+      errors.push(`Could not load existing teams: ${teamsResult.error.message}`);
+    }
 
     setError(errors.join(" "));
-  }
-
-  useEffect((): void => {
-    setRoles([]);
-    setExistingTeams([]);
-    void refreshGuildConfiguration();
   }, [guildId]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setRoles([]);
+      setExistingTeams([]);
+      void refreshGuildConfiguration();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [refreshGuildConfiguration]);
 
   const studentsById = useMemo(
     (): Map<number, Student> => new Map(students.map((student) => [student.id, student])),
@@ -78,19 +95,6 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
       .map((id) => studentsById.get(id))
       .filter((student): student is Student => Boolean(student))
   ), [distribution, studentsById]);
-  useEffect((): void => {
-    if (!roles.length) return;
-    setDistribution((current) => current && ({
-      ...current,
-      teams: current.teams.map((team) => (
-        team.roleId === null
-          ? team
-          : { ...team, color: roleColor(roles.find((role) => role.roleId === team.roleId)) }
-      )),
-    }));
-  }, [roles]);
-
-
   async function selectFile(selected: File): Promise<void> {
     setLoadingFile(true);
     setError("");
@@ -151,6 +155,11 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
   function selectExistingTeam(teamId: number, existingTeamId: number | null): void {
     const selectedTeam = existingTeams.find((team) => team.teamId === existingTeamId);
     if (!selectedTeam) return;
+    const selectedRoleIds = selectedTeam.roleIds?.length
+      ? selectedTeam.roleIds
+      : selectedTeam.roleId === null || selectedTeam.roleId === undefined
+        ? []
+        : [selectedTeam.roleId];
 
     setDistribution((current) => {
       if (!current) return current;
@@ -167,8 +176,8 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
           team.id === teamId ? {
             ...team,
             name: selectedTeam.name,
-            roleId: selectedTeam.roleId ?? null,
-            color: roleColor(roles.find((role) => role.roleId === selectedTeam.roleId)),
+            roleIds: selectedRoleIds,
+            color: roleColor(roles.find((role) => role.roleId === selectedRoleIds[0])),
             existingTeamId: selectedTeam.teamId,
             appendMembers: false,
             createNewTeam: false,
@@ -179,12 +188,12 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
     setSaved(false);
   }
 
-  function selectRole(teamId: number, roleId: number): void {
-    const selectedRole = roles.find((role) => role.roleId === roleId);
+  function selectRoles(teamId: number, roleIds: number[]): void {
+    const selectedRole = roles.find((role) => role.roleId === roleIds[0]);
     setDistribution((current) => current && ({
       ...current,
       teams: current.teams.map((team) => (
-        team.id === teamId ? { ...team, roleId, color: roleColor(selectedRole) } : team
+        team.id === teamId ? { ...team, roleIds, color: roleColor(selectedRole) } : team
       )),
     }));
     setSaved(false);
@@ -220,12 +229,12 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
     const validRoleIds = new Set(roles.map((role) => role.roleId));
     const invalidTeam = distribution?.teams.some((team) => (
       !team.name.trim() ||
-      team.roleId === null ||
-      !validRoleIds.has(team.roleId) ||
+      team.roleIds.length === 0 ||
+      team.roleIds.some((roleId) => !validRoleIds.has(roleId)) ||
       (!team.createNewTeam && team.existingTeamId === null)
     ));
     if (!distribution || distribution.unassignedIds.length || !guildId || invalidTeam) {
-      setError("Select a valid server role and, when not creating a new team, an existing server team.");
+      setError("Select at least one valid server role and, when not creating a new team, an existing server team.");
       return;
     }
 
@@ -244,7 +253,7 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
   ) ?? 0;
   const saveDisabled = !guildId || !distribution || Boolean(distribution.unassignedIds.length) || (
     distribution?.teams.some((team) => (
-      team.roleId === null || (!team.createNewTeam && team.existingTeamId === null)
+      team.roleIds.length === 0 || (!team.createNewTeam && team.existingTeamId === null)
     )) ?? false
   );
 
@@ -253,20 +262,16 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
       {error ? (
         <Alert variant="destructive">
           <TriangleAlert />
-          <AlertTitle>Roster action failed</AlertTitle>
+          <AlertTitle>Team action failed</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
-      <RosterUploadCard
+      <RosterSetupCard
         file={file}
         studentCount={students.length}
         loading={loadingFile}
-        parseError=""
         onFileSelected={(selected): void => { void selectFile(selected); }}
         onRemoveFile={removeFile}
-      />
-      <TeamSetupCard
-        studentCount={students.length}
         teamCount={teamCount}
         onTeamCountChange={setTeamCount}
         distributionMode={distributionMode}
@@ -291,7 +296,7 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
           onRename={rename}
           roles={roles}
           existingTeams={existingTeams}
-          onRoleChange={selectRole}
+          onRolesChange={selectRoles}
           onExistingTeamChange={selectExistingTeam}
           onCreateNewTeamChange={setCreateNewTeam}
           onAppendMembersChange={setAppendMembers}

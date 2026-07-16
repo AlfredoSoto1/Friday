@@ -16,22 +16,7 @@ export interface BotTeamDto {
   teamId: number;
   name: string;
   roleId?: number | null;
+  roleIds?: number[];
   roleName?: string | null;
   memberCount: number;
-}
-
-export interface BotMemberDto {
-  serverUserId: number;
-  userId: number;
-  email: string;
-  fullname: string;
-  username: string;
-  discordUserId: string;
-  verified: boolean;
-  funFact?: string | null;
-  xp: number;
-  level: number;
-  roleIds: string[];
-  createdAt: string;
-  updatedAt: string;
 }

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Friday.Backend.Api.Domain;
 
 public sealed class RosterStudentRequest
@@ -15,8 +17,13 @@ public sealed class RosterTeamRequest
   public int? TeamId { get; init; }
   public string Name { get; init; } = string.Empty;
   public int? RoleId { get; init; }
+  public IReadOnlyCollection<int> RoleIds { get; init; } = [];
   public bool AppendMembers { get; init; }
   public IReadOnlyCollection<RosterStudentRequest> Students { get; init; } = [];
+
+  [JsonIgnore]
+  public IReadOnlyCollection<int> SelectedRoleIds =>
+    RoleIds.Count > 0 ? RoleIds : RoleId is int roleId ? [roleId] : [];
 }
 
 public sealed class SaveGuildRosterRequest
@@ -56,7 +63,8 @@ public sealed class RosterMemberReference
 public sealed class RosterTeamReference
 {
   public int TeamId { get; init; }
-  public int RoleId { get; init; }
+  public IReadOnlyCollection<int> RoleIds { get; init; } = [];
+  public IReadOnlyCollection<int> PreviousRoleIds { get; init; } = [];
   public string Name { get; init; } = string.Empty;
   public bool AppendMembers { get; init; }
 }
@@ -67,6 +75,7 @@ public sealed class GuildTeam
   public int Position { get; init; }
   public string Name { get; init; } = string.Empty;
   public int? RoleId { get; init; }
+  public int[] RoleIds { get; init; } = [];
   public string? RoleName { get; init; }
   public int MemberCount { get; init; }
 }

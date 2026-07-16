@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pencil, Plus, Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import type {
-  ContentData,
   ContentFormValues,
   ContentKind,
   ContentRecord,
@@ -24,7 +23,6 @@ import type {
 
 interface ContentDialogProps {
   kind: ContentKind;
-  data: ContentData;
   current?: ContentRecord;
   onSave: (
     kind: ContentKind,
@@ -40,7 +38,6 @@ const emptyValues: ContentFormValues = {
 
 export function ContentDialog({
   kind,
-  data,
   current,
   onSave,
 }: ContentDialogProps): React.ReactElement {
@@ -48,16 +45,16 @@ export function ContentDialog({
   const [saving, setSaving] = useState(false);
   const [values, setValues] = useState<ContentFormValues>(emptyValues);
 
-  useEffect((): void => {
-    if (!open) {
-      return;
+  function changeOpen(nextOpen: boolean): void {
+    if (nextOpen) {
+      setValues({
+        name: current?.name ?? "",
+        gpin: current && "gpin" in current ? current.gpin : "",
+      });
     }
 
-    setValues({
-      name: current?.name ?? "",
-      gpin: current && "gpin" in current ? current.gpin : "",
-    });
-  }, [current, data, open]);
+    setOpen(nextOpen);
+  }
 
   async function save(): Promise<void> {
     setSaving(true);
@@ -76,7 +73,7 @@ export function ContentDialog({
   );
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={changeOpen}>
       <DialogTrigger asChild>
         <Button
           variant={current ? "ghost" : "default"}

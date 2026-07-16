@@ -4,14 +4,10 @@ import { EnvelopeResult, keysToSnake, Paged } from "@/lib/webservices";
 import type {
   BuildingDto,
   BuildingRequest,
-  ContactDto,
-  ContactRequest,
   CsvImportResultDto,
   FacultyDto,
   FacultyRequest,
   InelicomCsvImportKind,
-  OrganizationDto,
-  ProjectDto,
   SaveGuildRosterRequest,
   SaveGuildRosterResult,
 } from "@/server/entities/inelicom";
@@ -22,39 +18,6 @@ const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 const BASE = `${backendUrl}/api/v1/inelicom`;
 
 export class InelicomApi {
-  static async getContacts(): Promise<EnvelopeResult<Paged<ContactDto>>> {
-    return axios.get(`${BASE}/contacts`)
-      .then((response) => EnvelopeResult.fromList<ContactDto>(response.data))
-      .catch((error: unknown) => (
-        EnvelopeResult.fromError<Paged<ContactDto>>(error)
-      ));
-  }
-
-  static async createContact(
-    data: ContactRequest
-  ): Promise<EnvelopeResult<ContactDto>> {
-    return axios.post(`${BASE}/contacts`, keysToSnake(data))
-      .then((response) => EnvelopeResult.fromObject<ContactDto>(response.data))
-      .catch((error: unknown) => EnvelopeResult.fromError<ContactDto>(error));
-  }
-
-  static async updateContact(
-    contactId: number,
-    data: ContactRequest
-  ): Promise<EnvelopeResult<ContactDto>> {
-    return axios.put(`${BASE}/contacts/${contactId}`, keysToSnake(data))
-      .then((response) => EnvelopeResult.fromObject<ContactDto>(response.data))
-      .catch((error: unknown) => EnvelopeResult.fromError<ContactDto>(error));
-  }
-
-  static async deleteContact(
-    contactId: number
-  ): Promise<EnvelopeResult<boolean>> {
-    return axios.delete(`${BASE}/contacts/${contactId}`)
-      .then((response) => EnvelopeResult.fromObject<boolean>(response.data))
-      .catch((error: unknown) => EnvelopeResult.fromError<boolean>(error));
-  }
-
   static async getBuildings(): Promise<EnvelopeResult<Paged<BuildingDto>>> {
     return axios.get(`${BASE}/buildings`)
       .then((response) => EnvelopeResult.fromList<BuildingDto>(response.data))
@@ -119,23 +82,6 @@ export class InelicomApi {
     return axios.delete(`${BASE}/faculties/${facultyId}`)
       .then((response) => EnvelopeResult.fromObject<boolean>(response.data))
       .catch((error: unknown) => EnvelopeResult.fromError<boolean>(error));
-  }
-
-
-  static async getProjects(): Promise<EnvelopeResult<Paged<ProjectDto>>> {
-    return axios.get(`${BASE}/projects`)
-      .then((response) => EnvelopeResult.fromList<ProjectDto>(response.data))
-      .catch((error: unknown) => (
-        EnvelopeResult.fromError<Paged<ProjectDto>>(error)
-      ));
-  }
-
-  static async getOrganizations(): Promise<EnvelopeResult<Paged<OrganizationDto>>> {
-    return axios.get(`${BASE}/organizations`)
-      .then((response) => EnvelopeResult.fromList<OrganizationDto>(response.data))
-      .catch((error: unknown) => (
-        EnvelopeResult.fromError<Paged<OrganizationDto>>(error)
-      ));
   }
 
   static async importCsv(

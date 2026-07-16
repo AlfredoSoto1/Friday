@@ -79,13 +79,27 @@ public sealed partial class BotRepository
     {
       const string sql = @"
         SELECT teams.team_id, teams.position, teams.name, teams.role_id,
-               roles.name AS role_name, COUNT(user_teams.su_id) AS member_count
+               primary_roles.name AS role_name,
+               CASE
+                 WHEN teams.role_id IS NULL THEN
+                   COALESCE(
+                     ARRAY_AGG(DISTINCT team_roles.role_id ORDER BY team_roles.role_id)
+                       FILTER (WHERE team_roles.role_id IS NOT NULL),
+                     ARRAY[]::INT[])
+                 ELSE ARRAY[teams.role_id] || COALESCE(
+                   ARRAY_AGG(DISTINCT team_roles.role_id ORDER BY team_roles.role_id)
+                     FILTER (WHERE team_roles.role_id <> teams.role_id),
+                   ARRAY[]::INT[])
+               END AS role_ids,
+               COUNT(DISTINCT user_teams.su_id) AS member_count
           FROM discord.teams
           JOIN discord.servers USING (server_id)
-          LEFT JOIN discord.roles USING (role_id)
+          LEFT JOIN discord.roles AS primary_roles
+            ON primary_roles.role_id = teams.role_id
+          LEFT JOIN discord.team_roles USING (team_id)
           LEFT JOIN discord.user_teams USING (team_id)
          WHERE servers.guild_id = @GuildId
-         GROUP BY teams.team_id, roles.name
+         GROUP BY teams.team_id, primary_roles.name
          ORDER BY teams.position;
       ";
       var teams = await connection.QueryAsync<GuildTeam>(

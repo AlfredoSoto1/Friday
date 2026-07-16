@@ -127,6 +127,16 @@ CREATE TABLE discord.teams (
   FOREIGN KEY (role_id) REFERENCES discord.roles(role_id) ON DELETE SET NULL
 );
 
+CREATE TABLE discord.team_roles (
+  team_id    INT NOT NULL,
+  role_id    INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (team_id, role_id),
+  FOREIGN KEY (team_id) REFERENCES discord.teams(team_id) ON DELETE CASCADE,
+  FOREIGN KEY (role_id) REFERENCES discord.roles(role_id) ON DELETE CASCADE
+);
+
 CREATE TABLE discord.user_teams (
   su_id INT NOT NULL,
   team_id INT NOT NULL,
