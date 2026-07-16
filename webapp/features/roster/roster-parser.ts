@@ -41,7 +41,6 @@ const REQUIRED_COLUMNS: RosterColumn[] = [
   "firstLastName",
   "secondLastName",
   "initial",
-  "program",
 ];
 
 function cellToText(cell: unknown): string {
@@ -72,19 +71,24 @@ function parseProgram(value: string): Student["program"] | null {
 function buildStudent(
   id: number,
   row: string[],
-  columns: Required<ColumnMap>,
+  columns: ColumnMap,
   programFallback: Student["program"] | null
 ): Student | null {
-  const firstName = row[columns.firstName]?.trim();
-  const firstLastName = row[columns.firstLastName]?.trim();
-  const secondLastName = row[columns.secondLastName]?.trim();
-  const initial = row[columns.initial]?.trim();
-  const personalEmail = row[columns.personalEmail]?.trim();
-  const institutionalEmail = row[columns.institutionalEmail]?.trim();
-  const program = parseProgram(row[columns.program] ?? "") ?? programFallback;
+  function value(column: RosterColumn): string {
+    const index = columns[column];
+    return index === undefined ? "" : row[index]?.trim() ?? "";
+  }
+
+  const firstName = value("firstName");
+  const firstLastName = value("firstLastName");
+  const secondLastName = value("secondLastName");
+  const initial = value("initial");
+  const personalEmail = value("personalEmail");
+  const institutionalEmail = value("institutionalEmail");
+  const program = parseProgram(value("program")) ?? programFallback;
 
   if (!firstName || !firstLastName ||
-      (!personalEmail && !institutionalEmail) || !program) {
+      (!personalEmail && !institutionalEmail)) {
     return null;
   }
 
@@ -144,7 +148,7 @@ export async function parseRosterFile(file: File): Promise<Student[]> {
     ? "ICOM"
     : fileName.includes("INEL") ? "INEL" : null;
   const missing = REQUIRED_COLUMNS.filter((column) => (
-    columns[column] === undefined && (column !== "program" || !programFallback)
+    columns[column] === undefined
   ));
 
   if (missing.length ||
@@ -159,7 +163,7 @@ export async function parseRosterFile(file: File): Promise<Student[]> {
     .map((row, index) => buildStudent(
       index + 1,
       row,
-      columns as Required<ColumnMap>,
+      columns,
       programFallback
     ))
     .filter((student): student is Student => student !== null);

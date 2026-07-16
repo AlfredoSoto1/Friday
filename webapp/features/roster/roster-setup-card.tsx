@@ -34,6 +34,13 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SortControls } from "@/features/roster/sort-control-card";
@@ -42,6 +49,7 @@ import type {
   RosterFile,
   SortDirection,
   SortField,
+  StudentProgram,
 } from "@/features/roster/roster-types";
 
 const ACCEPTED_EXTENSIONS = [".csv", ".xlsx", ".txt"];
@@ -54,6 +62,8 @@ interface RosterSetupCardProps {
   loading: boolean;
   onFileSelected: (file: File) => void;
   onRemoveFile: () => void;
+  program: StudentProgram | "";
+  onProgramChange: (program: StudentProgram) => void;
   teamCount: number;
   onTeamCountChange: (count: number) => void;
   distributionMode: DistributionMode;
@@ -86,6 +96,8 @@ export function RosterSetupCard({
   loading,
   onFileSelected,
   onRemoveFile,
+  program,
+  onProgramChange,
   teamCount,
   onTeamCountChange,
   distributionMode,
@@ -131,8 +143,8 @@ export function RosterSetupCard({
           <FileSpreadsheet className="size-5 text-muted-foreground" />
         </CardAction>
       </CardHeader>
-      <CardContent className="grid min-w-0 gap-6 lg:grid-cols-2">
-        <div className="min-w-0 space-y-3">
+      <CardContent className="grid gap-6 lg:grid-cols-2">
+        <div className="min-w-0 space-y-2">
           <Input
             id="roster-file-input"
             type="file"
@@ -217,7 +229,7 @@ export function RosterSetupCard({
           ) : null}
         </div>
 
-        <div className="min-w-0 space-y-5">
+        <div className="space-y-2">
           <SortControls
             sortField={sortField}
             sortDirection={sortDirection}
@@ -225,8 +237,8 @@ export function RosterSetupCard({
             onSortDirectionChange={onSortDirectionChange}
             disabled={disabled}
           />
-          <FieldGroup className="gap-5 sm:flex-row sm:items-start">
-            <Field className="sm:max-w-48">
+          <FieldGroup className="gap-2">
+            <Field>
               <FieldLabel htmlFor="roster-team-count">Number of teams</FieldLabel>
               <ButtonGroup>
                 <Button
@@ -270,6 +282,29 @@ export function RosterSetupCard({
               </FieldDescription>
             </Field>
             <Field>
+              <FieldLabel>Program</FieldLabel>
+              <Select
+                value={program}
+                onValueChange={(value): void => {
+                  onProgramChange(value as StudentProgram);
+                }}
+                disabled={loading}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a program" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INEL">INEL</SelectItem>
+                  <SelectItem value="ICOM">ICOM</SelectItem>
+                  <SelectItem value="INSO">INSO</SelectItem>
+                  <SelectItem value="CIIC">CIIC</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldDescription>
+                Applied to every student when teams are generated
+              </FieldDescription>
+            </Field>
+            <Field className="sm:col-span-2 xl:col-span-1">
               <FieldLabel>Distribution</FieldLabel>
               <Tabs
                 value={distributionMode}
@@ -291,7 +326,7 @@ export function RosterSetupCard({
         </div>
       </CardContent>
       <CardFooter className="justify-end border-t pt-4">
-        <Button onClick={onGenerate} disabled={disabled}>
+        <Button onClick={onGenerate} disabled={disabled || !program}>
           <Sparkles />
           {hasTeams ? "Generate teams again" : "Generate teams"}
         </Button>

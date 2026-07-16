@@ -1,4 +1,7 @@
 import type { BotRoleDto, BotTeamDto } from "@/server/entities/bot";
+
+export type StudentProgram = "INEL" | "ICOM" | "INSO" | "CIIC";
+
 export interface Student {
   id: number;
   name: string;
@@ -8,7 +11,7 @@ export interface Student {
   initial: string;
   personalEmail: string;
   institutionalEmail: string;
-  program: "INEL" | "ICOM" | "INSO" | "CIIC";
+  program: StudentProgram | null;
 }
 
 export interface RosterFile {

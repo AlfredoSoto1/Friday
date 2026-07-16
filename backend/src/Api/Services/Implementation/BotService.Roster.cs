@@ -79,7 +79,7 @@ public sealed partial class BotService
       .AndThen((conn, transaction, users) =>
         UpsertRosterMembers(conn, transaction, guildId, users))
       .AndThen((conn, transaction, roster) =>
-        AssignProgramRoles(conn, transaction, guildId, students, roster))
+        ClearAutomaticRosterRoles(conn, transaction, guildId, roster))
       .AndThen((conn, transaction, roster) =>
         ReplaceRosterTeams(conn, transaction, guildId, request.Teams, roster))
       .AndThen((conn, transaction, roster) =>
@@ -123,13 +123,12 @@ public sealed partial class BotService
         AppError.NotFound($"Guild with ID {guildId} was not found."));
   }
 
-  private async Task<Result<RosterMembersContext, AppError>> AssignProgramRoles(
+  private async Task<Result<RosterMembersContext, AppError>> ClearAutomaticRosterRoles(
     IDbConnection connection, IDbTransaction transaction, long guildId,
-    IReadOnlyCollection<RosterStudentAssignment> students,
     RosterMembersContext roster)
   {
-    var result = await _repository.AssignProgramRoles(
-      connection, transaction, guildId, students, roster.Users, roster.Members);
+    var result = await _repository.ClearAutomaticRosterRoles(
+      connection, transaction, guildId, roster.Users, roster.Members);
     return result.IsFailure
       ? Result<RosterMembersContext, AppError>.Fail(result.Error)
       : Result<RosterMembersContext, AppError>.Ok(roster);

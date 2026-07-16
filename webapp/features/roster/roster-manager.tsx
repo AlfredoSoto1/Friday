@@ -15,6 +15,7 @@ import type {
   SortDirection,
   SortField,
   Student,
+  StudentProgram,
 } from "@/features/roster/roster-types";
 import { saveGuildDistribution } from "@/features/roster/roster-persistence";
 import type { BotRoleDto, BotTeamDto } from "@/server/entities/bot";
@@ -34,6 +35,7 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
   const [error, setError] = useState("");
   const [sortField, setSortField] = useState<SortField>("firstName");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [program, setProgram] = useState<StudentProgram | "">("");
   const [teamCount, setTeamCount] = useState(4);
   const [distributionMode, setDistributionMode] = useState<DistributionMode>("balanced");
   const [distribution, setDistribution] = useState<Distribution | null>(null);
@@ -122,9 +124,25 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
   }
 
   function generate(): void {
-    setDistribution(distributeStudents(students, teamCount, distributionMode));
+    if (!program) {
+      setError("Select a program before generating teams.");
+      return;
+    }
+
+    const programmedStudents = students.map((student) => ({ ...student, program }));
+    setStudents(programmedStudents);
+    setDistribution(distributeStudents(programmedStudents, teamCount, distributionMode));
     setEditMode(false);
     setSaved(false);
+    setError("");
+  }
+
+  function changeProgram(nextProgram: StudentProgram): void {
+    setProgram(nextProgram);
+    setDistribution(null);
+    setEditMode(false);
+    setSaved(false);
+    setError("");
   }
 
   function rename(teamId: number, name: string): void {
@@ -272,6 +290,8 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
         loading={loadingFile}
         onFileSelected={(selected): void => { void selectFile(selected); }}
         onRemoveFile={removeFile}
+        program={program}
+        onProgramChange={changeProgram}
         teamCount={teamCount}
         onTeamCountChange={setTeamCount}
         distributionMode={distributionMode}

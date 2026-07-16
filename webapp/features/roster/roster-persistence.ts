@@ -16,7 +16,7 @@ export function saveGuildDistribution(
     appendMembers: team.appendMembers,
     students: team.studentIds.flatMap((studentId) => {
       const student = studentsById.get(studentId);
-      return student ? [{
+      return student?.program ? [{
         email: student.institutionalEmail || student.personalEmail,
         firstName: student.firstName,
         firstLastName: student.firstLastName,
