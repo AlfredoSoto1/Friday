@@ -29,7 +29,8 @@ services:
       - ../.env
     mem_limit: 384m
     ports:
-      - "${BACKEND_PORT}:8080"
+      - "${BACKEND_PORT:-8080}:8080"
+      - "${WEBAPP_PORT:-3000}:3000"
     depends_on:
       db:
         condition: service_healthy
@@ -44,8 +45,7 @@ services:
     env_file:
       - ../.env
     mem_limit: 256m
-    ports:
-      - "${WEBAPP_PORT}:3000"
+    network_mode: "service:app"
     depends_on:
       - app
 
