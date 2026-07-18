@@ -4,12 +4,16 @@ services:
     restart: unless-stopped
     env_file:
       - ../.env
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+    command:
+      - postgres
+      - -c
+      - shared_buffers=64MB
+      - -c
+      - max_connections=30
+    mem_limit: 256m
     volumes:
-      - friday-runtime-postgres:/var/lib/postgresql/data
+      - friday-postgres:/var/lib/postgresql/data
       - ../database/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
-      - ../database/migrations/002_roster_user_fields.sql:/docker-entrypoint-initdb.d/002-roster-user-fields.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
@@ -17,28 +21,44 @@ services:
       retries: 10
 
   app:
-    image: mcr.microsoft.com/devcontainers/universal:2
+    build:
+      context: ..
+      dockerfile: infra/backend.Dockerfile
     restart: unless-stopped
     env_file:
       - ../.env
-    environment:
-      WATCHPACK_POLLING: "true"
-      ASPNETCORE_ENVIRONMENT: Production
-      NODE_ENV: production
-    working_dir: /workspaces/friday
-    volumes:
-      - ..:/workspaces/friday:cached
+    mem_limit: 384m
     ports:
-      - "${BACKEND_PORT:-8080}:8080"
-      - "${WEBAPP_PORT:-3000}:3000"
+      - "${BACKEND_PORT}:8080"
     depends_on:
       db:
         condition: service_healthy
-    command: >
-      bash -lc "dotnet restore backend &&
-      npm install --prefix webapp &&
-      (dotnet run --project backend --urls http://0.0.0.0:8080 &) \
-      && npm run dev --prefix webapp -- --hostname 0.0.0.0 --port 3000"
+
+  webapp:
+    build:
+      context: ..
+      dockerfile: infra/webapp.Dockerfile
+      args:
+        - NEXT_PUBLIC_API_BASE_URL
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    mem_limit: 256m
+    ports:
+      - "${WEBAPP_PORT}:3000"
+    depends_on:
+      - app
+
+  bot:
+    build:
+      context: ..
+      dockerfile: infra/bot.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    mem_limit: 512m
+    depends_on:
+      - app
 
 volumes:
-  friday-runtime-postgres:
+  friday-postgres:

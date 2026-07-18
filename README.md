@@ -96,22 +96,20 @@ Friday must know about a server before the bot can synchronize its roles. Comple
 4. Open the generated URL and add the bot to the target server.
 5. Put the token in `.env` as `DISCORD_BOT_TOKEN`. Never commit or share this token.
 
-The bot's Discord role must be above every program and team role it will grant. It must also be above the students whose nicknames it will update.
+The bot's Discord role must be above every role Friday will grant. It must also be above the students whose nicknames it will update.
 
 ### 2. Prepare the server roles
 
-Create the roles before synchronizing the server. Friday uses the role names below for administration and automatic roster assignments.
+Create the roles before synchronizing the server. Friday uses the exact role names below for administration; roster roles can use any Discord role synchronized from the server.
 
 | Role | Purpose |
 | --- | --- |
 | `Administrator` | Authorizes the first `/assistant service:sync` command. Give this role to the operator performing setup. |
 | `Bot Developer` | Authorizes later assistant administration commands. |
 | `Moderator` | Required with `Bot Developer` when publishing the verification prompt. |
-| `Prepa` | Assigned to every student imported from a roster. |
-| `INEL`, `ICOM`, `INSO`, `CIIC` | Assigned from each student's program. Only the programs present in the uploaded roster are required. |
-| Team roles | One or more Discord roles selected for each generated team. |
+| Roster roles | One or more synchronized Discord roles selected for each generated team. |
 
-`Prepa` and program-role matching is case-insensitive, but the names must otherwise match. The `Bot Developer` lookup also accepts spaces, hyphens, or underscores. Keep the bot's role above all roles it needs to assign.
+`Prepa`, `INEL`, `ICOM`, `INSO`, and `CIIC` roles are not required and are never assigned automatically. To grant one of them, select it explicitly in Team Setup like any other roster role. The academic program stored for a student is independent of Discord roles. The `Bot Developer` lookup accepts spaces, hyphens, or underscores. Keep the bot's role above all roles it needs to assign.
 
 ### 3. Start Friday
 
@@ -142,7 +140,7 @@ Run the sync command again whenever Discord roles are added, renamed, deleted, r
 
 ### 5. Prepare the student roster
 
-The dashboard accepts `.csv`, `.xlsx`, and `.txt` files. The first row must contain the following columns:
+The dashboard accepts `.csv`, `.xlsx`, and `.txt` files. The first row uses the following columns:
 
 | Column | Requirement |
 | --- | --- |
@@ -151,23 +149,23 @@ The dashboard accepts `.csv`, `.xlsx`, and `.txt` files. The first row must cont
 | `second last name` | Required header; the value may be empty. `mother last name` and `secondlastname` are also accepted. |
 | `initial` | Required header; the value may be empty. |
 | `personal email` or `institutional email` | At least one email column and value are required. If both have values, Friday stores the institutional email. |
-| `program` | Use `INEL`, `ICOM`, `INSO`, or `CIIC`. The supported official program descriptions/codes are normalized automatically. |
+| `program` | Optional. Recognized program values are parsed for the preview, but the Program dropdown replaces them when teams are generated. |
 
 Example CSV:
 
 ```csv
-first name,first last name,second last name,initial,personal email,institutional email,program
-Ana,Rivera,Soto,M,ana@example.com,ana.rivera@upr.edu,INEL
-Luis,Perez,Ortiz,J,luis@example.com,luis.perez@upr.edu,ICOM
+first name,first last name,second last name,initial,personal email,institutional email
+Ana,Rivera,Soto,M,ana@example.com,ana.rivera@upr.edu
+Luis,Perez,Ortiz,J,luis@example.com,luis.perez@upr.edu
 ```
 
-For an INEL or ICOM-only file, the `program` column may be omitted when the filename contains `INEL` or `ICOM`. Check the parsed student count before continuing because rows without a first name, first last name, usable email, or supported program are skipped. Treat roster files as sensitive student data.
+The `program` column may always be omitted. Check the parsed student count before continuing because rows without a first name, first last name, or usable email are skipped. Treat roster files as sensitive student data.
 
 ### 6. Generate teams and save role assignments
 
 1. In the dashboard, select **View server** for the synchronized server.
-2. Under **Student list and team setup**, upload the roster.
-3. Choose between 2 and 12 teams, select **Balanced** or **Randomized**, and select **Generate teams**.
+2. Under **Student list and team setup**, upload the roster. The complete roster workflow is on the server page; there is no separate roster page.
+3. Select the program to apply to every student (`INEL`, `ICOM`, `INSO`, or `CIIC`), choose between 2 and 12 teams, select **Balanced** or **Randomized**, and select **Generate teams**.
 4. Use the pencil button on every team to configure it:
    - Keep **Create a new team** enabled and enter a name, or disable it to update an existing backend team.
    - Select at least one synchronized Discord role. Every selected role is assigned to the team's students; the first role supplies the team's display color and primary role.
@@ -175,16 +173,16 @@ For an INEL or ICOM-only file, the `program` column may be omitted when the file
 5. Select **Edit groups** to move students between teams. Every student must be assigned before the distribution can be saved.
 6. Select **Save team distribution**.
 
-Saving imports the students and stores their `Prepa`, program, and selected team-role assignments in the backend. The save fails if `Prepa` or any program role used by the roster was not created and synchronized.
+Saving imports the students, stores the selected academic program, and records only the Discord roles selected in Team Setup. Friday does not require or automatically add `Prepa` or a program-named role. If one of those roles is desired, synchronize it and select it explicitly for the appropriate team.
 
 ### 7. Publish verification and apply the roles
 
-Roster upload does not immediately change Discord members. It prepares the roles that Friday grants when each student verifies their email.
+Roster upload does not immediately change Discord members. It stores the selected Team Setup roles that Friday grants when each student verifies their email.
 
 1. Copy the ID of the text channel that should contain the verification prompt.
 2. Run `/assistant-verification channel:<channel-id>` as a member with the `Administrator` or synchronized `Bot Developer` role.
 3. Confirm that the bot publishes the verification embed. This command requires synchronized `Moderator` and `Bot Developer` roles and permission to send messages and embeds in the selected channel.
-4. Each student selects **verify** and enters the email stored from the roster. When the email matches, Friday links the Discord account, updates the student's nickname, and grants the `Prepa`, program, and team roles stored for that student.
+4. Each student selects **verify** and enters the email stored from the roster. When the email matches, Friday links the Discord account, updates the student's nickname, and grants every Discord role explicitly selected for that student's team.
 
 If verification succeeds but roles are not granted, confirm that the bot has **Manage Roles** and that its highest role is above all assigned roles. If a synchronized role is later changed in Discord, run `/assistant service:sync` again before changing or importing the roster.
 
