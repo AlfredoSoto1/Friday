@@ -34,14 +34,8 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SortControls } from "@/features/roster/sort-control-card";
 import type {
@@ -49,7 +43,6 @@ import type {
   RosterFile,
   SortDirection,
   SortField,
-  StudentProgram,
 } from "@/features/roster/roster-types";
 
 const ACCEPTED_EXTENSIONS = [".csv", ".xlsx", ".txt"];
@@ -62,8 +55,8 @@ interface RosterSetupCardProps {
   loading: boolean;
   onFileSelected: (file: File) => void;
   onRemoveFile: () => void;
-  program: StudentProgram | "";
-  onProgramChange: (program: StudentProgram) => void;
+  isEO: boolean;
+  onIsEOChange: (isEO: boolean) => void;
   teamCount: number;
   onTeamCountChange: (count: number) => void;
   distributionMode: DistributionMode;
@@ -96,8 +89,8 @@ export function RosterSetupCard({
   loading,
   onFileSelected,
   onRemoveFile,
-  program,
-  onProgramChange,
+  isEO,
+  onIsEOChange,
   teamCount,
   onTeamCountChange,
   distributionMode,
@@ -281,28 +274,22 @@ export function RosterSetupCard({
                   : "Upload a list first"}
               </FieldDescription>
             </Field>
-            <Field>
-              <FieldLabel>Program</FieldLabel>
-              <Select
-                value={program}
-                onValueChange={(value): void => {
-                  onProgramChange(value as StudentProgram);
-                }}
+            <Field
+              orientation="horizontal"
+              className="items-center justify-between gap-3 rounded-md border p-3"
+            >
+              <div className="space-y-1">
+                <FieldLabel htmlFor="roster-is-eo">Is EO</FieldLabel>
+                <FieldDescription>
+                  Programs come from Lista_EO.csv and override selected team roles
+                </FieldDescription>
+              </div>
+              <Switch
+                id="roster-is-eo"
+                checked={isEO}
+                onCheckedChange={onIsEOChange}
                 disabled={loading}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a program" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="INEL">INEL</SelectItem>
-                  <SelectItem value="ICOM">ICOM</SelectItem>
-                  <SelectItem value="INSO">INSO</SelectItem>
-                  <SelectItem value="CIIC">CIIC</SelectItem>
-                </SelectContent>
-              </Select>
-              <FieldDescription>
-                Applied to every student when teams are generated
-              </FieldDescription>
+              />
             </Field>
             <Field className="sm:col-span-2 xl:col-span-1">
               <FieldLabel>Distribution</FieldLabel>
@@ -326,7 +313,7 @@ export function RosterSetupCard({
         </div>
       </CardContent>
       <CardFooter className="justify-end border-t pt-4">
-        <Button onClick={onGenerate} disabled={disabled || !program}>
+        <Button onClick={onGenerate} disabled={disabled}>
           <Sparkles />
           {hasTeams ? "Generate teams again" : "Generate teams"}
         </Button>

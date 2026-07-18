@@ -49,6 +49,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { programFromRoleIds } from "@/features/roster/roster-program";
 import { type TeamCardProps } from "@/features/roster/roster-types";
 import { studentInitials } from "@/features/roster/student-initials";
 import { cn } from "@/lib/utils";
@@ -59,6 +60,7 @@ export function TeamCard({
   otherTeams,
   roles,
   existingTeams,
+  isEO,
   onRolesChange,
   onExistingTeamChange,
   onCreateNewTeamChange,
@@ -74,6 +76,7 @@ export function TeamCard({
   const [draftExistingTeamId, setDraftExistingTeamId] = useState<number | null>(team.existingTeamId);
   const [draftRoleIds, setDraftRoleIds] = useState<number[]>(team.roleIds);
   const [draftAppendMembers, setDraftAppendMembers] = useState(team.appendMembers);
+  const draftProgram = programFromRoleIds(draftRoleIds, roles);
 
   function resetDraft(): void {
     setDraftName(team.name);
@@ -100,7 +103,7 @@ export function TeamCard({
 
   const canConfirm = draftRoleIds.length > 0 && (
     draftCreateNewTeam ? Boolean(draftName.trim()) : draftExistingTeamId !== null
-  );
+  ) && draftProgram !== null;
 
   return (
     <Card
@@ -254,9 +257,13 @@ export function TeamCard({
                   ) : null}
                 </div>
                 <FieldDescription>
-                  {roles.length
-                    ? `${draftRoleIds.length} selected. Roles are loaded from the selected Discord server.`
-                    : "No server roles are available yet."}
+                  {roles.length === 0
+                    ? "No server roles are available yet."
+                    : isEO
+                      ? `${draftRoleIds.length} selected. EO CSV programs override selected roles.`
+                      : draftProgram
+                        ? `${draftRoleIds.length} selected. Student program: ${draftProgram}.`
+                        : "Select exactly one INEL, ICOM, INSO, or CIIC role."}
                 </FieldDescription>
               </Field>
               {!draftCreateNewTeam && draftExistingTeamId !== null ? (

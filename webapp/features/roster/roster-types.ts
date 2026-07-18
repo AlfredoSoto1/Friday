@@ -41,6 +41,7 @@ export interface TeamCardProps {
   otherTeams: TeamGroup[];
   roles: BotRoleDto[];
   existingTeams: BotTeamDto[];
+  isEO: boolean;
   editMode: boolean;
   onRename: (teamId: number, name: string) => void;
   onRolesChange: (teamId: number, roleIds: number[]) => void;

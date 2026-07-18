@@ -33,6 +33,7 @@ interface TeamGroupsGridProps {
   teams: TeamGroup[];
   roles: BotRoleDto[];
   existingTeams: BotTeamDto[];
+  isEO: boolean;
   unassigned: Student[];
   studentsById: Map<number, Student>;
   editMode: boolean;
@@ -52,6 +53,7 @@ export function TeamGroupsGrid({
   teams,
   roles,
   existingTeams,
+  isEO,
   unassigned,
   studentsById,
   editMode,
@@ -134,6 +136,7 @@ export function TeamGroupsGrid({
               )}
               otherTeams={teams.filter((other) => other.id !== team.id)}
               editMode={editMode}
+              isEO={isEO}
               onRename={onRename}
               roles={roles}
               existingTeams={existingTeams}

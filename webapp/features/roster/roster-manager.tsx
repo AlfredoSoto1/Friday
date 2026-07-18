@@ -6,6 +6,7 @@ import { TriangleAlert } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { distributeStudents, type Distribution } from "@/features/roster/roster-distribution";
 import { parseRosterFile, RosterParseError } from "@/features/roster/roster-parser";
+import { programFromRoleIds } from "@/features/roster/roster-program";
 import { RosterSaveCard } from "@/features/roster/roster-save-card";
 import { RosterSetupCard } from "@/features/roster/roster-setup-card";
 import { TeamGroupsGrid } from "@/features/roster/team-groups-grid";
@@ -15,7 +16,6 @@ import type {
   SortDirection,
   SortField,
   Student,
-  StudentProgram,
 } from "@/features/roster/roster-types";
 import { saveGuildDistribution } from "@/features/roster/roster-persistence";
 import type { BotRoleDto, BotTeamDto } from "@/server/entities/bot";
@@ -35,7 +35,7 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
   const [error, setError] = useState("");
   const [sortField, setSortField] = useState<SortField>("firstName");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [program, setProgram] = useState<StudentProgram | "">("");
+  const [isEO, setIsEO] = useState(false);
   const [teamCount, setTeamCount] = useState(4);
   const [distributionMode, setDistributionMode] = useState<DistributionMode>("balanced");
   const [distribution, setDistribution] = useState<Distribution | null>(null);
@@ -101,7 +101,7 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
     setLoadingFile(true);
     setError("");
     try {
-      const parsed = await parseRosterFile(selected);
+      const parsed = await parseRosterFile(selected, isEO);
       setStudents(parsed);
       setFile({ name: selected.name, size: selected.size, type: selected.type });
       setDistribution(null);
@@ -124,25 +124,19 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
   }
 
   function generate(): void {
-    if (!program) {
-      setError("Select a program before generating teams.");
-      return;
-    }
-
-    const programmedStudents = students.map((student) => ({ ...student, program }));
-    setStudents(programmedStudents);
-    setDistribution(distributeStudents(programmedStudents, teamCount, distributionMode));
+    setDistribution(distributeStudents(students, teamCount, distributionMode));
     setEditMode(false);
     setSaved(false);
     setError("");
   }
 
-  function changeProgram(nextProgram: StudentProgram): void {
-    setProgram(nextProgram);
-    setDistribution(null);
-    setEditMode(false);
-    setSaved(false);
-    setError("");
+  function changeIsEO(nextIsEO: boolean): void {
+    if (nextIsEO === isEO) {
+      return;
+    }
+
+    setIsEO(nextIsEO);
+    removeFile();
   }
 
   function rename(teamId: number, name: string): void {
@@ -251,13 +245,23 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
       team.roleIds.some((roleId) => !validRoleIds.has(roleId)) ||
       (!team.createNewTeam && team.existingTeamId === null)
     ));
+    const invalidProgramTeam = distribution?.teams.some((team) => (
+      programFromRoleIds(team.roleIds, roles) === null
+    ));
     if (!distribution || distribution.unassignedIds.length || !guildId || invalidTeam) {
       setError("Select at least one valid server role and, when not creating a new team, an existing server team.");
       return;
     }
 
+    if (invalidProgramTeam) {
+      setError("Each team must select exactly one INEL, ICOM, INSO, or CIIC server role.");
+      return;
+    }
+
     setSaving(true);
-    const result = await saveGuildDistribution(guildId, distribution, studentsById);
+    const result = await saveGuildDistribution(
+      guildId, distribution, studentsById, roles, isEO
+    );
     setSaving(false);
     setSaved(result.isSuccess);
     setError(result.isFailure ? result.error.message : "");
@@ -271,7 +275,9 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
   ) ?? 0;
   const saveDisabled = !guildId || !distribution || Boolean(distribution.unassignedIds.length) || (
     distribution?.teams.some((team) => (
-      team.roleIds.length === 0 || (!team.createNewTeam && team.existingTeamId === null)
+      team.roleIds.length === 0 ||
+      programFromRoleIds(team.roleIds, roles) === null ||
+      (!team.createNewTeam && team.existingTeamId === null)
     )) ?? false
   );
 
@@ -290,8 +296,8 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
         loading={loadingFile}
         onFileSelected={(selected): void => { void selectFile(selected); }}
         onRemoveFile={removeFile}
-        program={program}
-        onProgramChange={changeProgram}
+        isEO={isEO}
+        onIsEOChange={changeIsEO}
         teamCount={teamCount}
         onTeamCountChange={setTeamCount}
         distributionMode={distributionMode}
@@ -316,6 +322,7 @@ export function RosterManager({ guildId }: { guildId: string }): React.ReactElem
           onRename={rename}
           roles={roles}
           existingTeams={existingTeams}
+          isEO={isEO}
           onRolesChange={selectRoles}
           onExistingTeamChange={selectExistingTeam}
           onCreateNewTeamChange={setCreateNewTeam}

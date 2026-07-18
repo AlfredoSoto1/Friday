@@ -16,16 +16,20 @@ type RosterColumn =
 type ColumnMap = Partial<Record<RosterColumn, number>>;
 
 const HEADER_ALIASES: Record<string, RosterColumn> = {
+  email: "institutionalEmail",
   firstname: "firstName",
   "first name": "firstName",
+  first_name: "firstName",
   name: "firstName",
   firstlastname: "firstLastName",
   "first lastname": "firstLastName",
   "first last name": "firstLastName",
+  first_last_name: "firstLastName",
   "father last name": "firstLastName",
   secondlastname: "secondLastName",
   "second lastname": "secondLastName",
   "second last name": "secondLastName",
+  second_last_name: "secondLastName",
   "mother last name": "secondLastName",
   initial: "initial",
   "personal email": "personalEmail",
@@ -33,6 +37,15 @@ const HEADER_ALIASES: Record<string, RosterColumn> = {
   "institutional email": "institutionalEmail",
   institutionalemail: "institutionalEmail",
   "institutional account": "institutionalEmail",
+  program: "program",
+};
+
+const EO_HEADER_ALIASES: Record<string, RosterColumn> = {
+  email: "institutionalEmail",
+  first_name: "firstName",
+  first_last_name: "firstLastName",
+  second_last_name: "secondLastName",
+  initial: "initial",
   program: "program",
 };
 
@@ -51,9 +64,12 @@ function cellToText(cell: unknown): string {
   return String(cell).trim();
 }
 
-function detectColumns(row: string[]): ColumnMap {
+function detectColumns(
+  row: string[],
+  aliases: Record<string, RosterColumn> = HEADER_ALIASES
+): ColumnMap {
   return row.reduce<ColumnMap>((columns, cell, index) => {
-    const key = HEADER_ALIASES[cell.toLowerCase().trim()];
+    const key = aliases[cell.toLowerCase().trim()];
     return key ? { ...columns, [key]: index } : columns;
   }, {});
 }
@@ -72,7 +88,7 @@ function buildStudent(
   id: number,
   row: string[],
   columns: ColumnMap,
-  programFallback: Student["program"] | null
+  isEO: boolean
 ): Student | null {
   function value(column: RosterColumn): string {
     const index = columns[column];
@@ -85,7 +101,7 @@ function buildStudent(
   const initial = value("initial");
   const personalEmail = value("personalEmail");
   const institutionalEmail = value("institutionalEmail");
-  const program = parseProgram(value("program")) ?? programFallback;
+  const program = isEO ? parseProgram(value("program")) : null;
 
   if (!firstName || !firstLastName ||
       (!personalEmail && !institutionalEmail)) {
@@ -124,15 +140,21 @@ async function readRows(file: File): Promise<string[][]> {
   return parseDelimitedText(await file.text());
 }
 
-export async function parseRosterFile(file: File): Promise<Student[]> {
+export async function parseRosterFile(
+  file: File,
+  isEO = false
+): Promise<Student[]> {
   const rows = await readRows(file);
 
   if (rows.length < 2) {
     throw new RosterParseError("The roster must include headers and students.");
   }
 
-  const detectedColumns = detectColumns(rows[0]);
-  const columns: ColumnMap = rows[0][0]?.toUpperCase() === "NOMBRE"
+  const detectedColumns = detectColumns(
+    rows[0],
+    isEO ? EO_HEADER_ALIASES : HEADER_ALIASES
+  );
+  const columns: ColumnMap = !isEO && rows[0][0]?.toUpperCase() === "NOMBRE"
     ? {
         firstLastName: 0,
         secondLastName: 1,
@@ -143,11 +165,10 @@ export async function parseRosterFile(file: File): Promise<Student[]> {
         program: 6,
       }
     : detectedColumns;
-  const fileName = file.name.toUpperCase();
-  const programFallback: Student["program"] | null = fileName.includes("ICOM")
-    ? "ICOM"
-    : fileName.includes("INEL") ? "INEL" : null;
-  const missing = REQUIRED_COLUMNS.filter((column) => (
+  const requiredColumns: RosterColumn[] = isEO
+    ? [...REQUIRED_COLUMNS, "program"]
+    : REQUIRED_COLUMNS;
+  const missing = requiredColumns.filter((column) => (
     columns[column] === undefined
   ));
 
@@ -164,7 +185,7 @@ export async function parseRosterFile(file: File): Promise<Student[]> {
       index + 1,
       row,
       columns,
-      programFallback
+      isEO
     ))
     .filter((student): student is Student => student !== null);
 
