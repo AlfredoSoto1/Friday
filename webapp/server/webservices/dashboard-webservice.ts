@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import { EnvelopeResult, keysToSnake } from "@/lib/webservices";
+import { getBackendUrl } from "@/server/webservices/backend-url";
 import type {
   CreateDiscordServerDto,
   DashboardContentDto,
@@ -8,10 +9,7 @@ import type {
   SetDiscordServerEnabledDto,
 } from "@/server/entities/dashboard";
 
-const backendUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  process.env.BACKEND_URL ??
-  "http://localhost:8080";
+const backendUrl = getBackendUrl();
 
 const client = axios.create({
   baseURL: `${backendUrl}/api/v1/dashboard`,

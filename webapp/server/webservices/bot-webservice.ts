@@ -2,9 +2,9 @@ import { EnvelopeResult, Paged } from "@/lib/webservices";
 import axios from "axios";
 
 import type { BotRoleDto, BotTeamDto } from "@/server/entities/bot";
+import { getBackendUrl } from "@/server/webservices/backend-url";
 
-const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL ??
-  process.env.BACKEND_URL ?? "http://localhost:8080";
+const backendUrl = getBackendUrl();
 
 const BASE = `${backendUrl}/api/v1/bot`;
 

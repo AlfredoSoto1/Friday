@@ -11,10 +11,9 @@ import type {
   SaveGuildRosterRequest,
   SaveGuildRosterResult,
 } from "@/server/entities/inelicom";
+import { getBackendUrl } from "@/server/webservices/backend-url";
 
-const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-  ?? process.env.BACKEND_URL
-  ?? "http://localhost:8080";
+const backendUrl = getBackendUrl();
 const BASE = `${backendUrl}/api/v1/inelicom`;
 
 export class InelicomApi {
