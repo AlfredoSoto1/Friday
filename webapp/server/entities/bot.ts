@@ -18,3 +18,16 @@ export interface BotTeamDto {
   name: string;
   memberCount: number;
 }
+
+export interface PrepaTeamExportRowDto {
+  teamId: number;
+  position: number;
+  teamName: string;
+  serverUserId?: number | null;
+  firstName?: string | null;
+  firstLastName?: string | null;
+  secondLastName?: string | null;
+  initial?: string | null;
+  email?: string | null;
+  program?: string | null;
+}

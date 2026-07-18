@@ -82,6 +82,14 @@ public sealed class BotController : ControllerBase
     return result.Send();
   }
 
+  [HttpGet("servers/{guildId:long}/teams/prepas-export")]
+  public async Task<IActionResult> GetGuildPrepaTeamExport(
+    [FromRoute] long guildId)
+  {
+    var result = await _service.GetGuildPrepaTeamExport(guildId);
+    return result.Send();
+  }
+
   [HttpPut("servers/{guildId:long}/roster")]
   public async Task<IActionResult> SaveGuildRoster(
     [FromRoute] long guildId,

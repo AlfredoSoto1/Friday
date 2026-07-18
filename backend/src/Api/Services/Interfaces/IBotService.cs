@@ -19,6 +19,8 @@ public interface IBotService
   Task<Result<IReadOnlyCollection<BotServerMember>, AppError>> GetGuildMembers(long guildId);
   Task<Result<MemberVerification, AppError>> VerifyMember(long guildId, VerifyMemberRequest request);
   Task<Result<IReadOnlyCollection<GuildTeam>, AppError>> GetGuildTeams(long guildId);
+  Task<Result<IReadOnlyCollection<PrepaTeamExportRow>, AppError>>
+    GetGuildPrepaTeamExport(long guildId);
   Task<Result<SaveGuildRosterResult, AppError>> SaveGuildRoster(
     long guildId,
     SaveGuildRosterRequest request);

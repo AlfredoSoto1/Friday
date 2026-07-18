@@ -1,7 +1,11 @@
 import { EnvelopeResult, Paged } from "@/lib/webservices";
 import axios from "axios";
 
-import type { BotRoleDto, BotTeamDto } from "@/server/entities/bot";
+import type {
+  BotRoleDto,
+  BotTeamDto,
+  PrepaTeamExportRowDto,
+} from "@/server/entities/bot";
 import { getBackendUrl } from "@/server/webservices/backend-url";
 
 const backendUrl = getBackendUrl();
@@ -30,6 +34,18 @@ export class BotApi {
       ))
       .catch((error: unknown) => (
         EnvelopeResult.fromError<Paged<BotTeamDto>>(error)
+      ));
+  }
+
+  static async getGuildPrepaTeamExport(
+    guildId: string | number
+  ): Promise<EnvelopeResult<PrepaTeamExportRowDto[]>> {
+    return axios.get(`${BASE}/servers/${guildId}/teams/prepas-export`)
+      .then((response) => (
+        EnvelopeResult.fromObject<PrepaTeamExportRowDto[]>(response.data)
+      ))
+      .catch((error: unknown) => (
+        EnvelopeResult.fromError<PrepaTeamExportRowDto[]>(error)
       ));
   }
 }

@@ -24,6 +24,8 @@ public interface IBotRepository
     SaveGuildRosterRequest request);
   Task<Result<IReadOnlyCollection<GuildTeam>, AppError>> GetGuildTeams(
     IDbConnection connection, long guildId);
+  Task<Result<IReadOnlyCollection<PrepaTeamExportRow>, AppError>>
+    GetGuildPrepaTeamExport(IDbConnection connection, long guildId);
   Task<Result<MemberXp, AppError>> AddXp(IDbConnection connection, long guildId, XpRequest request);
 
   // ==========================================================================
