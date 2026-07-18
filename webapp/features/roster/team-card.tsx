@@ -49,10 +49,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { programFromRoleIds } from "@/features/roster/roster-program";
 import { type TeamCardProps } from "@/features/roster/roster-types";
 import { studentInitials } from "@/features/roster/student-initials";
 import { cn } from "@/lib/utils";
+
+const TEAM_COLOR = "#5865f2";
 
 export function TeamCard({
   team,
@@ -60,7 +61,6 @@ export function TeamCard({
   otherTeams,
   roles,
   existingTeams,
-  isEO,
   onRolesChange,
   onExistingTeamChange,
   onCreateNewTeamChange,
@@ -76,7 +76,6 @@ export function TeamCard({
   const [draftExistingTeamId, setDraftExistingTeamId] = useState<number | null>(team.existingTeamId);
   const [draftRoleIds, setDraftRoleIds] = useState<number[]>(team.roleIds);
   const [draftAppendMembers, setDraftAppendMembers] = useState(team.appendMembers);
-  const draftProgram = programFromRoleIds(draftRoleIds, roles);
 
   function resetDraft(): void {
     setDraftName(team.name);
@@ -103,7 +102,7 @@ export function TeamCard({
 
   const canConfirm = draftRoleIds.length > 0 && (
     draftCreateNewTeam ? Boolean(draftName.trim()) : draftExistingTeamId !== null
-  ) && draftProgram !== null;
+  );
 
   return (
     <Card
@@ -111,13 +110,13 @@ export function TeamCard({
         "min-w-0 gap-3 rounded-md border-border bg-card py-3 shadow-panel transition-colors",
         open && "ring-2 ring-primary"
       )}
-      style={{ borderTopColor: team.color, borderTopWidth: 3 }}
+      style={{ borderTopColor: TEAM_COLOR, borderTopWidth: 3 }}
     >
       <CardHeader className="px-3">
         <span
           aria-hidden
           className="size-3 shrink-0 rounded-full"
-          style={{ backgroundColor: team.color }}
+          style={{ backgroundColor: TEAM_COLOR }}
         />
         <CardTitle className="truncate">{team.name}</CardTitle>
         <CardAction className="flex items-center gap-1.5">
@@ -150,7 +149,7 @@ export function TeamCard({
               <DialogHeader>
                 <DialogTitle>Configure team</DialogTitle>
                 <DialogDescription>
-                  Select one or more server roles. The first role’s Discord color is applied to this team.
+                  Configure the team and choose roles for only the users in this uploaded group.
                 </DialogDescription>
               </DialogHeader>
               <Field orientation="horizontal" className="items-center justify-between gap-3 rounded-md border p-3">
@@ -179,17 +178,8 @@ export function TeamCard({
                   <Select
                     value={draftExistingTeamId?.toString()}
                     onValueChange={(value): void => {
-                      const selectedTeam = existingTeams.find((existingTeam) => (
-                        existingTeam.teamId === Number(value)
-                      ));
                       setDraftExistingTeamId(Number(value));
-                      setDraftRoleIds(
-                        selectedTeam?.roleIds?.length
-                          ? selectedTeam.roleIds
-                          : selectedTeam?.roleId === null || selectedTeam?.roleId === undefined
-                            ? []
-                            : [selectedTeam.roleId]
-                      );
+                      setDraftAppendMembers(true);
                     }}
                     disabled={existingTeams.length === 0}
                   >
@@ -210,7 +200,7 @@ export function TeamCard({
                 </Field>
               )}
               <Field>
-                <FieldLabel id={`team-roles-label-${team.id}`}>Discord roles</FieldLabel>
+                <FieldLabel id={`team-roles-label-${team.id}`}>Roles for this uploaded group</FieldLabel>
                 <div
                   aria-labelledby={`team-roles-label-${team.id}`}
                   className="max-h-44 space-y-1 overflow-y-auto rounded-md border p-1.5"
@@ -259,18 +249,14 @@ export function TeamCard({
                 <FieldDescription>
                   {roles.length === 0
                     ? "No server roles are available yet."
-                    : isEO
-                      ? `${draftRoleIds.length} selected. EO CSV programs override selected roles.`
-                      : draftProgram
-                        ? `${draftRoleIds.length} selected. Student program: ${draftProgram}.`
-                        : "Select exactly one INEL, ICOM, INSO, or CIIC role."}
+                    : `${draftRoleIds.length} selected. These roles apply only to students in this CSV group.`}
                 </FieldDescription>
               </Field>
               {!draftCreateNewTeam && draftExistingTeamId !== null ? (
                 <Field orientation="horizontal" className="items-center justify-between gap-3 rounded-md border p-3">
                   <div className="space-y-1">
                     <FieldLabel htmlFor={`team-append-${team.id}`}>Append members</FieldLabel>
-                    <FieldDescription>On keeps current members; off fully replaces the backend team.</FieldDescription>
+                    <FieldDescription>On keeps current members and is the default for imports; off explicitly replaces membership.</FieldDescription>
                   </div>
                   <Switch
                     id={`team-append-${team.id}`}
@@ -325,7 +311,7 @@ export function TeamCard({
                           >
                             <span
                               className="size-2 shrink-0 rounded-full"
-                              style={{ backgroundColor: destination.color }}
+                              style={{ backgroundColor: TEAM_COLOR }}
                             />
                             {destination.name}
                           </DropdownMenuItem>

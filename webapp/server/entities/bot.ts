@@ -14,9 +14,7 @@ export interface BotRoleDto {
 
 export interface BotTeamDto {
   teamId: number;
+  position: number;
   name: string;
-  roleId?: number | null;
-  roleIds?: number[];
-  roleName?: string | null;
   memberCount: number;
 }

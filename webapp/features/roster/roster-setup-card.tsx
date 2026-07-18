@@ -35,7 +35,6 @@ import {
 } from "@/components/ui/item";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SortControls } from "@/features/roster/sort-control-card";
 import type {
@@ -45,7 +44,7 @@ import type {
   SortField,
 } from "@/features/roster/roster-types";
 
-const ACCEPTED_EXTENSIONS = [".csv", ".xlsx", ".txt"];
+const ACCEPTED_EXTENSIONS = [".csv"];
 const MIN_TEAMS = 2;
 const MAX_TEAMS = 12;
 
@@ -55,8 +54,6 @@ interface RosterSetupCardProps {
   loading: boolean;
   onFileSelected: (file: File) => void;
   onRemoveFile: () => void;
-  isEO: boolean;
-  onIsEOChange: (isEO: boolean) => void;
   teamCount: number;
   onTeamCountChange: (count: number) => void;
   distributionMode: DistributionMode;
@@ -89,8 +86,6 @@ export function RosterSetupCard({
   loading,
   onFileSelected,
   onRemoveFile,
-  isEO,
-  onIsEOChange,
   teamCount,
   onTeamCountChange,
   distributionMode,
@@ -113,7 +108,7 @@ export function RosterSetupCard({
     }
 
     if (!isAcceptedFile(candidate)) {
-      setTypeError("Upload a CSV, Excel (.xlsx), or TXT file.");
+      setTypeError("Upload a CSV file.");
       return;
     }
 
@@ -141,7 +136,7 @@ export function RosterSetupCard({
           <Input
             id="roster-file-input"
             type="file"
-            accept=".csv,.xlsx,.txt,text/csv,text/plain"
+            accept=".csv,text/csv"
             className="hidden"
             disabled={loading}
             onChange={(event): void => {
@@ -213,7 +208,7 @@ export function RosterSetupCard({
             >
               <Upload className="size-6 text-muted-foreground" />
               <span className="text-sm font-medium">Click to upload or drag a file here</span>
-              <span className="text-xs text-muted-foreground">CSV, Excel (.xlsx), or TXT</span>
+              <span className="text-xs text-muted-foreground">CSV using the Lista_EO or LISTA DE PREPAS layout</span>
             </Label>
           )}
 
@@ -273,23 +268,6 @@ export function RosterSetupCard({
                   ? "About " + perTeam + " students per team"
                   : "Upload a list first"}
               </FieldDescription>
-            </Field>
-            <Field
-              orientation="horizontal"
-              className="items-center justify-between gap-3 rounded-md border p-3"
-            >
-              <div className="space-y-1">
-                <FieldLabel htmlFor="roster-is-eo">Is EO</FieldLabel>
-                <FieldDescription>
-                  Programs come from Lista_EO.csv and override selected team roles
-                </FieldDescription>
-              </div>
-              <Switch
-                id="roster-is-eo"
-                checked={isEO}
-                onCheckedChange={onIsEOChange}
-                disabled={loading}
-              />
             </Field>
             <Field className="sm:col-span-2 xl:col-span-1">
               <FieldLabel>Distribution</FieldLabel>

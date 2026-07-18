@@ -374,52 +374,6 @@ public class VerificationCmd extends InteractionModel implements CommandI {
     }
   }
 
-  private void applyTeam(InteractionHook hook, Guild server, Member member, String email) {
-    // Obtain the team that the user has associated to the email
-    Optional<TeamDTO> team = service.getMemberTeam(email, server.getIdLong());
-
-    if (team.isEmpty()) {
-      hook.sendMessage("No se pudo otorgar el equipo, por favor notifique a un Bot developer")
-          .setEphemeral(true)
-          .queue();
-      Logger.instance()
-          .logFile(LogFeedback.ERROR, "Failed to get team role for: %s", member.getEffectiveName());
-      return;
-    }
-
-    Role role = server.getRoleById(team.get().getTeamRole().getRoleid());
-
-    try {
-      server
-          .addRoleToMember(member, role)
-          .queue(
-              success -> Logger.instance()
-                  .logFile(
-                      LogFeedback.SUCCESS,
-                      "Given Role [%s] to [%s]",
-                      role.getName(),
-                      member.getEffectiveName()),
-              error -> Logger.instance()
-                  .logFile(
-                      LogFeedback.ERROR,
-                      "Failed giving Role [%s] to [%s]",
-                      role.getName(),
-                      member.getEffectiveName()));
-
-      delayInteractions(2000); // two seconds
-    } catch (HierarchyException he) {
-      hook.sendMessage("No se pudo otorgar los roles, por favor notifique a un Bot developer")
-          .setEphemeral(true)
-          .queue();
-      Logger.instance()
-          .logFile(
-              LogFeedback.WARNING,
-              "Failed to add role: %s to member %s",
-              he.getMessage(),
-              member.getEffectiveName());
-    }
-  }
-
   private void applyNickname(
       InteractionHook hook, Guild server, Member member, MemberDTO memberDTO) {
     String nickname = memberDTO.getFirstname() + " " + memberDTO.getInitial() + " " + memberDTO.getLastname();

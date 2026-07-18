@@ -33,7 +33,6 @@ interface TeamGroupsGridProps {
   teams: TeamGroup[];
   roles: BotRoleDto[];
   existingTeams: BotTeamDto[];
-  isEO: boolean;
   unassigned: Student[];
   studentsById: Map<number, Student>;
   editMode: boolean;
@@ -53,7 +52,6 @@ export function TeamGroupsGrid({
   teams,
   roles,
   existingTeams,
-  isEO,
   unassigned,
   studentsById,
   editMode,
@@ -73,7 +71,7 @@ export function TeamGroupsGrid({
       <CardHeader>
         <CardTitle>Teams</CardTitle>
         <CardDescription>
-          Configure each team’s server role, then turn on editing to move students between teams.
+          Select roles for each uploaded group, then turn on editing to move students between teams.
         </CardDescription>
         <CardAction className="flex items-center gap-2">
           <Button
@@ -110,7 +108,7 @@ export function TeamGroupsGrid({
                       >
                         <span
                           className="size-2 shrink-0 rounded-full"
-                          style={{ backgroundColor: team.color }}
+                          style={{ backgroundColor: "#5865f2" }}
                         />
                         {team.name}
                       </DropdownMenuItem>
@@ -136,7 +134,6 @@ export function TeamGroupsGrid({
               )}
               otherTeams={teams.filter((other) => other.id !== team.id)}
               editMode={editMode}
-              isEO={isEO}
               onRename={onRename}
               roles={roles}
               existingTeams={existingTeams}

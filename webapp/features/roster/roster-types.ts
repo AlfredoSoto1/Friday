@@ -1,7 +1,5 @@
 import type { BotRoleDto, BotTeamDto } from "@/server/entities/bot";
 
-export type StudentProgram = "INEL" | "ICOM" | "INSO" | "CIIC";
-
 export interface Student {
   id: number;
   name: string;
@@ -11,7 +9,6 @@ export interface Student {
   initial: string;
   personalEmail: string;
   institutionalEmail: string;
-  program: StudentProgram | null;
 }
 
 export interface RosterFile {
@@ -27,7 +24,6 @@ export type DistributionMode = "balanced" | "randomized";
 export interface TeamGroup {
   id: number;
   name: string;
-  color: string;
   roleIds: number[];
   existingTeamId: number | null;
   appendMembers: boolean;
@@ -41,7 +37,6 @@ export interface TeamCardProps {
   otherTeams: TeamGroup[];
   roles: BotRoleDto[];
   existingTeams: BotTeamDto[];
-  isEO: boolean;
   editMode: boolean;
   onRename: (teamId: number, name: string) => void;
   onRolesChange: (teamId: number, roleIds: number[]) => void;

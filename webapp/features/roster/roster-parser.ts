@@ -1,5 +1,3 @@
-import { readSheet } from "read-excel-file/universal";
-
 import type { Student } from "@/features/roster/roster-types";
 
 export class RosterParseError extends Error {}
@@ -10,43 +8,31 @@ type RosterColumn =
   | "secondLastName"
   | "initial"
   | "personalEmail"
-  | "institutionalEmail"
-  | "program";
+  | "institutionalEmail";
 
 type ColumnMap = Partial<Record<RosterColumn, number>>;
 
 const HEADER_ALIASES: Record<string, RosterColumn> = {
   email: "institutionalEmail",
-  firstname: "firstName",
-  "first name": "firstName",
   first_name: "firstName",
   name: "firstName",
-  firstlastname: "firstLastName",
-  "first lastname": "firstLastName",
-  "first last name": "firstLastName",
   first_last_name: "firstLastName",
   "father last name": "firstLastName",
-  secondlastname: "secondLastName",
-  "second lastname": "secondLastName",
-  "second last name": "secondLastName",
   second_last_name: "secondLastName",
   "mother last name": "secondLastName",
   initial: "initial",
   "personal email": "personalEmail",
-  personalemail: "personalEmail",
   "institutional email": "institutionalEmail",
-  institutionalemail: "institutionalEmail",
   "institutional account": "institutionalEmail",
-  program: "program",
 };
 
-const EO_HEADER_ALIASES: Record<string, RosterColumn> = {
-  email: "institutionalEmail",
-  first_name: "firstName",
-  first_last_name: "firstLastName",
-  second_last_name: "secondLastName",
-  initial: "initial",
-  program: "program",
+const LEGACY_PREPA_COLUMNS: ColumnMap = {
+  firstLastName: 0,
+  secondLastName: 1,
+  firstName: 2,
+  initial: 3,
+  personalEmail: 4,
+  institutionalEmail: 5,
 };
 
 const REQUIRED_COLUMNS: RosterColumn[] = [
@@ -56,39 +42,76 @@ const REQUIRED_COLUMNS: RosterColumn[] = [
   "initial",
 ];
 
-function cellToText(cell: unknown): string {
-  if (cell === null || cell === undefined) {
-    return "";
+function normalizeHeader(value: string): string {
+  return value.replace(/^\uFEFF/, "").trim().toLowerCase();
+}
+
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+
+    if (character === '"') {
+      if (inQuotes && text[index + 1] === '"') {
+        field += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (character === "," && !inQuotes) {
+      row.push(field.trim());
+      field = "";
+    } else if ((character === "\n" || character === "\r") && !inQuotes) {
+      if (character === "\r" && text[index + 1] === "\n") {
+        index += 1;
+      }
+      row.push(field.trim());
+      if (row.some(Boolean)) rows.push(row);
+      row = [];
+      field = "";
+    } else {
+      field += character;
+    }
   }
 
-  return String(cell).trim();
+  if (inQuotes) {
+    throw new RosterParseError("The CSV contains an unterminated quoted field.");
+  }
+
+  row.push(field.trim());
+  if (row.some(Boolean)) rows.push(row);
+  return rows;
 }
 
-function detectColumns(
-  row: string[],
-  aliases: Record<string, RosterColumn> = HEADER_ALIASES
-): ColumnMap {
-  return row.reduce<ColumnMap>((columns, cell, index) => {
-    const key = aliases[cell.toLowerCase().trim()];
-    return key ? { ...columns, [key]: index } : columns;
+function detectColumns(header: string[]): ColumnMap | null {
+  const normalized = header.map(normalizeHeader);
+  const isLegacyPrepaLayout = normalized[0] === "nombre" &&
+    normalized[4] === "email" &&
+    normalized[5] === "inst email";
+
+  if (isLegacyPrepaLayout) return LEGACY_PREPA_COLUMNS;
+
+  const columns = normalized.reduce<ColumnMap>((detected, cell, index) => {
+    const column = HEADER_ALIASES[cell];
+    return column ? { ...detected, [column]: index } : detected;
   }, {});
-}
+  const hasNames = REQUIRED_COLUMNS.every((column) => (
+    columns[column] !== undefined
+  ));
+  const hasEmail = columns.personalEmail !== undefined ||
+    columns.institutionalEmail !== undefined;
 
-function parseProgram(value: string): Student["program"] | null {
-  const program = value.trim().toUpperCase();
-
-  if (program.startsWith("0502") || program === "INEL") return "INEL";
-  if (program.startsWith("0507") || program === "ICOM") return "ICOM";
-  if (program.includes("SOFTWARE") || program === "INSO") return "INSO";
-  if (program.includes("COMPUTER SCIENCE") || program === "CIIC") return "CIIC";
-  return null;
+  return hasNames && hasEmail ? columns : null;
 }
 
 function buildStudent(
   id: number,
   row: string[],
-  columns: ColumnMap,
-  isEO: boolean
+  columns: ColumnMap
 ): Student | null {
   function value(column: RosterColumn): string {
     const index = columns[column];
@@ -101,7 +124,6 @@ function buildStudent(
   const initial = value("initial");
   const personalEmail = value("personalEmail");
   const institutionalEmail = value("institutionalEmail");
-  const program = isEO ? parseProgram(value("program")) : null;
 
   if (!firstName || !firstLastName ||
       (!personalEmail && !institutionalEmail)) {
@@ -119,74 +141,28 @@ function buildStudent(
     initial,
     personalEmail,
     institutionalEmail,
-    program,
   };
 }
 
-function parseDelimitedText(text: string): string[][] {
-  return text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .map((line) => line.split(",").map((cell) => cell.trim()));
-}
-
-async function readRows(file: File): Promise<string[][]> {
-  if (file.name.toLowerCase().endsWith(".xlsx")) {
-    const sheet = await readSheet(file);
-    return sheet.map((row) => row.map(cellToText));
+export async function parseRosterFile(file: File): Promise<Student[]> {
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    throw new RosterParseError("Upload a CSV file.");
   }
 
-  return parseDelimitedText(await file.text());
-}
-
-export async function parseRosterFile(
-  file: File,
-  isEO = false
-): Promise<Student[]> {
-  const rows = await readRows(file);
-
+  const rows = parseCsv(await file.text());
   if (rows.length < 2) {
     throw new RosterParseError("The roster must include headers and students.");
   }
 
-  const detectedColumns = detectColumns(
-    rows[0],
-    isEO ? EO_HEADER_ALIASES : HEADER_ALIASES
-  );
-  const columns: ColumnMap = !isEO && rows[0][0]?.toUpperCase() === "NOMBRE"
-    ? {
-        firstLastName: 0,
-        secondLastName: 1,
-        firstName: 2,
-        initial: 3,
-        personalEmail: 4,
-        institutionalEmail: 5,
-        program: 6,
-      }
-    : detectedColumns;
-  const requiredColumns: RosterColumn[] = isEO
-    ? [...REQUIRED_COLUMNS, "program"]
-    : REQUIRED_COLUMNS;
-  const missing = requiredColumns.filter((column) => (
-    columns[column] === undefined
-  ));
-
-  if (missing.length ||
-      (columns.personalEmail === undefined &&
-       columns.institutionalEmail === undefined)) {
+  const columns = detectColumns(rows[0]);
+  if (!columns) {
     throw new RosterParseError(
-      `Missing required columns: ${missing.join(", ") || "email"}.`
+      "Use the Lista_EO.csv or LISTA DE PREPAS CSV column layout."
     );
   }
 
   const students = rows.slice(1)
-    .map((row, index) => buildStudent(
-      index + 1,
-      row,
-      columns,
-      isEO
-    ))
+    .map((row, index) => buildStudent(index + 1, row, columns))
     .filter((student): student is Student => student !== null);
 
   if (!students.length) {

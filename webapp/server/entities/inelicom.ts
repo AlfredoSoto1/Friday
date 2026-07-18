@@ -48,7 +48,6 @@ export interface GuildRosterStudentRequest {
   firstLastName: string;
   secondLastName: string;
   initial: string;
-  program: "INEL" | "ICOM" | "INSO" | "CIIC";
 }
 
 export interface GuildRosterTeamRequest {

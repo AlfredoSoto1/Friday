@@ -48,7 +48,6 @@ CREATE TABLE discord.users (
   first_last_name  VARCHAR(255),
   second_last_name VARCHAR(255),
   initial          VARCHAR(10),
-  program          VARCHAR(4),
   created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -69,12 +68,6 @@ CREATE TABLE discord.servers_users (
   FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE
 );
 
-CREATE TABLE discord.permissions (
-  permission_id SERIAL       PRIMARY KEY,
-  name          VARCHAR(255) NOT NULL UNIQUE,
-  created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE discord.roles (
   role_id         SERIAL       PRIMARY KEY,
   server_id       INT          NOT NULL,
@@ -93,16 +86,6 @@ CREATE TABLE discord.roles (
   FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE
 );
 
-CREATE TABLE discord.role_permissions (
-  role_id       INT NOT NULL,
-  permission_id INT NOT NULL,
-  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  PRIMARY KEY (role_id, permission_id),
-  FOREIGN KEY (role_id) REFERENCES discord.roles(role_id) ON DELETE CASCADE,
-  FOREIGN KEY (permission_id) REFERENCES discord.permissions(permission_id) ON DELETE CASCADE
-);
-
 CREATE TABLE discord.user_roles (
   su_id       INT NOT NULL,
   role_id     INT NOT NULL,
@@ -116,25 +99,13 @@ CREATE TABLE discord.user_roles (
 CREATE TABLE discord.teams (
   team_id    SERIAL       PRIMARY KEY,
   server_id  INT          NOT NULL,
-  role_id    INT,
   position   INT          NOT NULL,
   name       VARCHAR(255) NOT NULL,
   created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
 
   UNIQUE (server_id, position),
-  FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE,
-  FOREIGN KEY (role_id) REFERENCES discord.roles(role_id) ON DELETE SET NULL
-);
-
-CREATE TABLE discord.team_roles (
-  team_id    INT NOT NULL,
-  role_id    INT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  PRIMARY KEY (team_id, role_id),
-  FOREIGN KEY (team_id) REFERENCES discord.teams(team_id) ON DELETE CASCADE,
-  FOREIGN KEY (role_id) REFERENCES discord.roles(role_id) ON DELETE CASCADE
+  FOREIGN KEY (server_id) REFERENCES discord.servers(server_id) ON DELETE CASCADE
 );
 
 CREATE TABLE discord.user_teams (
